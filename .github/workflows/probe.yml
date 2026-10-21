@@ -1,5 +1,6 @@
 name: probe
-# Prints published loader and tool versions (and, later, API signatures) to the job log.
+# Prints published loader and tool versions, and game API signatures per
+# version (tools/probe/api.txt), to the job logs.
 on:
   push:
     paths:
@@ -13,3 +14,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: bash tools/probe/versions.sh
+
+  api:
+    name: api ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [1.18.2-fabric, 1.19.2-fabric, 1.19.4-fabric, 1.20.1-fabric, 1.20.4-fabric, 1.20.6-fabric, 1.21.1-fabric, 1.21.3-fabric, 1.21.4-fabric, 1.21.5-fabric, 1.21.8-fabric, 1.21.10-fabric, 1.21.11-fabric]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew -q "-Psu.targets=${{ matrix.target }}" ":${{ matrix.target }}:apiProbe" 2>&1 | grep -v "^Architectury Loom" > api.txt; cat api.txt

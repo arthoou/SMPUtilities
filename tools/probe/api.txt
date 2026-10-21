@@ -1,0 +1,41 @@
+# class | regex of members to print (javap -p output lines)
+net.minecraft.server.level.ServerPlayer | teleportTo|serverLevel\(|MinecraftServer server|getServer|latency|getLanguage|clientInformation|sendSystemMessage|sendMessage|getTabListDisplayName|refreshTabListName|getChatVisibility|playNotifySound|setGameMode|level\(\)
+net.minecraft.world.entity.Entity | Level level\b|level\(\)|getLevel|onGround|isOnGround|getServer|changeDimension|teleport\(|moveTo|snapTo|startRiding|saveWithoutId|addAdditionalSaveData|getPersistentData
+net.minecraft.world.entity.player.Player | getDisplayName|getInventory|getGameProfile|nameAndId|addAdditionalSaveData|readAdditionalSaveData|drop\(|displayClientMessage
+net.minecraft.world.entity.player.Inventory | items|armor|offhand|getItem|setItem|getNonEquipmentItems|equipment|getContainerSize|save\(|load\(
+net.minecraft.commands.CommandSourceStack | getPlayer|sendSuccess|sendSystemMessage|sendFailure|hasPermission|permissions|getEntity
+net.minecraft.server.MinecraftServer | getProfilePermissions|getProfileCache|services|getAverageTickTime|tickRateManager|getTickTime|sendSystemMessage|sendMessage|registryAccess|getFixerUpper|overworld|getWorldPath
+net.minecraft.server.players.PlayerList | broadcastSystemMessage|broadcastMessage|getBans|getOps|isOp|getPlayerByName|placeNewPlayer
+net.minecraft.server.players.UserBanListEntry | <init>
+net.minecraft.server.players.UserBanList | isBanned|remove|add
+net.minecraft.server.players.StoredUserList | isBanned|remove|add|get\(
+net.minecraft.nbt.CompoundTag | getInt|getString|getList|getCompound|getAllKeys|keySet|contains|getLong|getFloat|getDouble|getByte|getBoolean|getIntOr|getStringOr|getListOrEmpty|getCompoundOrEmpty
+net.minecraft.nbt.ListTag | getCompound|getString|getDouble|getFloat|getInt|getCompoundOrEmpty
+net.minecraft.nbt.NbtIo | readCompressed|writeCompressed
+net.minecraft.nbt.NbtUtils | getDataVersion|addCurrentDataVersion|addDataVersion|update
+net.minecraft.util.datafix.DataFixTypes | update|updateToCurrentVersion
+net.minecraft.world.item.ItemStack | save\(|parse|of\(|CODEC|OPTIONAL_CODEC|setHoverName|set\(|matches|isSameItemSameTags|isSameItemSameComponents
+net.minecraft.world.effect.MobEffectInstance | save|load|CODEC|<init>
+net.minecraft.world.food.FoodData | setFoodLevel|setSaturation|setExhaustion|getExhaustionLevel|getSaturationLevel|addAdditionalSaveData|readAdditionalSaveData
+net.minecraft.SharedConstants | getCurrentVersion
+net.minecraft.WorldVersion | getDataVersion|dataVersion|getWorldVersion
+net.minecraft.server.level.ServerLevel | sendParticles|getSharedSpawnPos|getSharedSpawnAngle|getRespawnData|getEntity\(|getMinBuildHeight|getMinY|hasChunk
+net.minecraft.world.level.Level | getMinBuildHeight|getMinY|hasChunk|getSharedSpawnPos
+net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase | isSolid|getMaterial|blocksMotion
+net.minecraft.core.Registry | get\(|getValue|getOptional|wrapAsHolder|keySet|getKey
+net.minecraft.sounds.SoundEvent | createVariableRangeEvent|<init>
+net.minecraft.network.protocol.game.ClientboundSoundPacket | <init>
+net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket | createPlayerInitializing|<init>
+net.minecraft.world.entity.EntityType | create\(
+net.minecraft.world.entity.Mob | setTarget
+net.minecraft.world.entity.item.ItemEntity | playerTouch
+net.minecraft.world.level.portal.PortalShape | createPortalBlocks|findEmptyPortalShape
+net.minecraft.server.level.ChunkMap$TrackedEntity | updatePlayer|removePlayer|seenBy|entity
+net.minecraft.server.network.ServerGamePacketListenerImpl | latency|getConnection|teleport\(|handleChat|send\(
+net.minecraft.network.Connection | channel
+net.minecraft.world.item.enchantment.EnchantmentHelper | hasBindingCurse|has\(
+net.minecraft.world.entity.Display$TextDisplay | <init>
+net.minecraft.server.level.ServerPlayerGameMode | getGameModeForPlayer
+net.minecraft.world.level.GameType | getName|byName|getSerializedName
+net.minecraft.world.scores.PlayerTeam | formatNameForTeam
+com.mojang.authlib.GameProfile | getName|name\(|getId|id\(
