@@ -1,0 +1,7 @@
+voice.status.unavailable	Voice chat not installed	Chat de voz não instalado
+voice.status.not_installed	No voice chat mod	Sem mod de voz
+voice.status.disconnected	Disconnected	Desconectado
+voice.status.disabled	Connected (voice off)	Conectado (voz desligada)
+voice.status.connected	Connected	Conectado
+voice.deafened	Voice chat audio for %s is now muted.	O áudio do chat de voz de %s agora está silenciado.
+voice.undeafened	Voice chat audio for %s is back on.	O áudio do chat de voz de %s voltou.

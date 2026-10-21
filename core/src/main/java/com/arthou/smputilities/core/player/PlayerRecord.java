@@ -41,8 +41,13 @@ public final class PlayerRecord {
     public Location logout;
 
     public boolean vanished;
+    /** Per-player overrides from staff (DUSMP /silentjoin and /silentquit). */
+    public boolean silentJoin;
+    public boolean silentQuit;
     public boolean realNames;
     public boolean socialSpy;
+    /** DUSMP /silenthear: the player hears nobody on voice chat. */
+    public boolean voiceDeafened;
 
     public int ttsMode;
     public String ttsLanguage = "";

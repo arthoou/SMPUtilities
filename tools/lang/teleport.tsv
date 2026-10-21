@@ -1,0 +1,50 @@
+teleport.world_unavailable	That world is not available.	Esse mundo não está disponível.
+teleport.cooldown	You can use that again in %s.	Você poderá usar isso novamente em %s.
+teleport.blocked_here	You can't use that command in this dimension.	Você não pode usar esse comando nesta dimensão.
+teleport.warmup	Teleporting in %s seconds...	Teleportando em %s segundos...
+teleport.warmup_still	Teleporting in %s seconds. Don't move!	Teleportando em %s segundos. Não se mexa!
+teleport.countdown	Teleporting in %s...	Teleportando em %s...
+teleport.cancelled_move	Teleport cancelled because you moved.	Teleporte cancelado porque você se moveu.
+teleport.cancelled_damage	Teleport cancelled because you took damage.	Teleporte cancelado porque você levou dano.
+teleport.target_gone	The destination is no longer available.	O destino não está mais disponível.
+tpa.self	You can't teleport to yourself.	Você não pode se teleportar para si mesmo.
+tpa.ignored	This player is not accepting your requests.	Este jogador não está aceitando seus pedidos.
+tpa.already_sent	You already sent a request to this player.	Você já enviou um pedido para este jogador.
+tpa.sent	Teleport request sent to %s. It expires in %s seconds.	Pedido de teleporte enviado para %s. Expira em %s segundos.
+tpa.sent_here	Request sent: %s will be teleported to you if they accept (%s s).	Pedido enviado: %s será teleportado até você se aceitar (%s s).
+tpa.received	%s wants to teleport to you.	%s quer se teleportar até você.
+tpa.received_here	%s wants you to teleport to them.	%s quer que você se teleporte até ele(a).
+tpa.accept_button	ACCEPT	ACEITAR
+tpa.deny_button	DENY	RECUSAR
+tpa.accept_hover	Click to accept	Clique para aceitar
+tpa.deny_hover	Click to deny	Clique para recusar
+tpa.none	You have no pending teleport requests.	Você não tem pedidos de teleporte pendentes.
+tpa.requester_offline	The player who sent the request is offline.	O jogador que enviou o pedido está offline.
+tpa.accepted	Request accepted.	Pedido aceito.
+tpa.accepted_by	%s accepted your request.	%s aceitou seu pedido.
+tpa.denied	Request denied.	Pedido recusado.
+tpa.denied_by	%s denied your request.	%s recusou seu pedido.
+home.none	You have no homes. Use /sethome [name].	Você não tem homes. Use /sethome [nome].
+home.choose	You have several homes; use /home <name>.	Você tem várias homes; use /home <nome>.
+home.not_found	Home not found: %s	Home não encontrada: %s
+home.teleported	Welcome home (%s).	Bem-vindo à home (%s).
+home.list_header	Homes (%s/%s):	Homes (%s/%s):
+home.invalid_name	Home names use 1-24 letters, digits, - or _.	Nomes de home usam 1-24 letras, números, - ou _.
+home.limit	You reached your home limit (%s).	Você atingiu seu limite de homes (%s).
+home.set	Home %s set.	Home %s definida.
+home.deleted	Home %s deleted.	Home %s excluída.
+home.default_set	Default home set to %s.	Home padrão definida como %s.
+spawn.teleported	Teleported to spawn.	Teleportado para o spawn.
+spawn.set	Spawn set to your position.	Spawn definido na sua posição.
+back.none	There is no previous location to return to.	Não há local anterior para voltar.
+back.teleported	Back to your previous location.	De volta ao local anterior.
+warp.not_found	Warp not found: %s	Warp não encontrada: %s
+warp.teleported	Teleported to warp %s.	Teleportado para a warp %s.
+warp.none	There are no warps.	Não há warps.
+warp.list_header	Warps:	Warps:
+warp.set	Warp %s set.	Warp %s definida.
+warp.deleted	Warp %s deleted.	Warp %s excluída.
+rtp.not_here	Random teleport doesn't work in this dimension.	O teleporte aleatório não funciona nesta dimensão.
+rtp.teleported	Teleported to a random location.	Teleportado para um local aleatório.
+tpall.done	Teleported %s players to you.	%s jogadores teleportados até você.
+tplogout.none	No logout location is known for that player.	Não há local de saída conhecido para esse jogador.

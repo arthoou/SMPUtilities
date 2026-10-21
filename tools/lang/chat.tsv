@@ -1,0 +1,29 @@
+chat.muted.permanent	You are muted. Reason: %s	Você está silenciado. Motivo: %s
+chat.muted.temporary	You are muted (%2$s left). Reason: %1$s	Você está silenciado (faltam %2$s). Motivo: %1$s
+chat.locked	The global chat is locked right now.	O chat global está bloqueado no momento.
+chat.cooldown	Wait %s before sending another message.	Aguarde %s antes de enviar outra mensagem.
+chat.duplicate	Please don't repeat the same message.	Não repita a mesma mensagem.
+chat.spam	You are sending messages too fast. Wait %s.	Você está enviando mensagens rápido demais. Aguarde %s.
+chat.lock.on	Global chat locked by %s.	Chat global bloqueado por %s.
+chat.lock.off	Global chat unlocked by %s.	Chat global desbloqueado por %s.
+chat.cleared	The chat was cleared by staff.	O chat foi limpo pela staff.
+chat.setting_changed	Chat setting %s is now %s.	A configuração de chat %s agora é %s.
+vanish.presence_tag	[vanished]	[invisível]
+msg.disabled	Private messages are disabled right now.	As mensagens privadas estão desativadas no momento.
+msg.no_reply	There is nobody to reply to.	Não há ninguém para responder.
+msg.self	You can't message yourself.	Você não pode enviar mensagem para si mesmo.
+msg.ignored	This player is not accepting your messages.	Este jogador não está aceitando suas mensagens.
+player.not_found	Player not found: %s	Jogador não encontrado: %s
+player.not_found_online	Player not online: %s	Jogador não está online: %s
+ignore.self	You can't ignore yourself.	Você não pode ignorar a si mesmo.
+ignore.added	You are now ignoring %s.	Agora você está ignorando %s.
+ignore.removed	You stopped ignoring %s.	Você deixou de ignorar %s.
+ignore.empty	You are not ignoring anyone.	Você não está ignorando ninguém.
+ignore.list	Ignored: %s	Ignorados: %s
+mentions.enabled	Mention sounds enabled.	Sons de menção ativados.
+mentions.disabled	Mention sounds disabled.	Sons de menção desativados.
+mentions.status_on	Mention sounds are on. Use /su mentions off|sound <id>|volume <0-1>|reset.	Os sons de menção estão ativados. Use /su mentions off|sound <id>|volume <0-1>|reset.
+mentions.status_off	Mention sounds are off. Use /su mentions on to enable them.	Os sons de menção estão desativados. Use /su mentions on para ativá-los.
+mentions.sound_set	Mention sound set to %s.	Som de menção definido como %s.
+mentions.volume_set	Mention volume set to %s.	Volume de menção definido como %s.
+mentions.reset	Mention settings reset.	Configurações de menção redefinidas.

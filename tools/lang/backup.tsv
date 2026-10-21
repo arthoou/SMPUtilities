@@ -1,0 +1,56 @@
+backup.type.join	Join	Entrada
+backup.type.quit	Quit	Saída
+backup.type.death	Death	Morte
+backup.type.dimension_change	World change	Troca de mundo
+backup.type.manual	Manual backup	Backup manual
+backup.type.periodic	Automatic	Automático
+backup.type.pre_restore	Before restore	Antes de restaurar
+backup.type.staff_edit	Staff edit	Edição da staff
+backup.type.profile_switch	Profile switch	Troca de perfil
+backup.total	%s backups	%s backups
+backup.title.categories	Backups · %s	Backups · %s
+backup.title.detail	Backup %s · %s	Backup %s · %s
+backup.title.ender	Ender Chest %s · %s	Baú do Fim %s · %s
+backup.title.transfer	Transfer to player	Transferir para jogador
+backup.lore.id	ID: %s	ID: %s
+backup.lore.detail	Detail: %s	Detalhe: %s
+backup.lore.by	By: %s	Por: %s
+backup.lore.click	Click to preview	Clique para visualizar
+backup.button.full	Restore full backup	Restaurar backup completo
+backup.button.full_lore	Inventory, ender chest, XP, health, hunger, effects and mod slots	Inventário, baú do fim, XP, vida, fome, efeitos e slots de mods
+backup.button.inventory	Restore inventory only	Restaurar só o inventário
+backup.button.ender	Restore ender chest only	Restaurar só o baú do fim
+backup.button.teleport	Teleport to backup location	Teleportar para o local do backup
+backup.button.show_inventory	Show inventory	Mostrar inventário
+backup.button.show_ender	Show ender chest	Mostrar baú do fim
+backup.button.curios	Restore Curios	Restaurar Curios
+backup.button.cosmetic	Restore Cosmetic Armor	Restaurar Armadura Cosmética
+backup.button.delete	Delete this backup	Excluir este backup
+backup.button.transfer	Transfer to another player	Transferir para outro jogador
+backup.confirm.full	Replace the current state of %s with this backup? A backup of the current state is made first.	Substituir o estado atual de %s por este backup? Um backup do estado atual é feito antes.
+backup.confirm.inventory	Replace the inventory of %s with this backup?	Substituir o inventário de %s por este backup?
+backup.confirm.ender	Replace the ender chest of %s with this backup?	Substituir o baú do fim de %s por este backup?
+backup.confirm.compat	Replace the mod slots of %s with this backup?	Substituir os slots de mods de %s por este backup?
+backup.confirm.delete	Delete this backup permanently?	Excluir este backup permanentemente?
+backup.confirm.transfer	Give backup %s to %s? Their inventory and ender chest are replaced.	Dar o backup %s para %s? O inventário e o baú do fim serão substituídos.
+backup.restored	Backup %s restored for %s.	Backup %s restaurado para %s.
+backup.restore_failed	The backup could not be restored.	Não foi possível restaurar o backup.
+backup.restored_you	Your inventory was restored from a backup by staff.	Seu inventário foi restaurado de um backup pela staff.
+backup.transferred	Backup %s given to %s.	Backup %s entregue para %s.
+backup.transferred_you	Staff replaced your inventory with a backup.	A staff substituiu seu inventário por um backup.
+backup.deleted	Backup %s deleted.	Backup %s excluído.
+backup.not_found	Backup not found: %s	Backup não encontrado: %s
+backup.created	Backup %s created for %s.	Backup %s criado para %s.
+backup.none	%s has no backups.	%s não tem backups.
+backup.list.header	Backups of %s (newest first):	Backups de %s (mais recentes primeiro):
+backup.list.line	#%s  %s  %s  %s	#%s  %s  %s  %s
+gui.confirm	Confirm	Confirmar
+gui.cancel	Cancel	Cancelar
+gui.confirm_title	Are you sure?	Tem certeza?
+gui.back	Back	Voltar
+gui.previous	Previous	Anterior
+gui.next	Next	Próxima
+gui.page	Page %s of %s	Página %s de %s
+error.no_permission	You don't have permission for that.	Você não tem permissão para isso.
+error.feature_disabled	That feature is disabled on this server.	Esse recurso está desativado neste servidor.
+error.players_only	Only players can use this.	Apenas jogadores podem usar isso.

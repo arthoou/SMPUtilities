@@ -1,0 +1,310 @@
+key.categories.smputilities	SMPutilities	SMPutilities
+key.smputilities.panel	Open staff panel	Abrir painel da staff
+hud.smputilities.vanished	VANISHED	INVISÍVEL
+gui.smputilities.cancel	Cancel	Cancelar
+gui.smputilities.confirm	Confirm	Confirmar
+gui.smputilities.confirm_danger	Yes, do it	Sim, fazer
+modsync.smputilities.title	Mod sync	Sincronização de mods
+modsync.smputilities.subtitle	This server offers files for your mods folder.	Este servidor oferece arquivos para a sua pasta de mods.
+modsync.smputilities.update	Update	Atualizar
+modsync.smputilities.later	Later	Depois
+modsync.smputilities.never	Don't ask	Não perguntar
+modsync.smputilities.never_tip	Stop showing this screen automatically (change it in config/smputilities/client.json).	Parar de mostrar esta tela automaticamente (altere em config/smputilities/client.json).
+modsync.smputilities.close	Close	Fechar
+modsync.smputilities.cancel_download	Cancel	Cancelar
+modsync.smputilities.downloading	Downloading %s of %s: %s	Baixando %s de %s: %s
+modsync.smputilities.up_to_date	Your mods are up to date.	Seus mods estão atualizados.
+modsync.smputilities.restart_note	+ download · - remove (moved to a backup folder) · ! refused for safety	+ baixar · - remover (movido para uma pasta de backup) · ! recusado por segurança
+modsync.smputilities.cancelled	Cancelled. Files already finished were kept.	Cancelado. Os arquivos já concluídos foram mantidos.
+modsync.smputilities.installed	%s file(s) installed, %s removed.	%s arquivo(s) instalado(s), %s removido(s).
+modsync.smputilities.restart_required	Restart Minecraft to load the changes.	Reinicie o Minecraft para carregar as mudanças.
+modsync.smputilities.server_host	server	servidor
+panel.smputilities.title	Staff panel	Painel da staff
+panel.smputilities.subtitle	Staff panel	Painel da staff
+panel.smputilities.no_permission	You don't have permission for this category.	Você não tem permissão para esta categoria.
+panel.smputilities.vanish_on	Vanish	Vanish
+panel.smputilities.vanish_off	Vanished	Invisível
+panel.smputilities.realnames_on	Real names	Nomes reais
+panel.smputilities.realnames_off	Real names on	Nomes reais ativos
+panel.smputilities.tab.dashboard	Dashboard	Painel
+panel.smputilities.tab.dashboard.hint	Server overview and quick controls	Visão geral do servidor e controles rápidos
+panel.smputilities.tab.players	Players	Jogadores
+panel.smputilities.tab.players.hint	Search players and manage them	Pesquise e gerencie jogadores
+panel.smputilities.tab.chat	Chat	Chat
+panel.smputilities.tab.chat.hint	Chat settings and moderation	Configurações e moderação do chat
+panel.smputilities.tab.inventories	Inventories	Inventários
+panel.smputilities.tab.inventories.hint	Inventories, backups and profiles	Inventários, backups e perfis
+panel.smputilities.tab.punishments	Punishments	Punições
+panel.smputilities.tab.punishments.hint	Bans, mutes, history and logs	Banimentos, silenciamentos, histórico e registros
+panel.smputilities.tab.world	World	Mundo
+panel.smputilities.tab.world.hint	Dimensions and portals	Dimensões e portais
+panel.smputilities.tab.utilities	Utilities	Utilidades
+panel.smputilities.tab.utilities.hint	Pranks, announcements, warps and mod sync	Brincadeiras, anúncios, warps e sincronização de mods
+panel.smputilities.tab.settings	Settings	Configurações
+panel.smputilities.tab.settings.hint	Every SMPutilities setting, applied live	Todas as configurações do SMPutilities, aplicadas na hora
+panel.smputilities.loading	Loading…	Carregando…
+panel.smputilities.empty	Nothing here.	Nada aqui.
+panel.smputilities.search	Search…	Pesquisar…
+panel.smputilities.search_settings	Search settings…	Pesquisar configurações…
+panel.smputilities.say_hint	Server announcement…	Anúncio do servidor…
+panel.smputilities.yes	yes	sim
+panel.smputilities.no	no	não
+panel.smputilities.none	none	nenhum
+panel.smputilities.permanent	permanent	permanente
+panel.smputilities.needs_online	The player must be online.	O jogador precisa estar online.
+panel.smputilities.status.online	Online	Online
+panel.smputilities.status.offline	Offline	Offline
+panel.smputilities.card.players	Players	Jogadores
+panel.smputilities.card.tps	TPS	TPS
+panel.smputilities.card.mspt	Tick time	Tempo de tick
+panel.smputilities.card.memory	Memory	Memória
+panel.smputilities.card.uptime	Uptime	Tempo ligado
+panel.smputilities.card.bans	Active bans	Banimentos ativos
+panel.smputilities.card.mutes	Active mutes	Silenciados
+panel.smputilities.card.version	Version	Versão
+panel.smputilities.dashboard.footer	%s staff online · %s vanished · voice chat: %s	%s da staff online · %s invisíveis · chat de voz: %s
+panel.smputilities.dashboard.voice_on	available	disponível
+panel.smputilities.dashboard.voice_off	not installed	não instalado
+panel.smputilities.section.quick	Quick controls	Controles rápidos
+panel.smputilities.section.info	Info	Info
+panel.smputilities.section.actions	Actions	Ações
+panel.smputilities.section.notes	Notes	Notas
+panel.smputilities.section.history	History	Histórico
+panel.smputilities.section.chat_options	Chat options	Opções do chat
+panel.smputilities.section.muted	Muted players	Jogadores silenciados
+panel.smputilities.section.inventory_tools	Inventory	Inventário
+panel.smputilities.section.backups	Backups	Backups
+panel.smputilities.section.profiles	Inventory profiles	Perfis de inventário
+panel.smputilities.section.dimensions	Dimensions	Dimensões
+panel.smputilities.section.portal_limits	Portal limits	Limites de portais
+panel.smputilities.section.portals	Registered portals	Portais registrados
+panel.smputilities.section.troll	Pranks	Brincadeiras
+panel.smputilities.section.announcements	Announcements	Anúncios
+panel.smputilities.section.modsync	Mod sync	Sincronização de mods
+panel.smputilities.section.warps	Warps	Warps
+panel.smputilities.toggle.global_chat	Global chat	Chat global
+panel.smputilities.toggle.global_chat.tip	Off: only staff can talk in public chat.	Desligado: só a staff pode falar no chat público.
+panel.smputilities.toggle.custom_format	QSMP chat format	Formato de chat QSMP
+panel.smputilities.toggle.custom_format.tip	Off keeps the vanilla <Name> message format.	Desligado mantém o formato vanilla <Nome> mensagem.
+panel.smputilities.toggle.join_messages	Join messages	Mensagens de entrada
+panel.smputilities.toggle.join_messages.tip	Announce players joining.	Anunciar jogadores entrando.
+panel.smputilities.toggle.quit_messages	Quit messages	Mensagens de saída
+panel.smputilities.toggle.quit_messages.tip	Announce players leaving.	Anunciar jogadores saindo.
+panel.smputilities.toggle.private_messages	Private messages	Mensagens privadas
+panel.smputilities.toggle.private_messages.tip	Off blocks /msg for everyone without bypass.	Desligado bloqueia /msg para todos sem permissão de bypass.
+panel.smputilities.toggle.pm_while_locked	PMs while chat is locked	MPs com chat bloqueado
+panel.smputilities.toggle.role_colors	Staff/admin prefixes	Prefixos de staff/admin
+panel.smputilities.toggle.mentions	Mention sounds	Sons de menção
+panel.smputilities.toggle.spam	Spam protection	Proteção contra spam
+panel.smputilities.toggle.player_colors	Players may use colors	Jogadores podem usar cores
+panel.smputilities.button.clear_chat	Clear chat	Limpar chat
+panel.smputilities.button.say	Announce	Anunciar
+panel.smputilities.button.send	Send	Enviar
+panel.smputilities.button.reload	Reload config	Recarregar config
+panel.smputilities.button.save	Save	Salvar
+panel.smputilities.button.edit	Edit	Editar
+panel.smputilities.button.remove	Remove	Remover
+panel.smputilities.button.delete	Delete	Excluir
+panel.smputilities.button.delete_short	Del	Excluir
+panel.smputilities.button.restore	Restore	Restaurar
+panel.smputilities.button.inv	Inv	Inv
+panel.smputilities.button.ender	Ender	Fim
+panel.smputilities.button.switch	Switch	Trocar
+panel.smputilities.button.revoke	Revoke	Revogar
+panel.smputilities.button.toggle	Toggle	Alternar
+panel.smputilities.button.block	Block	Bloquear
+panel.smputilities.button.open	Open	Liberar
+panel.smputilities.button.set_limit	Limit	Limite
+panel.smputilities.button.unlimited	∞	∞
+panel.smputilities.button.add_limit	Limit another dimension	Limitar outra dimensão
+panel.smputilities.button.formats	Edit formats	Editar formatos
+panel.smputilities.button.cooldown	Message cooldown	Intervalo entre mensagens
+panel.smputilities.button.title_action	"Consequences" title	Título "Consequências"
+panel.smputilities.button.title_death	Death title	Título de morte
+panel.smputilities.button.modsync_rescan	Rescan mod sync files	Reescanear arquivos de mods
+panel.smputilities.button.modsync_open	Open mod sync	Abrir sincronização de mods
+panel.smputilities.confirm.clear_chat	Clear the chat for every player without staff permissions?	Limpar o chat de todos os jogadores sem permissão de staff?
+panel.smputilities.confirm.reload	Reload config/smputilities/server.json now?	Recarregar config/smputilities/server.json agora?
+panel.smputilities.confirm.unban	Unban %s?	Desbanir %s?
+panel.smputilities.confirm.unmute	Unmute %s?	Remover o silenciamento de %s?
+panel.smputilities.confirm.voice_unmute	Unmute %s on voice chat?	Liberar a voz de %s?
+panel.smputilities.confirm.revoke	Revoke the active %s?	Revogar o %s ativo?
+panel.smputilities.confirm.remove_stat	Remove the statistic %s?	Remover a estatística %s?
+panel.smputilities.confirm.delete_backup	Delete backup %s permanently?	Excluir o backup %s permanentemente?
+panel.smputilities.confirm.restore_full	Restore backup %s onto %s? Inventory, ender chest, XP, health, hunger and effects are replaced; the current state is backed up first.	Restaurar o backup %s em %s? Inventário, baú do fim, XP, vida, fome e efeitos são substituídos; o estado atual é salvo antes.
+panel.smputilities.confirm.restore_inventory	Replace the inventory of %2$s with backup %1$s? The current state is backed up first.	Substituir o inventário de %2$s pelo backup %1$s? O estado atual é salvo antes.
+panel.smputilities.confirm.restore_ender	Replace the ender chest of %2$s with backup %1$s? The current state is backed up first.	Substituir o baú do fim de %2$s pelo backup %1$s? O estado atual é salvo antes.
+panel.smputilities.confirm.switch_profile	Switch %s to profile %s?	Trocar %s para o perfil %s?
+panel.smputilities.confirm.delete_profile	Delete profile %s and everything stored in it?	Excluir o perfil %s e tudo guardado nele?
+panel.smputilities.confirm.block_dimension	Block travel to %s? Data and builds there are kept.	Bloquear viagens para %s? Os dados e construções de lá são mantidos.
+panel.smputilities.confirm.open_dimension	Allow travel to %s again?	Liberar viagens para %s novamente?
+panel.smputilities.confirm.remove_portal	Remove portal %s from the registry? The blocks in the world are not touched.	Remover o portal %s do registro? Os blocos no mundo não são alterados.
+panel.smputilities.list.online	On	On
+panel.smputilities.list.offline	All	Todos
+panel.smputilities.list.offline.tip	Show players who are offline too	Mostrar também jogadores offline
+panel.smputilities.list.empty_online	No players online.	Nenhum jogador online.
+panel.smputilities.list.empty_known	No known players yet.	Nenhum jogador conhecido ainda.
+panel.smputilities.players.select	Select a player on the left.	Selecione um jogador à esquerda.
+panel.smputilities.info.dimension	Dimension	Dimensão
+panel.smputilities.info.position	Position	Posição
+panel.smputilities.info.health	Health	Vida
+panel.smputilities.info.food	Hunger	Fome
+panel.smputilities.info.gamemode	Game mode	Modo de jogo
+panel.smputilities.info.ping	Ping	Ping
+panel.smputilities.info.level	Level	Nível
+panel.smputilities.info.profile	Profile	Perfil
+panel.smputilities.info.voice	Voice chat	Chat de voz
+panel.smputilities.info.vanished	Vanished	Invisível
+panel.smputilities.info.deaths	Deaths	Mortes
+panel.smputilities.info.player_kills	Players killed	Jogadores eliminados
+panel.smputilities.info.mob_kills	Mobs killed	Mobs eliminados
+panel.smputilities.info.play_time	Play time	Tempo de jogo
+panel.smputilities.info.first_join	First join	Primeiro acesso
+panel.smputilities.info.last_seen	Last seen	Último acesso
+panel.smputilities.info.ban	Ban	Banimento
+panel.smputilities.info.mute	Mute	Silenciamento
+panel.smputilities.info.voice_mute	Voice mute	Voz silenciada
+panel.smputilities.info.records	Records	Registros
+panel.smputilities.info.warnings	%s warnings	%s advertências
+panel.smputilities.info.backups	Backups	Backups
+panel.smputilities.voice.unavailable	not installed	não instalado
+panel.smputilities.voice.not_installed	no voice mod	sem mod de voz
+panel.smputilities.voice.disconnected	disconnected	desconectado
+panel.smputilities.voice.disabled	connected, voice off	conectado, voz desligada
+panel.smputilities.voice.connected	connected	conectado
+panel.smputilities.action.teleport	Teleport	Teleportar
+panel.smputilities.action.bring	Bring	Puxar
+panel.smputilities.action.spectate	Spectate	Observar
+panel.smputilities.action.inventory	Inventory	Inventário
+panel.smputilities.action.enderchest	Ender chest	Baú do Fim
+panel.smputilities.action.curios	Curios	Curios
+panel.smputilities.action.cosmetic	Cosmetic armor	Armadura cosmética
+panel.smputilities.action.backups	Backups	Backups
+panel.smputilities.action.backup_now	Backup now	Fazer backup
+panel.smputilities.action.vanish	Vanish	Vanish
+panel.smputilities.action.nickname	Nickname	Apelido
+panel.smputilities.action.gamemode	Game mode	Modo de jogo
+panel.smputilities.action.heal	Heal	Curar
+panel.smputilities.action.feed	Feed	Alimentar
+panel.smputilities.action.profiles	Profiles	Perfis
+panel.smputilities.action.warn	Warn	Advertir
+panel.smputilities.action.kick	Kick	Expulsar
+panel.smputilities.action.mute	Mute	Silenciar
+panel.smputilities.action.unmute	Unmute	Dessilenciar
+panel.smputilities.action.voice_mute	Voice mute	Silenciar voz
+panel.smputilities.action.voice_unmute	Voice unmute	Liberar voz
+panel.smputilities.action.deafen	Deafen voice	Ensurdecer voz
+panel.smputilities.action.undeafen	Undeafen voice	Liberar áudio
+panel.smputilities.action.ban	Ban	Banir
+panel.smputilities.action.unban	Unban	Desbanir
+panel.smputilities.action.silent_join	Hide joins	Ocultar entrada
+panel.smputilities.action.silent_join_off	Show joins	Mostrar entrada
+panel.smputilities.action.silent_quit	Hide quits	Ocultar saída
+panel.smputilities.action.silent_quit_off	Show quits	Mostrar saída
+panel.smputilities.action.troll	Pranks	Brincadeiras
+panel.smputilities.nickname.note	Use &-codes for colors (&6Gold, &#ff8800). Leave empty to remove the nickname.	Use códigos & para cores (&6Dourado, &#ff8800). Deixe vazio para remover o apelido.
+panel.smputilities.kick.note	%s will be disconnected and can join again.	%s será desconectado e poderá entrar novamente.
+panel.smputilities.duration.note	Duration for %s: 30m, 2h, 7d, 1mo or empty for permanent.	Duração para %s: 30m, 2h, 7d, 1mo ou vazio para permanente.
+panel.smputilities.stats.empty	No custom statistics.	Nenhuma estatística personalizada.
+panel.smputilities.stats.add	Add statistic	Adicionar estatística
+panel.smputilities.stats.edit	Edit statistic	Editar estatística
+panel.smputilities.stats.deaths	Set deaths	Definir mortes
+panel.smputilities.stats.kills	Set player kills	Definir abates
+panel.smputilities.notes.add	Add note	Adicionar nota
+panel.smputilities.notes.title	Staff notes	Notas da staff
+panel.smputilities.notes.empty	No notes yet.	Nenhuma nota ainda.
+panel.smputilities.backups.empty	No backups for this player.	Nenhum backup para este jogador.
+panel.smputilities.profiles.empty	No profiles.	Nenhum perfil.
+panel.smputilities.mutes.empty	Nobody is muted.	Ninguém está silenciado.
+panel.smputilities.portals.empty	No portals registered.	Nenhum portal registrado.
+panel.smputilities.warps.empty	No warps.	Nenhuma warp.
+panel.smputilities.dimension.open	open	liberada
+panel.smputilities.dimension.blocked	blocked	bloqueada
+panel.smputilities.limit.note	Maximum number of %s portals; 0 forbids new ones, "unlimited" removes the limit.	Número máximo de portais de %s; 0 proíbe novos, "unlimited" remove o limite.
+panel.smputilities.add_limit.note	Dimension name (nether, end, aether) or full id.	Nome da dimensão (nether, end, aether) ou id completo.
+panel.smputilities.formats.note	Placeholders: {name} {realname} {message} {prefix}. Colors with &-codes.	Marcadores: {name} {realname} {message} {prefix}. Cores com códigos &.
+panel.smputilities.title_action.note	Shows "This action will have consequences..." to everyone, with the subtitle below.	Mostra "This action will have consequences..." para todos, com o subtítulo abaixo.
+panel.smputilities.punish.view.bans	Bans	Banimentos
+panel.smputilities.punish.view.mutes	Mutes	Silenciados
+panel.smputilities.punish.view.history	History	Histórico
+panel.smputilities.punish.view.logs	Staff log	Registro da staff
+panel.smputilities.settings.edit	Edit setting	Editar configuração
+panel.smputilities.troll.pick	Pick a player	Escolha um jogador
+panel.smputilities.troll.explosion	Fake explosion	Explosão falsa
+panel.smputilities.troll.lightning	Fake lightning	Raio falso
+panel.smputilities.troll.sound	Sound behind	Som atrás
+panel.smputilities.troll.jumpscare	Jumpscare	Susto
+panel.smputilities.troll.nausea	Nausea	Náusea
+panel.smputilities.troll.darkness	Darkness	Escuridão
+panel.smputilities.troll.levitate	Float	Flutuar
+panel.smputilities.troll.slow	Slowness	Lentidão
+panel.smputilities.troll.glow	Glow	Brilho
+panel.smputilities.troll.tiny_jump	Super jump	Super pulo
+panel.smputilities.troll.spin	Spin	Girar
+panel.smputilities.troll.launch	Launch	Lançar
+panel.smputilities.troll.fake_message	Fake message	Mensagem falsa
+panel.smputilities.troll.fake_join	Fake join	Entrada falsa
+panel.smputilities.troll.fake_quit	Fake quit	Saída falsa
+panel.smputilities.col.action	Action	Ação
+panel.smputilities.col.active	Active	Ativo
+panel.smputilities.col.by	By	Por
+panel.smputilities.col.count	Count / limit	Quantidade / limite
+panel.smputilities.col.creator	Created by	Criado por
+panel.smputilities.col.date	Date	Data
+panel.smputilities.col.details	Details	Detalhes
+panel.smputilities.col.dimension	Dimension	Dimensão
+panel.smputilities.col.id	ID	ID
+panel.smputilities.col.index	#	#
+panel.smputilities.col.location	Location	Local
+panel.smputilities.col.name	Name	Nome
+panel.smputilities.col.nick	Nickname	Apelido
+panel.smputilities.col.open	Access	Acesso
+panel.smputilities.col.player	Player	Jogador
+panel.smputilities.col.players	Players	Jogadores
+panel.smputilities.col.position	Position	Posição
+panel.smputilities.col.reason	Reason	Motivo
+panel.smputilities.col.remaining	Remaining	Restante
+panel.smputilities.col.setting	Setting	Configuração
+panel.smputilities.col.since	Since	Desde
+panel.smputilities.col.stat	Statistic	Estatística
+panel.smputilities.col.status	Status	Situação
+panel.smputilities.col.target	Target	Alvo
+panel.smputilities.col.type	Type	Tipo
+panel.smputilities.col.updated	Saved	Salvo
+panel.smputilities.col.value	Value	Valor
+panel.smputilities.field.color	Color	Cor
+panel.smputilities.field.color.hint	red, gold, aqua…	red, gold, aqua…
+panel.smputilities.field.dimension_key	Dimension	Dimensão
+panel.smputilities.field.dimension_key.hint	nether	nether
+panel.smputilities.field.duration	Duration	Duração
+panel.smputilities.field.duration.hint	empty = permanent	vazio = permanente
+panel.smputilities.field.entity	Name shown	Nome exibido
+panel.smputilities.field.entity.hint	Herobrine	Herobrine
+panel.smputilities.field.join_format	Join format	Formato de entrada
+panel.smputilities.field.join_format.hint	&7[&a+&7] &f{name}	&7[&a+&7] &f{name}
+panel.smputilities.field.limit	Limit	Limite
+panel.smputilities.field.limit.hint	1, 2, unlimited…	1, 2, unlimited…
+panel.smputilities.field.message	Message	Mensagem
+panel.smputilities.field.message.hint	Type the message	Digite a mensagem
+panel.smputilities.field.message_format	Message format	Formato de mensagem
+panel.smputilities.field.message_format.hint	&e{name}&8 » &f{message}	&e{name}&8 » &f{message}
+panel.smputilities.field.name	Name	Nome
+panel.smputilities.field.name.hint	Player or character	Jogador ou personagem
+panel.smputilities.field.nickname	Nickname	Apelido
+panel.smputilities.field.nickname.hint	&6Captain Jack	&6Capitão Jack
+panel.smputilities.field.note	Note	Nota
+panel.smputilities.field.note.hint	Only staff can read this	Só a staff pode ler isto
+panel.smputilities.field.quit_format	Quit format	Formato de saída
+panel.smputilities.field.quit_format.hint	&7[&c-&7] &f{name}	&7[&c-&7] &f{name}
+panel.smputilities.field.reason	Reason	Motivo
+panel.smputilities.field.reason.hint	Shown to the player	Mostrado ao jogador
+panel.smputilities.field.seconds	Seconds	Segundos
+panel.smputilities.field.seconds.hint	0 disables	0 desativa
+panel.smputilities.field.sound	Sound id	Id do som
+panel.smputilities.field.sound.hint	minecraft:entity.creeper.primed	minecraft:entity.creeper.primed
+panel.smputilities.field.stat	Statistic	Estatística
+panel.smputilities.field.stat.hint	Reputation	Reputação
+panel.smputilities.field.subtitle	Subtitle	Subtítulo
+panel.smputilities.field.subtitle.hint	Optional	Opcional
+panel.smputilities.field.value	Value	Valor
+panel.smputilities.field.value.hint	New value	Novo valor

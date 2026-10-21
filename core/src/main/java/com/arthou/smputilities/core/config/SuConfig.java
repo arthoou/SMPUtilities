@@ -214,7 +214,6 @@ public final class SuConfig {
         public List<ModSync.External> external = new ArrayList<>();
         /** Hosts clients may download from besides the built-in host. */
         public List<String> allowedHosts = new ArrayList<>(List.of("cdn.modrinth.com", "mediafilez.forgecdn.net", "edge.forgecdn.net", "github.com", "objects.githubusercontent.com"));
-        public boolean kickIfOutdated = false;
 
         public static final class External {
             public String fileName = "";

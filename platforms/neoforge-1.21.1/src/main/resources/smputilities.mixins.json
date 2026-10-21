@@ -3,7 +3,10 @@
   "minVersion": "0.8",
   "package": "com.arthou.smputilities.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": [],
+  "mixins": [
+    "ChunkMapAccessor",
+    "TrackedEntityMixin"
+  ],
   "client": [],
   "injectors": {
     "defaultRequire": 1

@@ -1,0 +1,28 @@
+punish.permanent	permanent	permanente
+punish.banned_screen	You are banned from this server.\n\nReason: %s\nDuration: %s	Você está banido deste servidor.\n\nMotivo: %s\nDuração: %s
+punish.kicked_screen	You were kicked.\n\nReason: %s	Você foi expulso.\n\nMotivo: %s
+punish.muted_you	You were muted (%s). Reason: %s	Você foi silenciado (%s). Motivo: %s
+punish.voice_muted_you	Your voice chat was muted (%s). Reason: %s	Seu chat de voz foi silenciado (%s). Motivo: %s
+punish.unmuted_you	You can chat again.	Você pode falar no chat novamente.
+punish.voice_unmuted_you	Your voice chat was unmuted.	Seu chat de voz foi liberado.
+punish.warned_you	⚠ Warning from staff: %s	⚠ Aviso da staff: %s
+punish.announce.ban	%s was permanently banned by %2$s. Reason: %4$s	%s foi banido permanentemente por %2$s. Motivo: %4$s
+punish.announce.tempban	%s was banned by %s for %s. Reason: %s	%s foi banido por %s por %s. Motivo: %s
+punish.announce.kick	%s was kicked by %s. Reason: %4$s	%s foi expulso por %s. Motivo: %4$s
+punish.announce.mute	%s was muted by %s for %s. Reason: %s	%s foi silenciado por %s por %s. Motivo: %s
+punish.announce.voice_mute	%s was voice-muted by %s for %s. Reason: %s	%s teve a voz silenciada por %s por %s. Motivo: %s
+punish.done.ban	Banned %s (%s).	%s foi banido (%s).
+punish.done.unban	Unbanned %s.	%s foi desbanido.
+punish.done.kick	Kicked %s.	%s foi expulso.
+punish.done.mute	Muted %s (%s).	%s foi silenciado (%s).
+punish.done.unmute	Unmuted %s.	%s não está mais silenciado.
+punish.done.voice_mute	Voice-muted %s (%s).	%s teve a voz silenciada (%s).
+punish.done.voice_unmute	Voice unmuted for %s.	Voz liberada para %s.
+punish.done.warn	Warned %s.	%s foi advertido.
+punish.not_banned	%s is not banned.	%s não está banido.
+punish.not_muted	%s is not muted.	%s não está silenciado.
+punish.invalid_duration	Invalid duration: %s (examples: 30m, 2h, 7d, perm).	Duração inválida: %s (exemplos: 30m, 2h, 7d, perm).
+punish.cannot_target	You can't punish that player.	Você não pode punir esse jogador.
+punish.history.header	History of %s (%s records):	Histórico de %s (%s registros):
+punish.history.empty	%s has no records.	%s não tem registros.
+punish.history.line	[%s] %s %s by %s: %s	[%s] %s %s por %s: %s
