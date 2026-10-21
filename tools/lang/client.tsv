@@ -314,3 +314,11 @@ panel.smputilities.action.report_tp	Teleport	Teleportar
 panel.smputilities.action.report_close	Close	Fechar
 panel.smputilities.info.afk	AFK	AFK
 panel.smputilities.info.reports	Open reports	Denúncias abertas
+panel.smputilities.action.nameplate	Nameplate	Placa de nome
+panel.smputilities.info.nameplate	Nameplate	Placa de nome
+panel.smputilities.nameplate.none	Normal	Normal
+panel.smputilities.nameplate.hidden	Hidden	Escondida
+panel.smputilities.nameplate.breathe	Breathe	Pulsar
+panel.smputilities.nameplate.rainbow	Rainbow	Arco-íris
+panel.smputilities.nameplate.cycle	Cycle colors	Ciclo de cores
+panel.smputilities.nameplate.random	Scrambled	Embaralhado
