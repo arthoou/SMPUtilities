@@ -1,10 +1,9 @@
 package com.arthou.smputilities.profile;
 
+import com.arthou.smputilities.mc.Nbt;
 import com.arthou.smputilities.core.util.AtomicFiles;
 import com.arthou.smputilities.core.util.SuLog;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtAccounter;
-import net.minecraft.nbt.NbtIo;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -57,11 +56,11 @@ public final class ProfileStore {
 
         static Profile load(String name, CompoundTag tag) {
             Profile profile = new Profile(name);
-            profile.created = tag.getLong("Created");
-            profile.updated = tag.getLong("Updated");
-            profile.nick = tag.getString("Nick");
-            profile.data = tag.getCompound("Data");
-            profile.compat = tag.getCompound("Compat");
+            profile.created = Nbt.getLong(tag, "Created", 0);
+            profile.updated = Nbt.getLong(tag, "Updated", 0);
+            profile.nick = Nbt.getString(tag, "Nick");
+            profile.data = Nbt.getCompound(tag, "Data");
+            profile.compat = Nbt.getCompound(tag, "Compat");
             return profile;
         }
     }
@@ -100,13 +99,13 @@ public final class ProfileStore {
 
         static PlayerProfiles load(CompoundTag tag) {
             PlayerProfiles result = new PlayerProfiles();
-            String active = tag.getString("Active");
+            String active = Nbt.getString(tag, "Active");
             result.active = active.isEmpty() ? DEFAULT : active;
-            result.lastSwitch = tag.getLong("LastSwitch");
-            result.quick = tag.getCompound("Quick");
-            CompoundTag list = tag.getCompound("Profiles");
+            result.lastSwitch = Nbt.getLong(tag, "LastSwitch", 0);
+            result.quick = Nbt.getCompound(tag, "Quick");
+            CompoundTag list = Nbt.getCompound(tag, "Profiles");
             for (String name : list.getAllKeys()) {
-                result.profiles.put(name, Profile.load(name, list.getCompound(name)));
+                result.profiles.put(name, Profile.load(name, Nbt.getCompound(list, name)));
             }
             return result;
         }
@@ -139,7 +138,7 @@ public final class ProfileStore {
         }
         try {
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            NbtIo.writeCompressed(profiles.save(), bytes);
+            Nbt.writeCompressed(profiles.save(), bytes);
             AtomicFiles.writeBytes(file(player), bytes.toByteArray());
             return true;
         } catch (IOException | RuntimeException e) {
@@ -159,7 +158,7 @@ public final class ProfileStore {
             return new PlayerProfiles();
         }
         try {
-            return PlayerProfiles.load(NbtIo.readCompressed(file, NbtAccounter.unlimitedHeap()));
+            return PlayerProfiles.load(Nbt.readCompressed(file));
         } catch (IOException | RuntimeException e) {
             SuLog.error("Could not read profiles of " + player + "; keeping the file untouched", e);
             throw new IllegalStateException("profiles of " + player + " are unreadable", e);

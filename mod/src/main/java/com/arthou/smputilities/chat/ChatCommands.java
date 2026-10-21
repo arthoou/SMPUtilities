@@ -24,7 +24,6 @@ import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 
 import java.util.HashMap;
@@ -160,7 +159,7 @@ public final class ChatCommands {
 
         Mc.reply(source, toSender);
         Mc.send(target, toTarget);
-        target.playNotifySound(SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.5F, 1.2F);
+        Mc.playSound(target, "minecraft:entity.experience_orb.pickup", SoundSource.PLAYERS, 0.5F, 1.2F);
         SuServer context = SuServer.get();
         if (sender != null) {
             context.players().update(sender.getUUID(), record -> record.lastMessaged = target.getUUID());

@@ -264,8 +264,6 @@ public final class InventoryViewCompat {
     }
 
     public static ItemStack namedBarrier(Component name) {
-        ItemStack stack = new ItemStack(net.minecraft.world.item.Items.BARRIER);
-        stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, name);
-        return stack;
+        return com.arthou.smputilities.mc.Stacks.named(new ItemStack(net.minecraft.world.item.Items.BARRIER), name, java.util.List.of());
     }
 }

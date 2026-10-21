@@ -1,5 +1,6 @@
 package com.arthou.smputilities.backup;
 
+import com.arthou.smputilities.mc.Nbt;
 import net.minecraft.nbt.CompoundTag;
 
 /**
@@ -22,14 +23,14 @@ public record PlayerSnapshot(String id, long timestamp, SnapshotType type, Strin
     }
 
     public static PlayerSnapshot load(CompoundTag tag, String fallbackId) {
-        String id = tag.getString("id");
+        String id = Nbt.getString(tag, "id");
         return new PlayerSnapshot(
             id.isEmpty() ? fallbackId : id,
-            tag.getLong("timestamp"),
-            SnapshotType.parse(tag.getString("type")),
-            tag.getString("detail"),
-            tag.getString("createdBy"),
-            tag.getCompound("playerData"),
-            tag.getCompound("compatData"));
+            Nbt.getLong(tag, "timestamp", 0),
+            SnapshotType.parse(Nbt.getString(tag, "type")),
+            Nbt.getString(tag, "detail"),
+            Nbt.getString(tag, "createdBy"),
+            Nbt.getCompound(tag, "playerData"),
+            Nbt.getCompound(tag, "compatData"));
     }
 }

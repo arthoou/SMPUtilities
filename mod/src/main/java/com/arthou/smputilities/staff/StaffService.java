@@ -117,8 +117,8 @@ public final class StaffService {
     public static Dto.Dashboard dashboard(ServerPlayer viewer) {
         SuServer context = SuServer.get();
         MinecraftServer server = context.server();
-        double mspt = server.getAverageTickTimeNanos() / 1_000_000.0;
-        double tps = Math.min(server.tickRateManager().tickrate(), mspt <= 0 ? 20.0 : 1000.0 / mspt);
+        double mspt = Mc.millisPerTick(server);
+        double tps = Math.min(Mc.targetTickRate(server), mspt <= 0 ? 20.0 : 1000.0 / mspt);
         Runtime runtime = Runtime.getRuntime();
         long now = System.currentTimeMillis();
         List<Dto.PlayerRow> rows = new ArrayList<>();
@@ -148,7 +148,7 @@ public final class StaffService {
         flags.put("modsync.hosted", String.valueOf(ModSyncServer.hostedCount()));
         flags.put("realNames", String.valueOf(context.players().get(viewer.getUUID()).realNames));
         flags.put("vanished", String.valueOf(VanishService.isVanished(viewer.getUUID())));
-        return new Dto.Dashboard(server.getPlayerCount(), server.getMaxPlayers(), tps, mspt,
+        return new Dto.Dashboard(server.getPlayerCount(), server.getPlayerList().getMaxPlayers(), tps, mspt,
             runtime.totalMemory() - runtime.freeMemory(), runtime.maxMemory(), now - startedAt, server.getServerVersion(),
             context.punishments().allActive(PunishmentType.BAN, now).size(), context.punishments().allActive(PunishmentType.MUTE, now).size(),
             flags, rows);

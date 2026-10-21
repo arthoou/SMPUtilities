@@ -308,15 +308,7 @@ public final class ChatService {
     }
 
     public static void playSound(ServerPlayer player, String soundId, float volume, float pitch) {
-        ResourceLocation id = Ids.parse(soundId);
-        if (id == null) {
-            return;
-        }
-        SoundEvent sound = BuiltInRegistries.SOUND_EVENT.get(id);
-        if (sound == null) {
-            sound = SoundEvent.createVariableRangeEvent(id);
-        }
-        player.playNotifySound(sound, SoundSource.PLAYERS, volume, pitch);
+        Mc.playSound(player, soundId, SoundSource.PLAYERS, volume, pitch);
     }
 
     public static boolean isIgnoring(ServerPlayer recipient, ServerPlayer sender) {

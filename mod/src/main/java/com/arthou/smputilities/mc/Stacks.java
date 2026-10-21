@@ -84,6 +84,18 @@ public final class Stacks {
         return stack;
     }
 
+    /** Enchantment glint without enchantments, to mark the selected entry of a menu. */
+    public static void glint(ItemStack stack) {
+        //#if MC>=1.20.5
+        stack.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+        //#else
+        //$$ ListTag enchantments = new ListTag();
+        //$$ enchantments.add(new CompoundTag());
+        //$$ stack.getOrCreateTag().put("Enchantments", enchantments);
+        //$$ stack.getOrCreateTag().putInt("HideFlags", 1);
+        //#endif
+    }
+
     public static boolean same(ItemStack a, ItemStack b) {
         return ItemStack.matches(a, b);
     }

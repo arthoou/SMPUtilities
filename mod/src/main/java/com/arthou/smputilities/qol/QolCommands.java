@@ -1,5 +1,6 @@
 package com.arthou.smputilities.qol;
 
+import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.core.config.SuConfig;
 import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.server.Msg;
@@ -13,13 +14,9 @@ import net.minecraft.commands.Commands;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.Display;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 
 import java.util.Map;
 import java.util.UUID;
@@ -55,7 +52,7 @@ public final class QolCommands {
         if (hand.isEmpty()) {
             return Msg.error(context.getSource(), "hat.empty_hand");
         }
-        if (!head.isEmpty() && !player.isCreative() && EnchantmentHelper.has(head, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE)) {
+        if (!head.isEmpty() && !player.isCreative() && Mc.hasBindingCurse(head)) {
             return Msg.error(context.getSource(), "hat.binding");
         }
         ItemStack newHead = hand.split(1);
@@ -63,8 +60,9 @@ public final class QolCommands {
         if (!head.isEmpty()) {
             if (hand.isEmpty()) {
                 player.setItemInHand(InteractionHand.MAIN_HAND, head);
-            } else if (!player.getInventory().add(head)) {
-                player.drop(head, false);
+            } else {
+                // Drops what does not fit.
+                player.getInventory().placeItemBackInInventory(head);
             }
         }
         player.inventoryMenu.broadcastChanges();
@@ -81,16 +79,16 @@ public final class QolCommands {
             return Msg.error(context.getSource(), "sit.not_here");
         }
         ServerLevel level = player.serverLevel();
-        Display.TextDisplay seat = new Display.TextDisplay(EntityType.TEXT_DISPLAY, level);
-        seat.setPos(player.getX(), player.getY() - 0.35, player.getZ());
+        Entity seat = Mc.createSeat(level, player.getX(), player.getY(), player.getZ());
         seat.addTag(SEAT_TAG);
-        seat.setInvulnerable(true);
+        // Registered before it joins the world, so the orphan check on entity load leaves it alone.
+        SEATS.put(seat.getUUID(), player.getUUID());
         level.addFreshEntity(seat);
-        if (!player.startRiding(seat, true)) {
+        if (!Mc.ride(player, seat)) {
+            SEATS.remove(seat.getUUID());
             seat.discard();
             return Msg.error(context.getSource(), "sit.not_here");
         }
-        SEATS.put(seat.getUUID(), player.getUUID());
         return Msg.info(context.getSource(), "sit.done");
     }
 
