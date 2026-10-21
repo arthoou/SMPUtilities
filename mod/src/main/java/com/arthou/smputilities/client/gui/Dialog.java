@@ -168,6 +168,36 @@ public abstract class Dialog {
         }
     }
 
+    /** Text to read, with a single close button. */
+    public static final class Message extends Dialog {
+        private final Component message;
+
+        public Message(Component title, Component message) {
+            super(title);
+            this.message = message;
+        }
+
+        @Override
+        protected void layout(int screenWidth, int screenHeight) {
+            width = Math.min(300, screenWidth - 40);
+            int lines = Math.min(16, font.split(message, width - 16).size());
+            height = 64 + lines * 10;
+            x = (screenWidth - width) / 2;
+            y = (screenHeight - height) / 2;
+            add(new SuButton(x + 8, y + height - 28, width - 16, 20, Texts.translatable("gui.smputilities.close"), button -> close()));
+        }
+
+        @Override
+        protected void renderBody(Gfx graphics, int mouseX, int mouseY) {
+            drawWrapped(graphics, message, x + 8, y + 30, width - 16, Theme.TEXT);
+        }
+
+        @Override
+        protected void submit() {
+            close();
+        }
+    }
+
     /** One or more labelled text fields. */
     public static final class Form extends Dialog {
         public record Field(Component label, String initial, Component hint) {

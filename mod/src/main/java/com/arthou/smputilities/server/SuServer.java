@@ -1,6 +1,7 @@
 package com.arthou.smputilities.server;
 
 import com.arthou.smputilities.core.audit.AuditLog;
+import com.arthou.smputilities.core.chat.ChatHistory;
 import com.arthou.smputilities.core.config.ConfigManager;
 import com.arthou.smputilities.core.config.SuConfig;
 import com.arthou.smputilities.core.player.PlayerStore;
@@ -16,6 +17,7 @@ import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.platform.Platform;
 
 import java.nio.file.Path;
+import java.time.ZoneId;
 import java.util.UUID;
 
 /**
@@ -36,6 +38,7 @@ public final class SuServer {
     private final PortalRegistry portals;
     private final ReportStore reports;
     private final AuditLog audit;
+    private final ChatHistory chatHistory;
 
     private SuServer(MinecraftServer server) {
         this.server = server;
@@ -46,6 +49,7 @@ public final class SuServer {
         this.portals = new PortalRegistry(dataDir.resolve("portals.json"));
         this.reports = new ReportStore(dataDir.resolve("reports.json"));
         this.audit = new AuditLog(dataDir.resolve("logs"));
+        this.chatHistory = new ChatHistory(dataDir.resolve("chat"), ZoneId.systemDefault());
     }
 
     public static synchronized SuServer start(MinecraftServer server) {
@@ -57,6 +61,7 @@ public final class SuServer {
         created.portals.load();
         created.reports.load();
         created.audit.prune(config().staff.auditRetentionDays);
+        created.chatHistory.prune(config().chat.historyDays);
         instance = created;
         SuLog.info("SMPutilities data folder: " + created.dataDir);
         return created;
@@ -71,6 +76,7 @@ public final class SuServer {
             current.portals.save();
             current.reports.save();
             current.audit.close();
+            current.chatHistory.close();
         }
         instance = null;
     }
@@ -131,6 +137,10 @@ public final class SuServer {
 
     public AuditLog audit() {
         return audit;
+    }
+
+    public ChatHistory chatHistory() {
+        return chatHistory;
     }
 
     /** Records an administrative action with the acting player (null for console). */

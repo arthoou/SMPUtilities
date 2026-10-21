@@ -70,6 +70,9 @@ public final class ChatService {
         }
 
         String text = SpamGuard.limitCaps(rawText, config.chat.spam.capsRatio);
+        if (config.chat.history) {
+            context.chatHistory().append(System.currentTimeMillis(), player.getUUID(), Names.realName(player), text);
+        }
         // A TTS line is spoken and still posted to chat below, like any message.
         boolean spoken = config.features.tts && TtsService.speak(player, text);
         if (!spoken && config.tts.bubbles && config.tts.bubblesForAllChat) {

@@ -88,6 +88,10 @@ public final class SuConfig {
         public String privateFormatOutgoing = "&7[&dyou &8→ &d{target}&7] &f{message}";
         public String privateFormatIncoming = "&7[&d{sender} &8→ &dyou&7] &f{message}";
         public double cooldownSeconds = 0.0;
+        /** Keep every public chat line on disk for the panel's chat history. */
+        public boolean history = true;
+        /** Days of chat history kept (0 keeps everything). */
+        public int historyDays = 30;
         public Spam spam = new Spam();
         public Mentions mentions = new Mentions();
     }

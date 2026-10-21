@@ -1,6 +1,7 @@
 package com.arthou.smputilities.client.staff;
 
 import com.arthou.smputilities.client.gui.Gfx;
+import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.client.ClientState;
 import com.arthou.smputilities.client.gui.SuButton;
 import com.arthou.smputilities.client.gui.SuTextField;
@@ -11,15 +12,34 @@ import com.arthou.smputilities.network.Dto;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
-/** Chat settings, moderation and announcements. */
+/**
+ * Chat settings, moderation and announcements, and the chat history: every
+ * public message of a day, read from the server's files a page at a time.
+ */
 final class ChatTab extends PanelTab {
+    enum View { OPTIONS, HISTORY }
+
+    private static final int VIEW_BAR = 22;
+    private static View view = View.OPTIONS;
+    // History state survives the widget rebuilds; rows are only the pages loaded so far.
+    private static String day = "";
+    private static final List<Dto.Row> HISTORY = new ArrayList<>();
+    private static boolean exhausted;
+    private static boolean loading;
+    private static String historyFilter = "";
     private TableView mutes;
+    private TableView history;
     private Map<String, String> lastFlags = Map.of();
 
     @Override
     void opened() {
+        if (view == View.HISTORY) {
+            openHistory();
+            return;
+        }
         panel.request("table", "mutes|");
         if (ClientState.has(Perm.ADMIN_SETTINGS)) {
             panel.request("settings", "");
@@ -28,7 +48,112 @@ final class ChatTab extends PanelTab {
 
     @Override
     void refresh() {
-        panel.request("table", "mutes|");
+        if (view == View.OPTIONS) {
+            panel.request("table", "mutes|");
+        }
+    }
+
+    private void openHistory() {
+        panel.request("table", "chatdays|");
+        loadDay(day);
+    }
+
+    private void loadDay(String value) {
+        day = value;
+        HISTORY.clear();
+        exhausted = false;
+        loading = true;
+        panel.request("table", "chatlog|" + day + "|");
+    }
+
+    private void loadOlder() {
+        if (loading || exhausted || HISTORY.isEmpty()) {
+            return;
+        }
+        loading = true;
+        panel.request("table", "chatlog|" + day + "|" + HISTORY.get(HISTORY.size() - 1).id());
+    }
+
+    /** Days with history, newest first; today is always there. */
+    private static List<String> days() {
+        Dto.Table table = ClientState.table("chatdays", "");
+        List<String> days = new ArrayList<>();
+        if (table != null) {
+            for (Dto.Row row : table.rows()) {
+                days.add(row.id());
+            }
+        }
+        return days;
+    }
+
+    private String shownDay() {
+        List<String> days = days();
+        return !day.isEmpty() ? day : days.isEmpty() ? "" : days.get(0);
+    }
+
+    private void viewBar() {
+        View[] views = View.values();
+        int barWidth = Math.min(110, (width() - 6) / views.length);
+        for (int i = 0; i < views.length; i++) {
+            View value = views[i];
+            SuButton button = panel.add(new SuButton(left() + i * (barWidth + 3), top(), barWidth, 18,
+                tr("chat.view." + value.name().toLowerCase(Locale.ROOT)), b -> {
+                    view = value;
+                    opened();
+                    panel.refreshTab();
+                }).kind(view == value ? SuButton.Kind.PRIMARY : SuButton.Kind.SUBTLE));
+            if (value == View.HISTORY) {
+                button.active = ClientState.has(Perm.CHAT_HISTORY);
+            }
+        }
+    }
+
+    private void historyView() {
+        int y = top() + VIEW_BAR;
+        List<String> days = days();
+        String shown = shownDay();
+        int index = days.indexOf(shown);
+        panel.add(new SuButton(left(), y, 20, 18, Texts.literal("◀"), b -> {
+            loadDay(days.get(index + 1));
+            panel.refreshTab();
+        }).enabled(index >= 0 && index + 1 < days.size()).tooltip(tr("history.older_day")));
+        panel.add(new SuButton(left() + 104, y, 20, 18, Texts.literal("▶"), b -> {
+            loadDay(days.get(index - 1));
+            panel.refreshTab();
+        }).enabled(index > 0).tooltip(tr("history.newer_day")));
+        panel.add(new SuButton(right() - 20, y, 20, 18, Texts.literal("⟳"), b -> {
+            loadDay(day);
+            panel.refreshTab();
+        }).tooltip(tr("history.reload")));
+        SuTextField search = field(right() - 176, y, 152, "search");
+        search.setValue(historyFilter);
+        search.setResponder(value -> {
+            historyFilter = value;
+            if (history != null) {
+                history.setFilter(value);
+            }
+        });
+        int tableTop = y + 24;
+        history = table(left(), tableTop, width(), bottom() - tableTop - 22, List.of(column("time", 0.55F), column("player", 0.9F),
+            column("message", 3.6F)));
+        history.remember("chat.history." + shown);
+        history.emptyText = tr(loading ? "loading" : "history.empty");
+        history.onSelect = row -> panel.message(tr("history.message", row.cells().get(1), row.cells().get(0)), Texts.literal(row.cells().get(2)));
+        fillHistory();
+        panel.add(new SuButton(left(), bottom() - 18, width(), 18, tr(exhausted ? "history.start" : "history.older"), b -> loadOlder())
+            .enabled(!exhausted && !loading && !HISTORY.isEmpty()));
+    }
+
+    private void fillHistory() {
+        if (history == null) {
+            return;
+        }
+        List<Dto.Row> rows = new ArrayList<>();
+        for (Dto.Row row : HISTORY) {
+            rows.add(new Dto.Row(row.id(), row.cells().subList(0, 3)));
+        }
+        history.setRows(rows);
+        history.setFilter(historyFilter);
     }
 
     private String setting(String path, String fallback) {
@@ -46,11 +171,16 @@ final class ChatTab extends PanelTab {
 
     @Override
     void init() {
+        viewBar();
+        if (view == View.HISTORY) {
+            historyView();
+            return;
+        }
         Dto.Dashboard dashboard = ClientState.dashboard();
         lastFlags = dashboard == null ? Map.of() : dashboard.flags();
         int x = left();
         int half = (width() - 6) / 2;
-        int y = top() + 12;
+        int y = top() + VIEW_BAR + 12;
         String[][] toggles = {
             {"chat.globalChatEnabled", "toggle.global_chat"},
             {"chat.customFormat", "toggle.custom_format"},
@@ -127,7 +257,29 @@ final class ChatTab extends PanelTab {
 
     @Override
     void dataChanged(String what) {
-        if (what.equals("table:mutes")) {
+        if (what.equals("table:chatlog")) {
+            Dto.Table page = ClientState.latestTable("chatlog");
+            if (page == null || !page.context().startsWith(day + "|")) {
+                return;
+            }
+            loading = false;
+            String before = page.context().substring(day.length() + 1);
+            if (before.isEmpty()) {
+                HISTORY.clear();
+            } else if (HISTORY.isEmpty() || !HISTORY.get(HISTORY.size() - 1).id().equals(before)) {
+                return;
+            }
+            HISTORY.addAll(page.rows());
+            // The first line of the file starts at 0; a short page also means nothing older is left.
+            exhausted = page.rows().size() < 100 || page.rows().get(page.rows().size() - 1).id().equals("0");
+            if (view == View.HISTORY) {
+                panel.refreshTab();
+            }
+        } else if (what.equals("table:chatdays")) {
+            if (view == View.HISTORY) {
+                panel.refreshTab();
+            }
+        } else if (what.equals("table:mutes")) {
             fillMutes();
         } else if (what.equals("settings")) {
             panel.refreshTab();
@@ -141,8 +293,13 @@ final class ChatTab extends PanelTab {
 
     @Override
     void renderBack(Gfx graphics, int mouseX, int mouseY, float partialTick) {
-        section(graphics, "section.chat_options", left(), top(), width());
-        int y = top() + 12 + 5 * 21 + 4 + 21 + 2 + 26;
+        if (view == View.HISTORY) {
+            String shown = shownDay();
+            graphics.drawCenteredString(font, shown.isEmpty() ? "-" : shown, left() + 62, top() + VIEW_BAR + 5, Theme.TEXT);
+            return;
+        }
+        section(graphics, "section.chat_options", left(), top() + VIEW_BAR, width());
+        int y = top() + VIEW_BAR + 12 + 5 * 21 + 4 + 21 + 2 + 26;
         section(graphics, "section.muted", left(), y, width());
     }
 }
