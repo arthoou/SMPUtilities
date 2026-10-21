@@ -24,7 +24,7 @@ public final class Dto {
 
     public static List<String> readStrings(FriendlyByteBuf buf) {
         int size = buf.readVarInt();
-        List<String> values = new ArrayList<>(size);
+        List<String> values = new ArrayList<>(Math.min(size, 256));
         for (int i = 0; i < size; i++) {
             values.add(buf.readUtf());
         }
@@ -119,7 +119,7 @@ public final class Dto {
             int mutes = buf.readVarInt();
             Map<String, String> flags = readMap(buf);
             int size = buf.readVarInt();
-            List<PlayerRow> players = new ArrayList<>(size);
+            List<PlayerRow> players = new ArrayList<>(Math.min(size, 256));
             for (int i = 0; i < size; i++) {
                 players.add(PlayerRow.read(buf));
             }
@@ -178,7 +178,7 @@ public final class Dto {
             String context = buf.readUtf();
             List<String> columns = readStrings(buf);
             int size = buf.readVarInt();
-            List<Row> rows = new ArrayList<>(size);
+            List<Row> rows = new ArrayList<>(Math.min(size, 256));
             for (int i = 0; i < size; i++) {
                 rows.add(new Row(buf.readUtf(), readStrings(buf)));
             }
@@ -202,7 +202,7 @@ public final class Dto {
 
     public static List<Setting> readSettings(FriendlyByteBuf buf) {
         int size = buf.readVarInt();
-        List<Setting> settings = new ArrayList<>(size);
+        List<Setting> settings = new ArrayList<>(Math.min(size, 256));
         for (int i = 0; i < size; i++) {
             settings.add(new Setting(buf.readUtf(), buf.readUtf(), buf.readUtf()));
         }

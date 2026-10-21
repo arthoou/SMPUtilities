@@ -150,14 +150,17 @@ tasks.named('build') {
 
 // ------------------------------------------------------------ api probe
 
-// Prints the members of game classes that match tools/probe/api.txt
-// (lines "class | regex"), for checking signatures across versions in CI.
+// Writes the members of game classes listed in tools/probe/api.txt (lines
+// "class | regex") to build/api.txt, for comparing signatures across versions.
 tasks.register('apiProbe') {
     def classpath = sourceSets.main.compileClasspath
     def spec = rootProject.file('tools/probe/api.txt')
+    def output = layout.buildDirectory.file('api.txt')
+    outputs.upToDateWhen { false }
     doLast {
         def javap = new File(System.getProperty('java.home'), 'bin/javap').absolutePath
         def path = classpath.asPath
+        def result = new StringBuilder()
         spec.readLines().findAll { it.trim() && !it.trim().startsWith('#') }.each { line ->
             def parts = line.split('\\|', 2)
             def name = parts[0].trim()
@@ -165,8 +168,9 @@ tasks.register('apiProbe') {
             def process = [javap, '-p', '-cp', path, name].execute()
             def text = process.inputStream.text
             process.waitFor()
-            println "### ${name}${process.exitValue() == 0 ? '' : ' (missing)'}"
-            text.readLines().findAll { it.startsWith(' ') && pattern.matcher(it).find() }.each { println "  ${it.trim()}" }
+            result.append("### ${name}${process.exitValue() == 0 ? '' : ' (missing)'}\n")
+            text.readLines().findAll { it.startsWith(' ') && pattern.matcher(it).find() }.each { result.append(it.trim()).append('\n') }
         }
+        output.get().asFile.text = result.toString()
     }
 }
