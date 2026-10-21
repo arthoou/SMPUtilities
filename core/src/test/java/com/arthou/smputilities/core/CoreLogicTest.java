@@ -83,6 +83,10 @@ class CoreLogicTest {
         assertEquals(Set.of(), MentionFinder.find("steve without at", players, true));
         assertEquals(Set.of("a"), MentionFinder.find("hi @steve", players, true));
         assertEquals(Set.of("c"), MentionFinder.find("al?", players, false));
+        // Positions stay valid when lowercasing would change the length (İ -> i + dot).
+        String message = "İİ oi Steve";
+        assertEquals(List.of(new MentionFinder.Match(6, 11)), MentionFinder.matches(message, "steve", false));
+        assertEquals("Steve", message.substring(6, 11));
     }
 
     @Test
