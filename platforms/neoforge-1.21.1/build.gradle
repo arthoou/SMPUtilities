@@ -1,0 +1,109 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.141'
+}
+
+def core = project(':core')
+def bridge = project(':tts-bridge')
+
+base {
+    archivesName = "SMPutilities-${minecraft_version}-${loader_name}"
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(java_version as int)
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'NeoForged Releases'
+        url = 'https://maven.neoforged.net/releases/'
+    }
+    maven {
+        // Simple Voice Chat API (compile only; the integration activates only
+        // when the voicechat mod is installed).
+        name = 'maxhenkel'
+        url = 'https://maven.maxhenkel.de/repository/public'
+    }
+}
+
+// The core module is compiled into this jar, so the result is one self-contained mod.
+sourceSets.main.java.srcDir core.file('src/main/java')
+
+neoForge {
+    version = neo_version
+
+    parchment {
+        mappingsVersion = parchment_mappings_version
+        minecraftVersion = parchment_minecraft_version
+    }
+
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+            programArgument '--nogui'
+        }
+        configureEach {
+            logLevel = org.slf4j.event.Level.INFO
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+        }
+    }
+}
+
+dependencies {
+    compileOnly "de.maxhenkel.voicechat:voicechat-api:${voicechat_api_version}"
+}
+
+// Ship the TTS helper inside the mod; the client extracts it on demand.
+def bridgeJar = bridge.tasks.named('jar')
+tasks.named('processResources', ProcessResources).configure {
+    dependsOn bridgeJar
+    from(bridgeJar) {
+        into 'smputilities/voice-bridge'
+    }
+
+    def replaceProperties = [
+        minecraft_version      : minecraft_version,
+        minecraft_version_range: minecraft_version_range,
+        neo_version            : neo_version,
+        loader_version_range   : loader_version_range,
+        mod_id                 : mod_id,
+        mod_name               : mod_name,
+        mod_license            : mod_license,
+        mod_version            : mod_version,
+        mod_authors            : mod_authors,
+        mod_description        : mod_description
+    ]
+    inputs.properties replaceProperties
+    filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
+        expand replaceProperties
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = Integer.parseInt(java_version)
+}
+
+jar {
+    archiveVersion = ''
+    archiveClassifier = ''
+    manifest {
+        attributes 'Implementation-Version': project.version
+    }
+}
+
+// Copies the finished jar to <root>/dist with the documented name, e.g.
+// SMPutilities-1.21.1-neoforge.jar
+def distTask = tasks.register('dist', Copy) {
+    from jar
+    into rootProject.file('dist')
+}
+tasks.named('build') { finalizedBy distTask }

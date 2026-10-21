@@ -1,0 +1,27 @@
+// Minecraft-independent logic shared by every platform target. Nothing here may
+// import net.minecraft or a loader API: the sources are compiled straight into
+// each platform jar, and the unit tests run without the game.
+plugins {
+    id 'java-library'
+}
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // Minecraft ships Gson on every supported version (2.8.9 on 1.18.2).
+    compileOnly 'com.google.code.gson:gson:2.8.9'
+    testImplementation 'com.google.code.gson:gson:2.8.9'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 17
+}
+
+test {
+    useJUnitPlatform()
+}

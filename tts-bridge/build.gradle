@@ -1,0 +1,29 @@
+// Standalone desktop helper that turns text into speech and routes it to a
+// virtual microphone. It never runs inside Minecraft: the client mod extracts
+// this jar and starts it as a separate process only when the player enables TTS.
+plugins {
+    id 'java'
+}
+
+
+dependencies {
+    // JLayer (LGPL) decodes MP3 so Windows needs no external player.
+    implementation files('lib/jlayer-1.0.1.jar')
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 17
+}
+
+jar {
+    archiveFileName = 'smputilities-voice-bridge.jar'
+    manifest {
+        attributes 'Main-Class': 'com.arthou.smputilities.ttsbridge.VoiceBridge'
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    } {
+        exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'META-INF/MANIFEST.MF'
+    }
+}
