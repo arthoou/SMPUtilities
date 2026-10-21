@@ -88,7 +88,8 @@ public final class NicknameService {
             return original;
         }
         String nick = Names.nickname(player.getUUID());
-        return nick.isEmpty() ? original : decorate(player, Msg.styled(nick), original);
+        // Only the name: the game adds team colors and prefixes around it.
+        return nick.isEmpty() ? original : Msg.styled(nick);
     }
 
     /** Tab list entry. Null keeps the vanilla behaviour. */
@@ -105,14 +106,6 @@ public final class NicknameService {
         values.put("nick", nick + "&r");
         values.put("name", config.nicknames.hideRealNames ? nick + "&r" : Placeholders.escapeCodes(Names.realName(player)));
         return Msg.styled(Placeholders.apply(config.nicknames.tabFormat, values));
-    }
-
-    /** Keeps team colors and prefixes, which vanilla applies around the plain name. */
-    private static Component decorate(ServerPlayer player, Component nick, Component original) {
-        if (player.getTeam() == null) {
-            return nick;
-        }
-        return net.minecraft.world.scores.PlayerTeam.formatNameForTeam(player.getTeam(), nick);
     }
 
     /** Every nickname, for the clients that draw them above heads. */
