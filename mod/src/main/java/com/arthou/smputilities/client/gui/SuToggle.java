@@ -3,16 +3,12 @@ package com.arthou.smputilities.client.gui;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractButton;
-import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 
 import java.util.function.Consumer;
 
 /** Label with an animated switch on the right. */
-public class SuToggle extends AbstractButton {
+public class SuToggle extends Widget {
     private final Consumer<Boolean> onChange;
     private boolean value;
     private float knob;
@@ -27,7 +23,7 @@ public class SuToggle extends AbstractButton {
     }
 
     public SuToggle tooltip(Component text) {
-        setTooltip(Tooltip.create(text));
+        setTooltip(text);
         return this;
     }
 
@@ -36,13 +32,13 @@ public class SuToggle extends AbstractButton {
     }
 
     @Override
-    public void onPress() {
+    protected void onClick(double mouseX, double mouseY) {
         value = !value;
         onChange.accept(value);
     }
 
     @Override
-    protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    protected void renderWidget(Gfx graphics, int mouseX, int mouseY, float partialTick) {
         long now = Util.getMillis();
         float delta = now - lastFrame;
         lastFrame = now;
@@ -59,10 +55,5 @@ public class SuToggle extends AbstractButton {
         Theme.roundRect(graphics, kx, sy + 1, kx + 8, sy + 9, active ? Theme.mix(Theme.TEXT_DIM, Theme.ACCENT, knob) : Theme.TEXT_OFF);
         int textColor = active ? Theme.mix(Theme.TEXT_DIM, Theme.TEXT, Math.max(hover, knob * 0.6F)) : Theme.TEXT_OFF;
         graphics.drawString(font, Theme.clip(font, getMessage(), getWidth() - switchWidth - 16), getX() + 6, getY() + (getHeight() - 8) / 2, textColor, false);
-    }
-
-    @Override
-    protected void updateWidgetNarration(NarrationElementOutput output) {
-        defaultButtonNarrationText(output);
     }
 }

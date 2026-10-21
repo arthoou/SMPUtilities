@@ -1,5 +1,7 @@
 package com.arthou.smputilities.client.staff;
 
+import com.arthou.smputilities.client.gui.Widget;
+import com.arthou.smputilities.client.gui.Gfx;
 import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.client.ClientState;
 import com.arthou.smputilities.client.gui.Dialog;
@@ -11,9 +13,6 @@ import com.arthou.smputilities.client.ClientNetwork;
 import com.arthou.smputilities.network.Payloads;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 
 import java.util.Arrays;
@@ -116,8 +115,8 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
         return panelTop + panelHeight - 10;
     }
 
-    <T extends AbstractWidget> T add(T widget) {
-        return addRenderableWidget(widget);
+    <T extends Widget> T add(T widget) {
+        return addWidget(widget);
     }
 
     void switchTab(String id) {
@@ -125,16 +124,16 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
             tabId = id;
             tabSwitchedAt = Util.getMillis();
             tab = null;
-            rebuildWidgets();
+            rebuild();
         }
     }
 
     void refreshTab() {
-        rebuildWidgets();
+        rebuild();
     }
 
     @Override
-    protected void init() {
+    protected void build() {
         panelWidth = Math.min(width - 16, 580);
         panelHeight = Math.min(height - 16, 330);
         panelLeft = (width - panelWidth) / 2;
@@ -160,7 +159,7 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
             NavItem item = add(new NavItem(panelLeft + 6, y, SIDEBAR - 12, itemHeight - 2, info, this));
             item.active = allowed;
             if (!allowed) {
-                item.setTooltip(Tooltip.create(Texts.translatable("panel.smputilities.no_permission")));
+                item.setTooltip(Texts.translatable("panel.smputilities.no_permission"));
             }
             if (info.id().equals(tabId) && indicatorY < 0) {
                 indicatorY = y;
@@ -208,7 +207,7 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
         if (minecraft != null) {
             minecraft.execute(() -> {
                 if (what.equals("state")) {
-                    rebuildWidgets();
+                    rebuild();
                 } else if (tab != null) {
                     tab.dataChanged(what);
                 }
@@ -255,8 +254,7 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
     }
 
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.renderBackground(graphics, mouseX, mouseY, partialTick);
+    protected void renderBack(Gfx graphics, int mouseX, int mouseY, float partialTick) {
         long now = Util.getMillis();
         indicatorY = Theme.approach(indicatorY < 0 ? targetIndicator() : indicatorY, targetIndicator(), now - lastFrame, 70);
         lastFrame = now;
@@ -298,7 +296,7 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
         }
     }
 
-    private void renderStatus(GuiGraphics graphics) {
+    private void renderStatus(Gfx graphics) {
         var dashboard = ClientState.dashboard();
         if (dashboard == null) {
             return;
@@ -310,27 +308,26 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.render(graphics, mouseX, mouseY, partialTick);
+    protected void renderFront(Gfx graphics, int mouseX, int mouseY, float partialTick) {
         if (tab != null && !hasDialog()) {
             tab.renderFront(graphics, mouseX, mouseY, partialTick);
         }
         float fade = fadeIn();
         if (fade < 1 && !hasDialog()) {
             // Short fade between categories.
-            graphics.pose().pushPose();
-            graphics.pose().translate(0, 0, 200);
+            graphics.push();
+            graphics.above(200);
             graphics.fill(contentLeft() - 4, panelTop + 39, contentRight() + 4, contentBottom() + 4, Theme.withAlpha(0xFF14181F, 1 - fade));
-            graphics.pose().popPose();
+            graphics.pop();
         }
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    protected boolean handleClick(double mouseX, double mouseY, int button) {
         if (!hasDialog() && tab != null && tab.mouseClicked(mouseX, mouseY, button)) {
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.handleClick(mouseX, mouseY, button);
     }
 
     static List<TabInfo> tabs() {

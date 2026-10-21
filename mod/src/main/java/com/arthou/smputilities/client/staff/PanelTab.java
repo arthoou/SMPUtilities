@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.staff;
 
+import com.arthou.smputilities.client.gui.Gfx;
 import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.client.ClientState;
 import com.arthou.smputilities.client.gui.Dialog;
@@ -11,7 +12,6 @@ import com.arthou.smputilities.client.gui.Theme;
 import com.arthou.smputilities.core.perm.Perm;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
@@ -48,10 +48,10 @@ abstract class PanelTab {
     void tick() {
     }
 
-    void renderBack(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    void renderBack(Gfx graphics, int mouseX, int mouseY, float partialTick) {
     }
 
-    void renderFront(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    void renderFront(Gfx graphics, int mouseX, int mouseY, float partialTick) {
     }
 
     boolean mouseClicked(double mouseX, double mouseY, int button) {
@@ -116,11 +116,11 @@ abstract class PanelTab {
         return new Dialog.Form.Field(tr("field." + key), initial, tr("field." + key + ".hint"));
     }
 
-    protected void label(GuiGraphics graphics, Component text, int x, int y) {
+    protected void label(Gfx graphics, Component text, int x, int y) {
         graphics.drawString(font, text, x, y, Theme.TEXT_DIM, false);
     }
 
-    protected void section(GuiGraphics graphics, String key, int x, int y, int width) {
+    protected void section(Gfx graphics, String key, int x, int y, int width) {
         graphics.drawString(font, tr(key).copy().withStyle(net.minecraft.ChatFormatting.BOLD), x, y, Theme.TEXT, false);
         graphics.fill(x + font.width(tr(key)) + 6, y + 4, x + width, y + 5, Theme.BORDER);
     }

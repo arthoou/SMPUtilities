@@ -3,9 +3,6 @@ package com.arthou.smputilities.client.gui;
 import com.arthou.smputilities.mc.Texts;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import org.lwjgl.glfw.GLFW;
@@ -17,7 +14,7 @@ import java.util.function.Consumer;
 /** Modal box drawn over a {@link SuScreen}; while open it receives all input. */
 public abstract class Dialog {
     protected final Font font = Minecraft.getInstance().font;
-    protected final List<AbstractWidget> widgets = new ArrayList<>();
+    protected final List<Widget> widgets = new ArrayList<>();
     protected final Component title;
     protected SuScreen screen;
     protected int x;
@@ -41,39 +38,31 @@ public abstract class Dialog {
         screen.closeDialog(this);
     }
 
-    protected <T extends AbstractWidget> T add(T widget) {
+    protected <T extends Widget> T add(T widget) {
         widgets.add(widget);
         return widget;
     }
 
-    void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        graphics.pose().pushPose();
-        graphics.pose().translate(0, 0, 400);
+    void render(Gfx graphics, int mouseX, int mouseY, float partialTick) {
+        graphics.push();
+        graphics.above(400);
         graphics.fill(0, 0, screen.width, screen.height, 0x90000000);
         Theme.shadow(graphics, x, y, x + width, y + height);
         Theme.roundBox(graphics, x, y, width, height, Theme.PANEL_BG, Theme.BORDER_HOVER);
         graphics.fillGradient(x + 1, y + 1, x + width - 1, y + 24, 0x226AF06B, 0x006AF06B);
         graphics.drawString(font, Theme.clip(font, title, width - 16), x + 8, y + 8, Theme.TEXT, false);
         renderBody(graphics, mouseX, mouseY);
-        for (AbstractWidget widget : widgets) {
+        for (Widget widget : widgets) {
             widget.render(graphics, mouseX, mouseY, partialTick);
         }
-        graphics.pose().popPose();
+        graphics.pop();
     }
 
-    protected void renderBody(GuiGraphics graphics, int mouseX, int mouseY) {
+    protected void renderBody(Gfx graphics, int mouseX, int mouseY) {
     }
 
     boolean mouseClicked(double mouseX, double mouseY, int button) {
-        for (AbstractWidget widget : widgets) {
-            boolean over = widget.isMouseOver(mouseX, mouseY);
-            if (widget instanceof EditBox box) {
-                box.setFocused(over);
-            }
-            if (over && widget.mouseClicked(mouseX, mouseY, button)) {
-                return true;
-            }
-        }
+        SuScreen.clickWidgets(widgets, mouseX, mouseY, button);
         return true;
     }
 
@@ -82,56 +71,53 @@ public abstract class Dialog {
             close();
             return true;
         }
-        for (AbstractWidget widget : widgets) {
-            if (widget instanceof EditBox box && box.isFocused() && box.keyPressed(key, scan, modifiers)) {
+        for (Widget widget : widgets) {
+            if (widget.isFocused() && widget.keyPressed(key, scan, modifiers)) {
                 return true;
             }
         }
         if (key == GLFW.GLFW_KEY_ENTER || key == GLFW.GLFW_KEY_KP_ENTER) {
             submit();
-            return true;
-        }
-        if (key == GLFW.GLFW_KEY_TAB) {
+        } else if (key == GLFW.GLFW_KEY_TAB) {
             focusNext();
-            return true;
         }
         return true;
     }
 
-    boolean charTyped(char character, int modifiers) {
-        for (AbstractWidget widget : widgets) {
-            if (widget instanceof EditBox box && box.isFocused()) {
-                return box.charTyped(character, modifiers);
+    boolean charTyped(String text, int modifiers) {
+        for (Widget widget : widgets) {
+            if (widget.isFocused()) {
+                return widget.charTyped(text, modifiers);
             }
         }
         return true;
     }
 
     private void focusNext() {
-        List<EditBox> boxes = new ArrayList<>();
-        for (AbstractWidget widget : widgets) {
-            if (widget instanceof EditBox box) {
-                boxes.add(box);
+        List<Widget> focusable = new ArrayList<>();
+        for (Widget widget : widgets) {
+            if (widget.focusable()) {
+                focusable.add(widget);
             }
         }
-        if (boxes.isEmpty()) {
+        if (focusable.isEmpty()) {
             return;
         }
         int current = -1;
-        for (int i = 0; i < boxes.size(); i++) {
-            if (boxes.get(i).isFocused()) {
+        for (int i = 0; i < focusable.size(); i++) {
+            if (focusable.get(i).isFocused()) {
                 current = i;
             }
-            boxes.get(i).setFocused(false);
+            focusable.get(i).setFocused(false);
         }
-        boxes.get((current + 1) % boxes.size()).setFocused(true);
+        focusable.get((current + 1) % focusable.size()).setFocused(true);
     }
 
     /** Enter key. */
     protected void submit() {
     }
 
-    protected int drawWrapped(GuiGraphics graphics, Component text, int left, int top, int maxWidth, int color) {
+    protected int drawWrapped(Gfx graphics, Component text, int left, int top, int maxWidth, int color) {
         int line = top;
         for (FormattedCharSequence part : font.split(text, maxWidth)) {
             graphics.drawString(font, part, left, line, color, false);
@@ -171,7 +157,7 @@ public abstract class Dialog {
         }
 
         @Override
-        protected void renderBody(GuiGraphics graphics, int mouseX, int mouseY) {
+        protected void renderBody(Gfx graphics, int mouseX, int mouseY) {
             drawWrapped(graphics, message, x + 8, y + 30, width - 16, Theme.TEXT_DIM);
         }
 
@@ -227,7 +213,7 @@ public abstract class Dialog {
         }
 
         @Override
-        protected void renderBody(GuiGraphics graphics, int mouseX, int mouseY) {
+        protected void renderBody(Gfx graphics, int mouseX, int mouseY) {
             int top = y + 30;
             if (note != null) {
                 top = drawWrapped(graphics, note, x + 8, top, width - 16, Theme.TEXT_DIM);

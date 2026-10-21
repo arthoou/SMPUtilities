@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.modsync;
 
+import com.arthou.smputilities.client.gui.Gfx;
 import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.client.ClientConfig;
 import com.arthou.smputilities.client.gui.SuButton;
@@ -10,7 +11,6 @@ import com.arthou.smputilities.core.modsync.ModEntry;
 import com.arthou.smputilities.core.modsync.ModManifest;
 import com.arthou.smputilities.core.modsync.SyncPlan;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 import java.net.URI;
@@ -47,7 +47,7 @@ public final class ModSyncScreen extends SuScreen {
     }
 
     @Override
-    protected void init() {
+    protected void build() {
         panelWidth = Math.min(420, width - 20);
         panelHeight = Math.min(260, height - 20);
         left = (width - panelWidth) / 2;
@@ -55,23 +55,23 @@ public final class ModSyncScreen extends SuScreen {
         int y = top + panelHeight - 28;
         int buttonWidth = (panelWidth - 32) / 3;
         if (result != null) {
-            addRenderableWidget(new SuButton(left + panelWidth - 8 - buttonWidth, y, buttonWidth, 20,
+            addWidget(new SuButton(left + panelWidth - 8 - buttonWidth, y, buttonWidth, 20,
                 Texts.translatable("modsync.smputilities.close"), button -> onClose()).kind(SuButton.Kind.PRIMARY));
             return;
         }
         if (downloader != null) {
-            addRenderableWidget(new SuButton(left + panelWidth - 8 - buttonWidth, y, buttonWidth, 20,
+            addWidget(new SuButton(left + panelWidth - 8 - buttonWidth, y, buttonWidth, 20,
                 Texts.translatable("modsync.smputilities.cancel_download"), button -> downloader.cancel()).kind(SuButton.Kind.DANGER));
             return;
         }
-        addRenderableWidget(new SuButton(left + 8, y, buttonWidth, 20, Texts.translatable("modsync.smputilities.never"), button -> {
+        addWidget(new SuButton(left + 8, y, buttonWidth, 20, Texts.translatable("modsync.smputilities.never"), button -> {
             ClientConfig.get().modSync.prompt = false;
             ClientConfig.save();
             onClose();
         }).kind(SuButton.Kind.SUBTLE).tooltip(Texts.translatable("modsync.smputilities.never_tip")));
-        addRenderableWidget(new SuButton(left + 16 + buttonWidth, y, buttonWidth, 20, Texts.translatable("modsync.smputilities.later"),
+        addWidget(new SuButton(left + 16 + buttonWidth, y, buttonWidth, 20, Texts.translatable("modsync.smputilities.later"),
             button -> onClose()));
-        addRenderableWidget(new SuButton(left + panelWidth - 8 - buttonWidth, y, buttonWidth, 20, Texts.translatable("modsync.smputilities.update"),
+        addWidget(new SuButton(left + panelWidth - 8 - buttonWidth, y, buttonWidth, 20, Texts.translatable("modsync.smputilities.update"),
             button -> start()).kind(SuButton.Kind.PRIMARY).enabled(!plan.upToDate()));
     }
 
@@ -95,16 +95,15 @@ public final class ModSyncScreen extends SuScreen {
                         result = value;
                         ClientConfig.get().modSync.managed = new ArrayList<>(managed);
                         ClientConfig.save();
-                        rebuildWidgets();
+                        rebuild();
                     });
                 }
             });
-        rebuildWidgets();
+        rebuild();
     }
 
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.renderBackground(graphics, mouseX, mouseY, partialTick);
+    protected void renderBack(Gfx graphics, int mouseX, int mouseY, float partialTick) {
         Theme.shadow(graphics, left, top, left + panelWidth, top + panelHeight);
         Theme.roundBox(graphics, left, top, panelWidth, panelHeight, Theme.PANEL_BG, Theme.BORDER);
         graphics.fillGradient(left + 1, top + 1, left + panelWidth - 1, top + 40, 0x1A6AF06B, 0x006AF06B);
@@ -150,7 +149,7 @@ public final class ModSyncScreen extends SuScreen {
         graphics.drawString(font, Texts.translatable("modsync.smputilities.restart_note"), left + 10, listBottom + 1, Theme.TEXT_OFF, false);
     }
 
-    private void renderResult(GuiGraphics graphics, int y) {
+    private void renderResult(Gfx graphics, int y) {
         ModDownloader.Result value = result;
         int line = y + 4;
         if (value.cancelled()) {
@@ -173,7 +172,10 @@ public final class ModSyncScreen extends SuScreen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+    protected boolean handleScroll(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (hasDialog()) {
+            return true;
+        }
         scroll = Math.max(0, scroll - (float) scrollY * 22);
         return true;
     }

@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.staff;
 
+import com.arthou.smputilities.client.gui.Gfx;
 import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.client.ClientState;
 import com.arthou.smputilities.client.gui.SuButton;
@@ -8,7 +9,6 @@ import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.core.util.Durations;
 import com.arthou.smputilities.network.Dto;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
@@ -75,7 +75,7 @@ final class DashboardTab extends PanelTab {
     }
 
     @Override
-    void renderBack(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    void renderBack(Gfx graphics, int mouseX, int mouseY, float partialTick) {
         Dto.Dashboard data = ClientState.dashboard();
         int x = left();
         int width = width();
@@ -113,16 +113,16 @@ final class DashboardTab extends PanelTab {
         graphics.drawString(font, footer, x, bottom() - 9, Theme.TEXT_OFF, false);
     }
 
-    private void card(GuiGraphics graphics, int x, int y, int width, String key, String value, int color) {
+    private void card(Gfx graphics, int x, int y, int width, String key, String value, int color) {
         Theme.roundBox(graphics, x, y, width, 40, Theme.CARD, Theme.BORDER);
         graphics.fill(x + 1, y + 4, x + 3, y + 36, color);
         graphics.drawString(font, Theme.clip(font, tr(key), width - 14), x + 9, y + 7, Theme.TEXT_DIM, false);
-        graphics.pose().pushPose();
-        graphics.pose().translate(x + 9, y + 20, 0);
+        graphics.push();
+        graphics.translate(x + 9, y + 20);
         float scale = font.width(value) * 1.5F > width - 14 ? 1.0F : 1.5F;
-        graphics.pose().scale(scale, scale, 1);
+        graphics.scale(scale);
         graphics.drawString(font, Texts.literal(Theme.clip(font, value, (int) ((width - 14) / scale))).withStyle(ChatFormatting.BOLD), 0, 0, color, false);
-        graphics.pose().popPose();
+        graphics.pop();
     }
 
     private static int tpsColor(double tps) {

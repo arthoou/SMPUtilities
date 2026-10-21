@@ -25,3 +25,6 @@ MC>=1.21.5 | .getAllKeys() => .keySet()
 # Before 1.19.3 the built-in registries were static fields of Registry.
 MC<1.19.3 | net.minecraft.core.registries.BuiltInRegistries => net.minecraft.core.Registry
 MC<1.19.3 | BuiltInRegistries => Registry
+
+# 1.21.11: net.minecraft.Util moved into the util package.
+MC>=1.21.11 | net.minecraft.Util => net.minecraft.util.Util

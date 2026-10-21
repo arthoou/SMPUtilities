@@ -72,6 +72,11 @@ public final class BubbleManager {
         });
     }
 
+    /** Cheap check for the renderer, which runs every frame. */
+    public static boolean hasAny() {
+        return !ACTIVE.isEmpty();
+    }
+
     public static void clear() {
         ACTIVE.clear();
     }

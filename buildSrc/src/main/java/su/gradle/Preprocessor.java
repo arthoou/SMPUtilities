@@ -35,6 +35,8 @@ public final class Preprocessor {
     }
 
     private static final Pattern DIRECTIVE = Pattern.compile("^\\s*//#(if|elif|else|endif)\\b\\s*(.*)$");
+    /** Anything that looks like a directive, so a misspelt one fails instead of being ignored. */
+    private static final Pattern DIRECTIVE_LIKE = Pattern.compile("^\\s*//#\\w.*$");
     private static final Pattern ESCAPED = Pattern.compile("^(\\s*)//\\$\\$ ?");
 
     private final int[] minecraft;
@@ -127,6 +129,8 @@ public final class Preprocessor {
                     }
                 }
                 // Keep the line count: a directive becomes an empty line.
+            } else if (DIRECTIVE_LIKE.matcher(line).matches()) {
+                throw new IllegalArgumentException(where + ": unknown directive " + line.trim());
             } else if (active) {
                 out.append(transform(line));
             }

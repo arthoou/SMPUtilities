@@ -3,13 +3,14 @@ package com.arthou.smputilities.neoforge;
 import com.arthou.smputilities.SmpUtilities;
 import com.arthou.smputilities.client.ClientNetwork;
 import com.arthou.smputilities.client.SuClient;
+import com.arthou.smputilities.client.gui.Gfx;
 import com.arthou.smputilities.client.bubble.BubbleRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
-import net.neoforged.neoforge.client.event.RenderPlayerEvent;
+import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 //#if MC>=1.20.6
@@ -33,11 +34,11 @@ public final class NeoForgeClient {
         modBus.addListener((RegisterKeyMappingsEvent event) -> event.register(SuClient.PANEL_KEY));
         //#if MC>=1.20.6
         modBus.addListener((RegisterGuiLayersEvent event) -> event.registerAboveAll(SmpUtilities.id("vanish_indicator"),
-            (graphics, delta) -> SuClient.renderHud(graphics)));
+            (graphics, delta) -> SuClient.renderHud(new Gfx(graphics))));
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> SuClient.tick());
         //#else
         //$$ modBus.addListener((RegisterGuiOverlaysEvent event) -> event.registerAboveAll(SmpUtilities.id("vanish_indicator"),
-        //$$     (gui, graphics, partialTick, width, height) -> SuClient.renderHud(graphics)));
+        //$$     (gui, graphics, partialTick, width, height) -> SuClient.renderHud(new Gfx(graphics))));
         //$$ NeoForge.EVENT_BUS.addListener((TickEvent.ClientTickEvent event) -> {
         //$$     if (event.phase == TickEvent.Phase.END) {
         //$$         SuClient.tick();
@@ -53,8 +54,15 @@ public final class NeoForgeClient {
                 event.setDisplayname(SuClient.nametag(event.getEntity(), event.getDisplayname()));
             }
         });
-        NeoForge.EVENT_BUS.addListener((RenderPlayerEvent.Post event) ->
-            BubbleRenderer.render(event.getEntity(), event.getPoseStack(), event.getMultiBufferSource(), event.getPackedLight()));
+        //#if MC>=1.21.6
+        NeoForge.EVENT_BUS.addListener((RenderLevelStageEvent.AfterEntities event) -> BubbleRenderer.renderWorld(event.getPoseStack()));
+        //#else
+        //$$ NeoForge.EVENT_BUS.addListener((RenderLevelStageEvent event) -> {
+        //$$     if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_ENTITIES) {
+        //$$         BubbleRenderer.renderWorld(event.getPoseStack());
+        //$$     }
+        //$$ });
+        //#endif
         NeoForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> SuClient.loggedOut());
     }
 

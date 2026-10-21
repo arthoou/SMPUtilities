@@ -1,11 +1,11 @@
 package com.arthou.smputilities.client.staff;
 
+import com.arthou.smputilities.client.gui.Gfx;
 import com.arthou.smputilities.client.ClientState;
 import com.arthou.smputilities.client.gui.TableView;
 import com.arthou.smputilities.client.gui.Theme;
 import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.network.Dto;
-import net.minecraft.client.gui.GuiGraphics;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -120,7 +120,7 @@ final class WorldTab extends PanelTab {
     }
 
     @Override
-    void renderBack(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    void renderBack(Gfx graphics, int mouseX, int mouseY, float partialTick) {
         int half = (width() - 8) / 2;
         section(graphics, "section.dimensions", left(), top(), half);
         section(graphics, "section.portal_limits", left() + half + 8, top(), half);

@@ -2,7 +2,6 @@ package com.arthou.smputilities.client.gui;
 
 import com.arthou.smputilities.mc.Texts;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
@@ -35,7 +34,7 @@ public final class Theme {
     }
 
     /** Rectangle with the corner pixels cut. */
-    public static void roundRect(GuiGraphics graphics, int x1, int y1, int x2, int y2, int color) {
+    public static void roundRect(Gfx graphics, int x1, int y1, int x2, int y2, int color) {
         if (x2 - x1 < 2 || y2 - y1 < 2) {
             graphics.fill(x1, y1, x2, y2, color);
             return;
@@ -45,13 +44,13 @@ public final class Theme {
         graphics.fill(x2 - 1, y1 + 1, x2, y2 - 1, color);
     }
 
-    public static void roundBox(GuiGraphics graphics, int x, int y, int w, int h, int background, int border) {
+    public static void roundBox(Gfx graphics, int x, int y, int w, int h, int background, int border) {
         roundRect(graphics, x, y, x + w, y + h, border);
         roundRect(graphics, x + 1, y + 1, x + w - 1, y + h - 1, background);
     }
 
     /** Soft drop shadow under a panel. */
-    public static void shadow(GuiGraphics graphics, int x1, int y1, int x2, int y2) {
+    public static void shadow(Gfx graphics, int x1, int y1, int x2, int y2) {
         for (int i = 6; i >= 1; i--) {
             roundRect(graphics, x1 - i, y1 - i + 2, x2 + i, y2 + i + 2, (0x12 - i) << 24);
         }
@@ -97,7 +96,7 @@ public final class Theme {
     }
 
     /** Small pill with a colored dot, e.g. "● Online". */
-    public static int pill(GuiGraphics graphics, Font font, int x, int y, String text, int color) {
+    public static int pill(Gfx graphics, Font font, int x, int y, String text, int color) {
         int width = font.width(text) + 16;
         roundRect(graphics, x, y, x + width, y + 13, withAlpha(color, 0.2F));
         graphics.fill(x + 5, y + 5, x + 9, y + 9, color);
