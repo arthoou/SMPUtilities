@@ -1,17 +1,16 @@
 package com.arthou.smputilities.client.staff;
 
+import com.arthou.smputilities.client.gui.Widget;
+import com.arthou.smputilities.client.gui.Gfx;
 import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.client.gui.Theme;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractButton;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 
 /** One sidebar category. */
-final class NavItem extends AbstractButton {
+final class NavItem extends Widget {
     private final StaffPanelScreen.TabInfo info;
     private final StaffPanelScreen panel;
     private float hover;
@@ -24,12 +23,12 @@ final class NavItem extends AbstractButton {
     }
 
     @Override
-    public void onPress() {
+    protected void onClick(double mouseX, double mouseY) {
         panel.switchTab(info.id());
     }
 
     @Override
-    protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    protected void renderWidget(Gfx graphics, int mouseX, int mouseY, float partialTick) {
         long now = Util.getMillis();
         hover = Theme.approach(hover, active && isHoveredOrFocused() ? 1 : 0, now - lastFrame, 90);
         lastFrame = now;
@@ -43,10 +42,5 @@ final class NavItem extends AbstractButton {
         int textY = getY() + (getHeight() - 8) / 2;
         graphics.drawString(font, info.icon(), getX() + 8 + Math.round(hover * 1.5F), textY, iconColor, false);
         graphics.drawString(font, Theme.clip(font, getMessage(), getWidth() - 28), getX() + 22 + Math.round(hover * 1.5F), textY, color, false);
-    }
-
-    @Override
-    protected void updateWidgetNarration(NarrationElementOutput output) {
-        defaultButtonNarrationText(output);
     }
 }

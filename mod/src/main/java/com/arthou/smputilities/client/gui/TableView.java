@@ -4,9 +4,6 @@ import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.network.Dto;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 
@@ -21,7 +18,7 @@ import java.util.function.Function;
  * Scrollable table with a header, row selection, a text filter and small
  * action buttons at the end of each row.
  */
-public class TableView extends AbstractWidget {
+public class TableView extends Widget {
     public record Column(Component title, float weight) {
     }
 
@@ -30,7 +27,7 @@ public class TableView extends AbstractWidget {
 
     /** Draws a row itself; return false to fall back to plain cells. */
     public interface RowRenderer {
-        boolean render(GuiGraphics graphics, Dto.Row row, int x, int y, int width, int height, boolean hovered, boolean selected);
+        boolean render(Gfx graphics, Dto.Row row, int x, int y, int width, int height, boolean hovered, boolean selected);
     }
 
     private static final int HEADER = 14;
@@ -107,7 +104,7 @@ public class TableView extends AbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    protected void renderWidget(Gfx graphics, int mouseX, int mouseY, float partialTick) {
         Font font = Minecraft.getInstance().font;
         scroll = Theme.approach(scroll, scrollTarget, 16, 60);
         int x = getX();
@@ -219,14 +216,14 @@ public class TableView extends AbstractWidget {
             int bw = font.width(rowButton.label()) + 8;
             bx -= bw;
             if (mouseX >= bx && mouseX < bx + bw) {
-                playDownSound(Minecraft.getInstance().getSoundManager());
+                playClick();
                 onButton.accept(row, rowButton.id());
                 return true;
             }
             bx -= 3;
         }
         selectedId = row.id();
-        playDownSound(Minecraft.getInstance().getSoundManager());
+        playClick();
         onSelect.accept(row);
         return true;
     }
@@ -241,9 +238,5 @@ public class TableView extends AbstractWidget {
             SCROLLS.put(scrollKey, scrollTarget);
         }
         return true;
-    }
-
-    @Override
-    protected void updateWidgetNarration(NarrationElementOutput output) {
     }
 }

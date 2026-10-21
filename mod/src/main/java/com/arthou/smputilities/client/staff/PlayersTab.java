@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.staff;
 
+import com.arthou.smputilities.client.gui.Gfx;
 import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.client.ClientState;
 import com.arthou.smputilities.client.gui.Dialog;
@@ -13,7 +14,6 @@ import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.network.Dto;
 import com.arthou.smputilities.server.Msg;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
@@ -150,7 +150,7 @@ final class PlayersTab extends PanelTab {
         return rows;
     }
 
-    private boolean renderPlayerRow(GuiGraphics graphics, Dto.Row row, int x, int y, int width, int height, boolean hovered, boolean selected) {
+    private boolean renderPlayerRow(Gfx graphics, Dto.Row row, int x, int y, int width, int height, boolean hovered, boolean selected) {
         UUID id = UUID.fromString(row.id());
         String name = row.cells().get(0);
         String nick = row.cells().size() > 1 ? row.cells().get(1) : "";
@@ -202,7 +202,7 @@ final class PlayersTab extends PanelTab {
     // --------------------------------------------------------------- info
 
     @Override
-    void renderBack(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    void renderBack(Gfx graphics, int mouseX, int mouseY, float partialTick) {
         if (panel.selectedPlayer == null) {
             graphics.drawCenteredString(font, tr("players.select"), (splitX + right()) / 2, top() + 60, Theme.TEXT_OFF);
             return;
@@ -258,7 +258,7 @@ final class PlayersTab extends PanelTab {
         drawColumn(graphics, rightColumn, splitX + columnWidth, y, columnWidth);
     }
 
-    private void drawColumn(GuiGraphics graphics, List<String[]> rows, int x, int y, int width) {
+    private void drawColumn(Gfx graphics, List<String[]> rows, int x, int y, int width) {
         int labelWidth = Math.min(80, width / 2);
         for (String[] row : rows) {
             if (y + 9 > bottom()) {
@@ -427,7 +427,7 @@ final class PlayersTab extends PanelTab {
         grid(splitX, buttonsY, width, 4, 20, buttons);
     }
 
-    private void renderNotes(GuiGraphics graphics, Dto.PlayerDetail detail) {
+    private void renderNotes(Gfx graphics, Dto.PlayerDetail detail) {
         int y = top() + 56 + 108;
         section(graphics, "notes.title", splitX, y, right() - splitX);
         y += 13;

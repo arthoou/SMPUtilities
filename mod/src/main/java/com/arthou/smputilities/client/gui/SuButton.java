@@ -5,17 +5,13 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractButton;
-import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 
 import java.util.function.Consumer;
 
 /** Flat button with a smoothed hover. */
-public class SuButton extends AbstractButton {
+public class SuButton extends Widget {
     public enum Kind { GHOST, PRIMARY, DANGER, WARN, SUBTLE }
 
     private final Consumer<SuButton> action;
@@ -40,7 +36,7 @@ public class SuButton extends AbstractButton {
     }
 
     public SuButton tooltip(Component text) {
-        setTooltip(Tooltip.create(text));
+        setTooltip(text);
         return this;
     }
 
@@ -50,7 +46,7 @@ public class SuButton extends AbstractButton {
     }
 
     @Override
-    public void onPress() {
+    protected void onClick(double mouseX, double mouseY) {
         action.accept(this);
     }
 
@@ -63,7 +59,7 @@ public class SuButton extends AbstractButton {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    protected void renderWidget(Gfx graphics, int mouseX, int mouseY, float partialTick) {
         float t = hover();
         int background;
         int border;
@@ -100,10 +96,5 @@ public class SuButton extends AbstractButton {
         Component label = icon.isEmpty() ? getMessage() : Texts.literal(icon + " ").append(getMessage());
         FormattedCharSequence text = Theme.clip(font, label.copy().withStyle(ChatFormatting.BOLD), getWidth() - 8);
         graphics.drawString(font, text, getX() + (getWidth() - font.width(text)) / 2, getY() + (getHeight() - 8) / 2, textColor, false);
-    }
-
-    @Override
-    protected void updateWidgetNarration(NarrationElementOutput output) {
-        defaultButtonNarrationText(output);
     }
 }

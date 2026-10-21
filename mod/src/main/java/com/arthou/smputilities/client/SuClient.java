@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client;
 
+import com.arthou.smputilities.client.gui.Gfx;
 import com.arthou.smputilities.client.bubble.BubbleManager;
 import com.arthou.smputilities.client.gui.Theme;
 import com.arthou.smputilities.client.modsync.ClientModSync;
@@ -9,7 +10,6 @@ import com.arthou.smputilities.server.Msg;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Player;
@@ -41,7 +41,7 @@ public final class SuClient {
     }
 
     /** Vanish reminder in the top-left corner of the HUD. */
-    public static void renderHud(GuiGraphics graphics) {
+    public static void renderHud(Gfx graphics) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null || minecraft.options.hideGui || !ClientState.isVanished(minecraft.player.getUUID())) {
             return;

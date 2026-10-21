@@ -1,12 +1,12 @@
 package com.arthou.smputilities.client.staff;
 
+import com.arthou.smputilities.client.gui.Gfx;
 import com.arthou.smputilities.client.ClientState;
 import com.arthou.smputilities.client.gui.SuButton;
 import com.arthou.smputilities.client.gui.TableView;
 import com.arthou.smputilities.client.gui.Theme;
 import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.network.Dto;
-import net.minecraft.client.gui.GuiGraphics;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -157,7 +157,7 @@ final class InventoriesTab extends PanelTab {
     }
 
     @Override
-    void renderBack(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    void renderBack(Gfx graphics, int mouseX, int mouseY, float partialTick) {
         if (panel.selectedPlayer == null) {
             graphics.drawCenteredString(font, tr("players.select"), (contentX + right()) / 2, top() + 60, Theme.TEXT_OFF);
             return;

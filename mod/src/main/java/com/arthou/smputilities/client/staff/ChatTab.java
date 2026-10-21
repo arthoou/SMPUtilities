@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.staff;
 
+import com.arthou.smputilities.client.gui.Gfx;
 import com.arthou.smputilities.client.ClientState;
 import com.arthou.smputilities.client.gui.SuButton;
 import com.arthou.smputilities.client.gui.SuTextField;
@@ -7,7 +8,6 @@ import com.arthou.smputilities.client.gui.TableView;
 import com.arthou.smputilities.client.gui.Theme;
 import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.network.Dto;
-import net.minecraft.client.gui.GuiGraphics;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -140,7 +140,7 @@ final class ChatTab extends PanelTab {
     }
 
     @Override
-    void renderBack(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    void renderBack(Gfx graphics, int mouseX, int mouseY, float partialTick) {
         section(graphics, "section.chat_options", left(), top(), width());
         int y = top() + 12 + 5 * 21 + 4 + 21 + 2 + 26;
         section(graphics, "section.muted", left(), y, width());

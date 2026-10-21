@@ -1,7 +1,11 @@
 package com.arthou.smputilities.client.tts;
 
+import com.arthou.smputilities.client.gui.Widget;
+import com.arthou.smputilities.client.gui.Gfx;
 import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.client.ClientNetwork;
+import com.arthou.smputilities.client.gui.SuScreen;
+import com.arthou.smputilities.client.gui.Theme;
 import com.arthou.smputilities.network.Payloads;
 import com.arthou.smputilities.tts.TtsPresets;
 import com.arthou.smputilities.tts.TtsPresets.VoiceLanguage;
@@ -9,13 +13,8 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractButton;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
-import net.minecraft.util.Mth;
 
 import java.util.function.Consumer;
 
@@ -24,7 +23,7 @@ import java.util.function.Consumer;
  * variation, then language). Confirm sends the choice; the button at the
  * bottom of the side bar turns the voice off.
  */
-public final class TtsMenuScreen extends Screen {
+public final class TtsMenuScreen extends SuScreen {
     private static final int GENDER_FEMININE = 0;
     private static final int GENDER_MASCULINE = 1;
     private static final int[] VARIANTS = {3, 2};
@@ -35,18 +34,6 @@ public final class TtsMenuScreen extends Screen {
     private static final int STEP_COUNT = 3;
     private static final int STEP_SPACING = 38;
 
-    private static final int PANEL_BG = 0xF414181F;
-    private static final int SIDEBAR_BG = 0xF40D1015;
-    private static final int BORDER = 0xFF262C36;
-    private static final int CARD = 0xFF1A1F27;
-    private static final int CARD_HOVER = 0xFF232A34;
-    private static final int CARD_SELECTED = 0xFF16291B;
-    private static final int ACCENT = 0xFF6AF06B;
-    private static final int ACCENT_DARK = 0xFF2F7A3A;
-    private static final int DANGER = 0xFFFF625F;
-    private static final int TEXT = 0xFFF2F4F8;
-    private static final int TEXT_DIM = 0xFF8A93A3;
-    private static final int TEXT_OFF = 0xFF4F5663;
     private static final int FEMININE = 0xFFFF8FC8;
     private static final int MASCULINE = 0xFF7FB6FF;
 
@@ -86,7 +73,7 @@ public final class TtsMenuScreen extends Screen {
     }
 
     @Override
-    protected void init() {
+    protected void build() {
         panelWidth = Math.min(400, width - 20);
         panelHeight = Math.min(236, height - 20);
         panelLeft = (width - panelWidth) / 2;
@@ -99,17 +86,17 @@ public final class TtsMenuScreen extends Screen {
             int index = i;
             StepButton item = new StepButton(panelLeft + 6, stepY(i), sideWidth - 12, 32, index, button -> {
                 step = index;
-                rebuildWidgets();
+                rebuild();
             });
             item.active = reachable[i];
-            addRenderableWidget(item);
+            addWidget(item);
         }
 
         FlatButton off = new FlatButton(panelLeft + 8, panelTop + panelHeight - 30, sideWidth - 16, 20,
             Texts.translatable("tts.off"), button -> turnOff());
         off.kind = Kind.DANGER;
         off.active = currentMode > 0;
-        addRenderableWidget(off);
+        addWidget(off);
 
         // --- content: options of the current step ---
         int contentLeft = contentLeft();
@@ -127,7 +114,7 @@ public final class TtsMenuScreen extends Screen {
                     card.bigColor = g == GENDER_MASCULINE ? MASCULINE : FEMININE;
                     card.subtitle = Texts.translatable("tts.gender.variants", VARIANTS[g]);
                     card.selected = gender == g;
-                    addRenderableWidget(card);
+                    addWidget(card);
                 }
             }
             case STEP_VARIANT -> {
@@ -141,7 +128,7 @@ public final class TtsMenuScreen extends Screen {
                     card.bigColor = gender == GENDER_MASCULINE ? MASCULINE : FEMININE;
                     card.subtitle = Texts.translatable("tts.variant", v);
                     card.selected = variant == v;
-                    addRenderableWidget(card);
+                    addWidget(card);
                 }
             }
             default -> {
@@ -152,7 +139,7 @@ public final class TtsMenuScreen extends Screen {
                     LanguageRow row = new LanguageRow(contentLeft + (i % 2) * (columnWidth + 8), optionsTop + (i / 2) * 25,
                         columnWidth, 21, languages[i], button -> pickLanguage(value));
                     row.selected = language == i;
-                    addRenderableWidget(row);
+                    addWidget(row);
                 }
             }
         }
@@ -165,8 +152,8 @@ public final class TtsMenuScreen extends Screen {
             Texts.translatable("tts.confirm"), button -> confirm());
         confirm.kind = Kind.PRIMARY;
         confirm.active = isComplete();
-        addRenderableWidget(confirm);
-        addRenderableWidget(new FlatButton(right - buttonWidth * 2 - 6, footerY, buttonWidth, 20,
+        addWidget(confirm);
+        addWidget(new FlatButton(right - buttonWidth * 2 - 6, footerY, buttonWidth, 20,
             Texts.translatable("tts.cancel"), button -> onClose()));
     }
 
@@ -192,18 +179,18 @@ public final class TtsMenuScreen extends Screen {
             }
         }
         step = STEP_VARIANT;
-        rebuildWidgets();
+        rebuild();
     }
 
     private void pickVariant(int value) {
         variant = value;
         step = STEP_LANGUAGE;
-        rebuildWidgets();
+        rebuild();
     }
 
     private void pickLanguage(int value) {
         language = value;
-        rebuildWidgets();
+        rebuild();
     }
 
     private boolean isComplete() {
@@ -290,95 +277,66 @@ public final class TtsMenuScreen extends Screen {
     // ------------------------------------------------------------ painting
 
     @Override
-    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.renderBackground(graphics, mouseX, mouseY, partialTick);
+    protected void renderBack(Gfx graphics, int mouseX, int mouseY, float partialTick) {
 
         int right = panelLeft + panelWidth;
         int bottom = panelTop + panelHeight;
 
         // soft shadow, panel, side bar
         for (int i = 6; i >= 1; i--) {
-            roundRect(graphics, panelLeft - i, panelTop - i + 2, right + i, bottom + i + 2, (0x12 - i) << 24);
+            Theme.roundRect(graphics, panelLeft - i, panelTop - i + 2, right + i, bottom + i + 2, (0x12 - i) << 24);
         }
-        roundRect(graphics, panelLeft - 1, panelTop - 1, right + 1, bottom + 1, BORDER);
-        roundRect(graphics, panelLeft, panelTop, right, bottom, PANEL_BG);
-        graphics.fill(panelLeft + 1, panelTop, panelLeft + sideWidth, panelTop + 1, SIDEBAR_BG);
-        graphics.fill(panelLeft, panelTop + 1, panelLeft + sideWidth, bottom - 1, SIDEBAR_BG);
-        graphics.fill(panelLeft + 1, bottom - 1, panelLeft + sideWidth, bottom, SIDEBAR_BG);
-        graphics.fill(panelLeft + sideWidth, panelTop, panelLeft + sideWidth + 1, bottom, BORDER);
+        Theme.roundRect(graphics, panelLeft - 1, panelTop - 1, right + 1, bottom + 1, Theme.BORDER);
+        Theme.roundRect(graphics, panelLeft, panelTop, right, bottom, Theme.PANEL_BG);
+        graphics.fill(panelLeft + 1, panelTop, panelLeft + sideWidth, panelTop + 1, Theme.SIDEBAR_BG);
+        graphics.fill(panelLeft, panelTop + 1, panelLeft + sideWidth, bottom - 1, Theme.SIDEBAR_BG);
+        graphics.fill(panelLeft + 1, bottom - 1, panelLeft + sideWidth, bottom, Theme.SIDEBAR_BG);
+        graphics.fill(panelLeft + sideWidth, panelTop, panelLeft + sideWidth + 1, bottom, Theme.BORDER);
         graphics.fillGradient(panelLeft + sideWidth + 1, panelTop, right - 1, panelTop + 46, 0x1A6AF06B, 0x006AF06B);
 
         // side bar header: logo badge + name
         int logoX = panelLeft + 10;
         int logoY = panelTop + 12;
-        roundRect(graphics, logoX, logoY, logoX + 20, logoY + 20, ACCENT);
+        Theme.roundRect(graphics, logoX, logoY, logoX + 20, logoY + 20, Theme.ACCENT);
         graphics.drawString(font, "♪", logoX + 7, logoY + 6, 0xFF0B1A0C, false);
-        graphics.drawString(font, title.copy().withStyle(ChatFormatting.BOLD), logoX + 26, logoY + 2, TEXT, false);
-        graphics.drawString(font, clip(font, Texts.translatable("tts.subtitle"), sideWidth - 42), logoX + 26, logoY + 12, TEXT_DIM, false);
+        graphics.drawString(font, title.copy().withStyle(ChatFormatting.BOLD), logoX + 26, logoY + 2, Theme.TEXT, false);
+        graphics.drawString(font, Theme.clip(font, Texts.translatable("tts.subtitle"), sideWidth - 42), logoX + 26, logoY + 12, Theme.TEXT_DIM, false);
 
         // stepper connectors between the step badges
         for (int i = 0; i < STEP_COUNT - 1; i++) {
             int lineX = panelLeft + 6 + 6 + 6;
             int top = stepY(i) + 8 + 14;
             int end = stepY(i + 1) + 8;
-            graphics.fill(lineX, top + 2, lineX + 1, end - 2, isDone(i) ? ACCENT_DARK : BORDER);
+            graphics.fill(lineX, top + 2, lineX + 1, end - 2, isDone(i) ? Theme.ACCENT_DARK : Theme.BORDER);
         }
 
         // content header
         int contentLeft = contentLeft();
         int contentRight = contentRight();
         Component progress = Texts.translatable("tts.step_of", step + 1, STEP_COUNT);
-        graphics.drawString(font, progress.copy().withStyle(ChatFormatting.BOLD), contentLeft, panelTop + 12, ACCENT, false);
-        graphics.drawString(font, clip(font, stepTitle().copy().withStyle(ChatFormatting.BOLD), contentRight - contentLeft), contentLeft, panelTop + 26, TEXT, false);
+        graphics.drawString(font, progress.copy().withStyle(ChatFormatting.BOLD), contentLeft, panelTop + 12, Theme.ACCENT, false);
+        graphics.drawString(font, Theme.clip(font, stepTitle().copy().withStyle(ChatFormatting.BOLD), contentRight - contentLeft), contentLeft, panelTop + 26, Theme.TEXT, false);
 
         // status pill, top right
         boolean on = currentMode > 0;
-        FormattedCharSequence pill = clip(font, status(), Math.max(20, contentRight - contentLeft - font.width(progress) - 30));
+        FormattedCharSequence pill = Theme.clip(font, status(), Math.max(20, contentRight - contentLeft - font.width(progress) - 30));
         int pillWidth = font.width(pill) + 18;
         int pillX = contentRight - pillWidth;
-        roundRect(graphics, pillX, panelTop + 9, contentRight, panelTop + 23, on ? 0x332F7A3A : 0x33454B57);
-        graphics.fill(pillX + 6, panelTop + 14, pillX + 10, panelTop + 18, on ? ACCENT : TEXT_DIM);
-        graphics.drawString(font, pill, pillX + 13, panelTop + 12, on ? ACCENT : TEXT_DIM, false);
+        Theme.roundRect(graphics, pillX, panelTop + 9, contentRight, panelTop + 23, on ? 0x332F7A3A : 0x33454B57);
+        graphics.fill(pillX + 6, panelTop + 14, pillX + 10, panelTop + 18, on ? Theme.ACCENT : Theme.TEXT_DIM);
+        graphics.drawString(font, pill, pillX + 13, panelTop + 12, on ? Theme.ACCENT : Theme.TEXT_DIM, false);
 
-        graphics.fill(contentLeft, panelTop + 42, contentRight, panelTop + 43, BORDER);
-        graphics.fill(contentLeft, panelTop + panelHeight - 38, contentRight, panelTop + panelHeight - 37, BORDER);
+        graphics.fill(contentLeft, panelTop + 42, contentRight, panelTop + 43, Theme.BORDER);
+        graphics.fill(contentLeft, panelTop + panelHeight - 38, contentRight, panelTop + panelHeight - 37, Theme.BORDER);
     }
 
-    @Override
-    public boolean isPauseScreen() {
-        return false;
-    }
 
-    private static FormattedCharSequence clip(Font font, Component text, int width) {
-        if (font.width(text) <= width) {
-            return text.getVisualOrderText();
-        }
-        String plain = font.plainSubstrByWidth(text.getString(), Math.max(0, width - font.width("…"))) + "…";
-        return Texts.literal(plain).withStyle(text.getStyle()).getVisualOrderText();
-    }
 
-    /** Rectangle with the corner pixels cut, which reads as rounded at GUI scale. */
-    private static void roundRect(GuiGraphics graphics, int x1, int y1, int x2, int y2, int color) {
-        graphics.fill(x1 + 1, y1, x2 - 1, y2, color);
-        graphics.fill(x1, y1 + 1, x1 + 1, y2 - 1, color);
-        graphics.fill(x2 - 1, y1 + 1, x2, y2 - 1, color);
-    }
 
-    private static void roundBox(GuiGraphics graphics, int x, int y, int w, int h, int background, int border) {
-        roundRect(graphics, x, y, x + w, y + h, border);
-        roundRect(graphics, x + 1, y + 1, x + w - 1, y + h - 1, background);
-    }
 
-    private static int mix(int from, int to, float t) {
-        int a = Mth.lerpInt(t, from >>> 24, to >>> 24);
-        int r = Mth.lerpInt(t, (from >> 16) & 0xFF, (to >> 16) & 0xFF);
-        int g = Mth.lerpInt(t, (from >> 8) & 0xFF, (to >> 8) & 0xFF);
-        int b = Mth.lerpInt(t, from & 0xFF, to & 0xFF);
-        return a << 24 | r << 16 | g << 8 | b;
-    }
 
     /** Small flag for each voice language, painted with plain fills (16x11). */
-    private static void flag(GuiGraphics g, int x, int y, VoiceLanguage language) {
+    private static void flag(Gfx g, int x, int y, VoiceLanguage language) {
         int w = 16;
         int h = 11;
         switch (language) {
@@ -428,7 +386,7 @@ public final class TtsMenuScreen extends Screen {
                 g.fill(x, y + 7, x + w, y + h, 0xFF21468B);
             }
         }
-        g.renderOutline(x - 1, y - 1, w + 2, h + 2, 0x50000000);
+        g.outline(x - 1, y - 1, w + 2, h + 2, 0x50000000);
     }
 
     // ------------------------------------------------------------- widgets
@@ -436,7 +394,7 @@ public final class TtsMenuScreen extends Screen {
     private enum Kind { GHOST, PRIMARY, DANGER }
 
     /** Base with a smoothed hover, so colours fade instead of snapping. */
-    private abstract static class AnimatedButton extends AbstractButton {
+    private abstract static class AnimatedButton extends Widget {
         private final Consumer<AnimatedButton> action;
         private float hover;
         private long lastFrame = Util.getMillis();
@@ -447,7 +405,7 @@ public final class TtsMenuScreen extends Screen {
         }
 
         @Override
-        public void onPress() {
+        protected void onClick(double mouseX, double mouseY) {
             action.accept(this);
         }
 
@@ -458,11 +416,6 @@ public final class TtsMenuScreen extends Screen {
             float target = active && isHoveredOrFocused() ? 1.0F : 0.0F;
             hover += (target - hover) * step;
             return hover;
-        }
-
-        @Override
-        protected void updateWidgetNarration(NarrationElementOutput output) {
-            defaultButtonNarrationText(output);
         }
     }
 
@@ -475,31 +428,31 @@ public final class TtsMenuScreen extends Screen {
         }
 
         @Override
-        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        protected void renderWidget(Gfx graphics, int mouseX, int mouseY, float partialTick) {
             float t = hover();
             int background;
             int border;
             int textColor;
             switch (kind) {
                 case PRIMARY -> {
-                    background = active ? mix(ACCENT, 0xFF9AF79B, t) : CARD;
-                    border = active ? background : BORDER;
-                    textColor = active ? 0xFF0B1A0C : TEXT_OFF;
+                    background = active ? Theme.mix(Theme.ACCENT, 0xFF9AF79B, t) : Theme.CARD;
+                    border = active ? background : Theme.BORDER;
+                    textColor = active ? 0xFF0B1A0C : Theme.TEXT_OFF;
                 }
                 case DANGER -> {
-                    background = active ? mix(0x00FF625F, 0x40FF625F, t) : 0x00000000;
-                    border = active ? mix(0x80FF625F, DANGER, t) : BORDER;
-                    textColor = active ? DANGER : TEXT_OFF;
+                    background = active ? Theme.mix(0x00FF625F, 0x40FF625F, t) : 0x00000000;
+                    border = active ? Theme.mix(0x80FF625F, Theme.DANGER, t) : Theme.BORDER;
+                    textColor = active ? Theme.DANGER : Theme.TEXT_OFF;
                 }
                 default -> {
-                    background = mix(CARD, CARD_HOVER, t);
-                    border = mix(BORDER, 0xFF3C4452, t);
-                    textColor = TEXT;
+                    background = Theme.mix(Theme.CARD, Theme.CARD_HOVER, t);
+                    border = Theme.mix(Theme.BORDER, 0xFF3C4452, t);
+                    textColor = Theme.TEXT;
                 }
             }
-            roundBox(graphics, getX(), getY(), getWidth(), getHeight(), background, border);
+            Theme.roundBox(graphics, getX(), getY(), getWidth(), getHeight(), background, border);
             Component label = kind == Kind.PRIMARY && active ? Texts.literal("✔ ").append(getMessage()) : getMessage();
-            FormattedCharSequence text = clip(font, label.copy().withStyle(ChatFormatting.BOLD), getWidth() - 8);
+            FormattedCharSequence text = Theme.clip(font, label.copy().withStyle(ChatFormatting.BOLD), getWidth() - 8);
             graphics.drawString(font, text, getX() + (getWidth() - font.width(text)) / 2, getY() + (getHeight() - 8) / 2, textColor, false);
         }
     }
@@ -515,7 +468,7 @@ public final class TtsMenuScreen extends Screen {
         }
 
         @Override
-        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        protected void renderWidget(Gfx graphics, int mouseX, int mouseY, float partialTick) {
             float t = hover();
             int x = getX();
             int y = getY();
@@ -525,35 +478,35 @@ public final class TtsMenuScreen extends Screen {
             boolean done = isDone(index);
 
             if (current) {
-                roundRect(graphics, x, y, x + w, y + h, CARD);
-                graphics.fill(x, y + 4, x + 2, y + h - 4, ACCENT);
+                Theme.roundRect(graphics, x, y, x + w, y + h, Theme.CARD);
+                graphics.fill(x, y + 4, x + 2, y + h - 4, Theme.ACCENT);
             } else if (t > 0.01F) {
-                roundRect(graphics, x, y, x + w, y + h, mix(0x00232A34, CARD_HOVER, t));
+                Theme.roundRect(graphics, x, y, x + w, y + h, Theme.mix(0x00232A34, Theme.CARD_HOVER, t));
             }
 
             // badge
             int bx = x + 6;
             int by = y + 8;
             if (done && !current) {
-                roundRect(graphics, bx, by, bx + 14, by + 14, ACCENT_DARK);
-                graphics.drawString(font, "✔", bx + 4, by + 3, ACCENT, false);
+                Theme.roundRect(graphics, bx, by, bx + 14, by + 14, Theme.ACCENT_DARK);
+                graphics.drawString(font, "✔", bx + 4, by + 3, Theme.ACCENT, false);
             } else if (current) {
-                roundRect(graphics, bx, by, bx + 14, by + 14, ACCENT);
+                Theme.roundRect(graphics, bx, by, bx + 14, by + 14, Theme.ACCENT);
                 graphics.drawString(font, Integer.toString(index + 1), bx + 5, by + 3, 0xFF0B1A0C, false);
             } else {
-                roundBox(graphics, bx, by, 14, 14, SIDEBAR_BG, active ? 0xFF3C4452 : BORDER);
-                graphics.drawString(font, Integer.toString(index + 1), bx + 5, by + 3, active ? TEXT_DIM : TEXT_OFF, false);
+                Theme.roundBox(graphics, bx, by, 14, 14, Theme.SIDEBAR_BG, active ? 0xFF3C4452 : Theme.BORDER);
+                graphics.drawString(font, Integer.toString(index + 1), bx + 5, by + 3, active ? Theme.TEXT_DIM : Theme.TEXT_OFF, false);
             }
 
             int textX = bx + 20;
             int textWidth = x + w - textX - 4;
-            int nameColor = !active ? TEXT_OFF : current ? TEXT : mix(TEXT_DIM, TEXT, t);
+            int nameColor = !active ? Theme.TEXT_OFF : current ? Theme.TEXT : Theme.mix(Theme.TEXT_DIM, Theme.TEXT, t);
             Component value = stepValue(index);
             if (value == null) {
-                graphics.drawString(font, clip(font, getMessage(), textWidth), textX, y + (h - 8) / 2, nameColor, false);
+                graphics.drawString(font, Theme.clip(font, getMessage(), textWidth), textX, y + (h - 8) / 2, nameColor, false);
             } else {
-                graphics.drawString(font, clip(font, getMessage(), textWidth), textX, y + 6, nameColor, false);
-                graphics.drawString(font, clip(font, value, textWidth), textX, y + 18, active ? ACCENT : TEXT_OFF, false);
+                graphics.drawString(font, Theme.clip(font, getMessage(), textWidth), textX, y + 6, nameColor, false);
+                graphics.drawString(font, Theme.clip(font, value, textWidth), textX, y + 18, active ? Theme.ACCENT : Theme.TEXT_OFF, false);
             }
         }
     }
@@ -561,7 +514,7 @@ public final class TtsMenuScreen extends Screen {
     /** Big card for gender and variation: large glyph, title, subtitle. */
     private final class OptionCard extends AnimatedButton {
         String big = "";
-        int bigColor = TEXT;
+        int bigColor = Theme.TEXT;
         Component subtitle;
         boolean selected;
 
@@ -571,32 +524,32 @@ public final class TtsMenuScreen extends Screen {
         }
 
         @Override
-        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        protected void renderWidget(Gfx graphics, int mouseX, int mouseY, float partialTick) {
             float t = hover();
             int x = getX();
             int y = getY();
             int w = getWidth();
             int h = getHeight();
-            int background = selected ? CARD_SELECTED : mix(CARD, CARD_HOVER, t);
-            int border = selected ? ACCENT : mix(BORDER, 0xFF3C4452, t);
-            roundBox(graphics, x, y, w, h, background, border);
+            int background = selected ? Theme.CARD_SELECTED : Theme.mix(Theme.CARD, Theme.CARD_HOVER, t);
+            int border = selected ? Theme.ACCENT : Theme.mix(Theme.BORDER, 0xFF3C4452, t);
+            Theme.roundBox(graphics, x, y, w, h, background, border);
             if (selected) {
-                graphics.drawString(font, "✔", x + w - 11, y + 4, ACCENT, false);
+                graphics.drawString(font, "✔", x + w - 11, y + 4, Theme.ACCENT, false);
             }
 
             // glyph at 2x, lifted a little on hover
             int lift = Math.round(t * 2);
-            graphics.pose().pushPose();
-            graphics.pose().translate(x + w / 2.0F - font.width(big), y + 9 - lift, 0);
-            graphics.pose().scale(2.0F, 2.0F, 1.0F);
+            graphics.push();
+            graphics.translate(x + w / 2.0F - font.width(big), y + 9 - lift);
+            graphics.scale(2.0F);
             graphics.drawString(font, big, 0, 0, bigColor, false);
-            graphics.pose().popPose();
+            graphics.pop();
 
-            FormattedCharSequence title = clip(font, getMessage().copy().withStyle(ChatFormatting.BOLD), w - 8);
-            graphics.drawString(font, title, x + (w - font.width(title)) / 2, y + 36, TEXT, false);
+            FormattedCharSequence title = Theme.clip(font, getMessage().copy().withStyle(ChatFormatting.BOLD), w - 8);
+            graphics.drawString(font, title, x + (w - font.width(title)) / 2, y + 36, Theme.TEXT, false);
             if (subtitle != null) {
-                FormattedCharSequence sub = clip(font, subtitle, w - 8);
-                graphics.drawString(font, sub, x + (w - font.width(sub)) / 2, y + 50, selected ? ACCENT : TEXT_DIM, false);
+                FormattedCharSequence sub = Theme.clip(font, subtitle, w - 8);
+                graphics.drawString(font, sub, x + (w - font.width(sub)) / 2, y + 50, selected ? Theme.ACCENT : Theme.TEXT_DIM, false);
             }
         }
     }
@@ -613,20 +566,20 @@ public final class TtsMenuScreen extends Screen {
         }
 
         @Override
-        protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        protected void renderWidget(Gfx graphics, int mouseX, int mouseY, float partialTick) {
             float t = hover();
             int x = getX();
             int y = getY();
             int w = getWidth();
             int h = getHeight();
-            int background = selected ? CARD_SELECTED : mix(CARD, CARD_HOVER, t);
-            int border = selected ? ACCENT : mix(BORDER, 0xFF3C4452, t);
-            roundBox(graphics, x, y, w, h, background, border);
+            int background = selected ? Theme.CARD_SELECTED : Theme.mix(Theme.CARD, Theme.CARD_HOVER, t);
+            int border = selected ? Theme.ACCENT : Theme.mix(Theme.BORDER, 0xFF3C4452, t);
+            Theme.roundBox(graphics, x, y, w, h, background, border);
             flag(graphics, x + 6, y + (h - 11) / 2, voiceLanguage);
             int textX = x + 28;
-            graphics.drawString(font, clip(font, getMessage(), w - 44), textX, y + (h - 8) / 2, selected ? TEXT : mix(TEXT_DIM, TEXT, t), false);
+            graphics.drawString(font, Theme.clip(font, getMessage(), w - 44), textX, y + (h - 8) / 2, selected ? Theme.TEXT : Theme.mix(Theme.TEXT_DIM, Theme.TEXT, t), false);
             if (selected) {
-                graphics.drawString(font, "✔", x + w - 12, y + (h - 8) / 2, ACCENT, false);
+                graphics.drawString(font, "✔", x + w - 12, y + (h - 8) / 2, Theme.ACCENT, false);
             }
         }
     }
