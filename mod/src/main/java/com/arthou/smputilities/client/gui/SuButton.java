@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.gui;
 
+import com.arthou.smputilities.mc.Texts;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -96,7 +97,7 @@ public class SuButton extends AbstractButton {
         }
         Theme.roundBox(graphics, getX(), getY(), getWidth(), getHeight(), background, border);
         Font font = Minecraft.getInstance().font;
-        Component label = icon.isEmpty() ? getMessage() : Component.literal(icon + " ").append(getMessage());
+        Component label = icon.isEmpty() ? getMessage() : Texts.literal(icon + " ").append(getMessage());
         FormattedCharSequence text = Theme.clip(font, label.copy().withStyle(ChatFormatting.BOLD), getWidth() - 8);
         graphics.drawString(font, text, getX() + (getWidth() - font.width(text)) / 2, getY() + (getHeight() - 8) / 2, textColor, false);
     }

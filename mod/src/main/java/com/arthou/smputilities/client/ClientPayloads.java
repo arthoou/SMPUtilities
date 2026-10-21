@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client;
 
+import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.client.bubble.BubbleManager;
 import com.arthou.smputilities.client.modsync.ClientModSync;
 import com.arthou.smputilities.client.staff.StaffPanelScreen;
@@ -9,9 +10,39 @@ import com.arthou.smputilities.network.Payloads;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
 
-/** Client-side payload handlers. Only ever called on the client. */
+/** Client-side payload handlers. Only ever called on the client, on the main thread. */
 public final class ClientPayloads {
     private ClientPayloads() {
+    }
+
+    static void handle(Payloads.Message message) {
+        if (message instanceof Payloads.State payload) {
+            state(payload);
+        } else if (message instanceof Payloads.Nicknames payload) {
+            nicknames(payload);
+        } else if (message instanceof Payloads.OpenPanel payload) {
+            openPanel(payload);
+        } else if (message instanceof Payloads.DashboardData payload) {
+            dashboard(payload);
+        } else if (message instanceof Payloads.DetailData payload) {
+            detail(payload);
+        } else if (message instanceof Payloads.TableData payload) {
+            table(payload);
+        } else if (message instanceof Payloads.SettingsData payload) {
+            settings(payload);
+        } else if (message instanceof Payloads.Feedback payload) {
+            feedback(payload);
+        } else if (message instanceof Payloads.TtsSpeak payload) {
+            ttsSpeak(payload);
+        } else if (message instanceof Payloads.TtsMenu payload) {
+            ttsMenu(payload);
+        } else if (message instanceof Payloads.Bubble payload) {
+            bubble(payload);
+        } else if (message instanceof Payloads.VoiceRestriction payload) {
+            voiceRestriction(payload);
+        } else if (message instanceof Payloads.Manifest payload) {
+            manifest(payload);
+        }
     }
 
     public static void state(Payloads.State payload) {
@@ -29,7 +60,7 @@ public final class ClientPayloads {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level != null) {
             for (Player player : minecraft.level.players()) {
-                player.refreshDisplayName();
+                ClientCompat.refreshDisplayName(player);
             }
         }
     }
@@ -58,7 +89,7 @@ public final class ClientPayloads {
         if (Minecraft.getInstance().screen instanceof StaffPanelScreen panel) {
             panel.toast(payload.message(), payload.error());
         } else if (Minecraft.getInstance().player != null) {
-            Minecraft.getInstance().player.displayClientMessage(net.minecraft.network.chat.Component.literal(payload.message())
+            Minecraft.getInstance().player.displayClientMessage(Texts.literal(payload.message())
                 .withStyle(payload.error() ? net.minecraft.ChatFormatting.RED : net.minecraft.ChatFormatting.GREEN), false);
         }
     }

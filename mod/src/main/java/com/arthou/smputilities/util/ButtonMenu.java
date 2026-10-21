@@ -1,5 +1,6 @@
 package com.arthou.smputilities.util;
 
+import com.arthou.smputilities.mc.Texts;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
@@ -99,7 +100,7 @@ public abstract class ButtonMenu extends AbstractContainerMenu {
     }
 
     public static ItemStack named(Item item, String name, String... lore) {
-        return named(new ItemStack(item), Component.literal(name).withStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.WHITE)), lore);
+        return named(new ItemStack(item), Texts.literal(name).withStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.WHITE)), lore);
     }
 
     public static ItemStack named(ItemStack stack, Component name, String... lore) {
@@ -111,7 +112,7 @@ public abstract class ButtonMenu extends AbstractContainerMenu {
                 if (line == null || line.isEmpty()) {
                     continue;
                 }
-                MutableComponent text = Component.literal(line).withStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GRAY));
+                MutableComponent text = Texts.literal(line).withStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GRAY));
                 lines.add(text);
             }
             copy.set(DataComponents.LORE, new ItemLore(lines));
@@ -122,7 +123,7 @@ public abstract class ButtonMenu extends AbstractContainerMenu {
     public static ItemStack head(GameProfile profile, String name, String... lore) {
         ItemStack stack = new ItemStack(Items.PLAYER_HEAD);
         stack.set(DataComponents.PROFILE, new ResolvableProfile(profile));
-        return named(stack, Component.literal(name).withStyle(ChatFormatting.YELLOW), lore);
+        return named(stack, Texts.literal(name).withStyle(ChatFormatting.YELLOW), lore);
     }
 
     public static MenuType<?> menuType(int rows) {

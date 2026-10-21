@@ -1,5 +1,7 @@
 package com.arthou.smputilities.backup;
 
+import com.arthou.smputilities.mc.Texts;
+import com.arthou.smputilities.mc.Mc;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -32,7 +34,7 @@ public final class CompatInventorySupport {
 
     public static CompoundTag capture(ServerPlayer player) {
         CompoundTag tag = new CompoundTag();
-        captureCosmeticArmor(player.server, player.getUUID()).ifPresent(data -> tag.put("CosmeticArmor", data));
+        captureCosmeticArmor(Mc.server(player), player.getUUID()).ifPresent(data -> tag.put("CosmeticArmor", data));
         captureCurios(player).ifPresent(data -> tag.put("Curios", data));
         return tag;
     }
@@ -41,7 +43,7 @@ public final class CompatInventorySupport {
         if (tag == null || tag.isEmpty()) {
             return;
         }
-        applyCosmeticArmor(player.server, player.getUUID(), tag.getCompound("CosmeticArmor"));
+        applyCosmeticArmor(Mc.server(player), player.getUUID(), tag.getCompound("CosmeticArmor"));
         applyCurios(player, tag.getList("Curios", Tag.TAG_COMPOUND));
         player.inventoryMenu.broadcastChanges();
         player.containerMenu.broadcastChanges();
@@ -60,7 +62,7 @@ public final class CompatInventorySupport {
         if (tag == null || tag.isEmpty()) {
             return;
         }
-        applyCosmeticArmor(player.server, player.getUUID(), tag.getCompound("CosmeticArmor"));
+        applyCosmeticArmor(Mc.server(player), player.getUUID(), tag.getCompound("CosmeticArmor"));
         player.inventoryMenu.broadcastChanges();
         player.containerMenu.broadcastChanges();
     }
@@ -194,7 +196,7 @@ public final class CompatInventorySupport {
 
     public static ItemStack namedBarrier(String name) {
         ItemStack stack = new ItemStack(Items.BARRIER);
-        stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, Component.literal(name));
+        stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, Texts.literal(name));
         return stack;
     }
 

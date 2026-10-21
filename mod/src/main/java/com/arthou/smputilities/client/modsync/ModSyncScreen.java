@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.modsync;
 
+import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.client.ClientConfig;
 import com.arthou.smputilities.client.gui.SuButton;
 import com.arthou.smputilities.client.gui.SuScreen;
@@ -38,7 +39,7 @@ public final class ModSyncScreen extends SuScreen {
     private float scroll;
 
     ModSyncScreen(ModManifest manifest, SyncPlan plan, Set<String> allowedHosts, long maxBytes) {
-        super(Component.translatable("modsync.smputilities.title"));
+        super(Texts.translatable("modsync.smputilities.title"));
         this.manifest = manifest;
         this.plan = plan;
         this.allowedHosts = allowedHosts;
@@ -55,22 +56,22 @@ public final class ModSyncScreen extends SuScreen {
         int buttonWidth = (panelWidth - 32) / 3;
         if (result != null) {
             addRenderableWidget(new SuButton(left + panelWidth - 8 - buttonWidth, y, buttonWidth, 20,
-                Component.translatable("modsync.smputilities.close"), button -> onClose()).kind(SuButton.Kind.PRIMARY));
+                Texts.translatable("modsync.smputilities.close"), button -> onClose()).kind(SuButton.Kind.PRIMARY));
             return;
         }
         if (downloader != null) {
             addRenderableWidget(new SuButton(left + panelWidth - 8 - buttonWidth, y, buttonWidth, 20,
-                Component.translatable("modsync.smputilities.cancel_download"), button -> downloader.cancel()).kind(SuButton.Kind.DANGER));
+                Texts.translatable("modsync.smputilities.cancel_download"), button -> downloader.cancel()).kind(SuButton.Kind.DANGER));
             return;
         }
-        addRenderableWidget(new SuButton(left + 8, y, buttonWidth, 20, Component.translatable("modsync.smputilities.never"), button -> {
+        addRenderableWidget(new SuButton(left + 8, y, buttonWidth, 20, Texts.translatable("modsync.smputilities.never"), button -> {
             ClientConfig.get().modSync.prompt = false;
             ClientConfig.save();
             onClose();
-        }).kind(SuButton.Kind.SUBTLE).tooltip(Component.translatable("modsync.smputilities.never_tip")));
-        addRenderableWidget(new SuButton(left + 16 + buttonWidth, y, buttonWidth, 20, Component.translatable("modsync.smputilities.later"),
+        }).kind(SuButton.Kind.SUBTLE).tooltip(Texts.translatable("modsync.smputilities.never_tip")));
+        addRenderableWidget(new SuButton(left + 16 + buttonWidth, y, buttonWidth, 20, Texts.translatable("modsync.smputilities.later"),
             button -> onClose()));
-        addRenderableWidget(new SuButton(left + panelWidth - 8 - buttonWidth, y, buttonWidth, 20, Component.translatable("modsync.smputilities.update"),
+        addRenderableWidget(new SuButton(left + panelWidth - 8 - buttonWidth, y, buttonWidth, 20, Texts.translatable("modsync.smputilities.update"),
             button -> start()).kind(SuButton.Kind.PRIMARY).enabled(!plan.upToDate()));
     }
 
@@ -108,7 +109,7 @@ public final class ModSyncScreen extends SuScreen {
         Theme.roundBox(graphics, left, top, panelWidth, panelHeight, Theme.PANEL_BG, Theme.BORDER);
         graphics.fillGradient(left + 1, top + 1, left + panelWidth - 1, top + 40, 0x1A6AF06B, 0x006AF06B);
         graphics.drawString(font, title, left + 10, top + 10, Theme.TEXT, false);
-        graphics.drawString(font, Component.translatable("modsync.smputilities.subtitle"), left + 10, top + 22, Theme.TEXT_DIM, false);
+        graphics.drawString(font, Texts.translatable("modsync.smputilities.subtitle"), left + 10, top + 22, Theme.TEXT_DIM, false);
 
         int listTop = top + 44;
         int listBottom = top + panelHeight - 36;
@@ -117,7 +118,7 @@ public final class ModSyncScreen extends SuScreen {
             return;
         }
         if (downloader != null) {
-            graphics.drawString(font, Component.translatable("modsync.smputilities.downloading", fileIndex, fileCount, currentFile), left + 10, listTop + 4, Theme.TEXT, false);
+            graphics.drawString(font, Texts.translatable("modsync.smputilities.downloading", fileIndex, fileCount, currentFile), left + 10, listTop + 4, Theme.TEXT, false);
             int barWidth = panelWidth - 20;
             Theme.roundRect(graphics, left + 10, listTop + 20, left + 10 + barWidth, listTop + 30, Theme.CARD);
             float progress = total > 0 ? Math.min(1, done / (float) total) : 0;
@@ -135,7 +136,7 @@ public final class ModSyncScreen extends SuScreen {
             lines.add("! " + rejected);
         }
         if (lines.isEmpty()) {
-            graphics.drawString(font, Component.translatable("modsync.smputilities.up_to_date"), left + 10, listTop + 4, Theme.ACCENT, false);
+            graphics.drawString(font, Texts.translatable("modsync.smputilities.up_to_date"), left + 10, listTop + 4, Theme.ACCENT, false);
             return;
         }
         graphics.enableScissor(left + 6, listTop, left + panelWidth - 6, listBottom);
@@ -146,17 +147,17 @@ public final class ModSyncScreen extends SuScreen {
             y += 11;
         }
         graphics.disableScissor();
-        graphics.drawString(font, Component.translatable("modsync.smputilities.restart_note"), left + 10, listBottom + 1, Theme.TEXT_OFF, false);
+        graphics.drawString(font, Texts.translatable("modsync.smputilities.restart_note"), left + 10, listBottom + 1, Theme.TEXT_OFF, false);
     }
 
     private void renderResult(GuiGraphics graphics, int y) {
         ModDownloader.Result value = result;
         int line = y + 4;
         if (value.cancelled()) {
-            graphics.drawString(font, Component.translatable("modsync.smputilities.cancelled"), left + 10, line, Theme.WARN, false);
+            graphics.drawString(font, Texts.translatable("modsync.smputilities.cancelled"), left + 10, line, Theme.WARN, false);
             line += 12;
         }
-        graphics.drawString(font, Component.translatable("modsync.smputilities.installed", value.installed().size(), value.removed().size()), left + 10, line, Theme.ACCENT, false);
+        graphics.drawString(font, Texts.translatable("modsync.smputilities.installed", value.installed().size(), value.removed().size()), left + 10, line, Theme.ACCENT, false);
         line += 12;
         for (String failure : value.failed()) {
             graphics.drawString(font, Theme.clip(font, "✘ " + failure, panelWidth - 24), left + 10, line, Theme.DANGER, false);
@@ -167,7 +168,7 @@ public final class ModSyncScreen extends SuScreen {
             line += 11;
         }
         if (value.restartRequired()) {
-            graphics.drawString(font, Component.translatable("modsync.smputilities.restart_required"), left + 10, line + 6, Theme.WARN, false);
+            graphics.drawString(font, Texts.translatable("modsync.smputilities.restart_required"), left + 10, line + 6, Theme.WARN, false);
         }
     }
 
@@ -179,7 +180,7 @@ public final class ModSyncScreen extends SuScreen {
 
     private static String host(ModEntry entry) {
         if (entry.hosted()) {
-            return Component.translatable("modsync.smputilities.server_host").getString();
+            return Texts.translatable("modsync.smputilities.server_host").getString();
         }
         try {
             return URI.create(entry.url()).getHost();

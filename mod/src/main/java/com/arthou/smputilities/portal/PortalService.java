@@ -1,5 +1,7 @@
 package com.arthou.smputilities.portal;
 
+import com.arthou.smputilities.mc.Ids;
+import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.core.chat.Placeholders;
 import com.arthou.smputilities.core.config.SuConfig;
 import com.arthou.smputilities.core.perm.Perm;
@@ -170,7 +172,7 @@ public final class PortalService {
         if (level.getChunkSource().getChunk(center.getX() >> 4, center.getZ() >> 4, ChunkStatus.FULL, false) == null) {
             return;
         }
-        Block expected = BuiltInRegistries.BLOCK.get(net.minecraft.resources.ResourceLocation.parse(record.block.isEmpty() ? "minecraft:nether_portal" : record.block));
+        Block expected = BuiltInRegistries.BLOCK.get(Ids.parse(record.block.isEmpty() ? "minecraft:nether_portal" : record.block));
         for (BlockPos pos : BlockPos.betweenClosed(center.offset(-3, -3, -3), center.offset(3, 3, 3))) {
             if (level.getBlockState(pos).is(expected)) {
                 return;
@@ -198,6 +200,6 @@ public final class PortalService {
         values.put("dimension", key);
         values.put("count", String.valueOf(registry().count(key)));
         values.put("limit", String.valueOf(PortalRegistry.limitFor(config.limits, key)));
-        player.sendSystemMessage(Msg.styled(Placeholders.apply(config.limitMessage, values)));
+        Mc.send(player, Msg.styled(Placeholders.apply(config.limitMessage, values)));
     }
 }

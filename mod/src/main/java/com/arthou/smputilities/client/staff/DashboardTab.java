@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.staff;
 
+import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.client.ClientState;
 import com.arthou.smputilities.client.gui.SuButton;
 import com.arthou.smputilities.client.gui.Theme;
@@ -120,7 +121,7 @@ final class DashboardTab extends PanelTab {
         graphics.pose().translate(x + 9, y + 20, 0);
         float scale = font.width(value) * 1.5F > width - 14 ? 1.0F : 1.5F;
         graphics.pose().scale(scale, scale, 1);
-        graphics.drawString(font, Component.literal(Theme.clip(font, value, (int) ((width - 14) / scale))).withStyle(ChatFormatting.BOLD), 0, 0, color, false);
+        graphics.drawString(font, Texts.literal(Theme.clip(font, value, (int) ((width - 14) / scale))).withStyle(ChatFormatting.BOLD), 0, 0, color, false);
         graphics.pose().popPose();
     }
 

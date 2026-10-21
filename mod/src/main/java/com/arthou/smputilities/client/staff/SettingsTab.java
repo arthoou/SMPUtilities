@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.staff;
 
+import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.client.ClientState;
 import com.arthou.smputilities.client.gui.SuButton;
 import com.arthou.smputilities.client.gui.SuTextField;
@@ -46,7 +47,7 @@ final class SettingsTab extends PanelTab {
                 panel.action("setting", "", path, String.valueOf(!Boolean.parseBoolean(row.cells().get(1))));
             } else {
                 panel.form(tr("settings.edit"), List.of(new com.arthou.smputilities.client.gui.Dialog.Form.Field(
-                        net.minecraft.network.chat.Component.literal(path), row.cells().get(1), tr("field.value.hint"))),
+                        Texts.literal(path), row.cells().get(1), tr("field.value.hint"))),
                     tr("button.save"), false, describe(path), values -> panel.action("setting", "", path, values.get(0)));
             }
         };
@@ -56,7 +57,7 @@ final class SettingsTab extends PanelTab {
 
     private static net.minecraft.network.chat.Component describe(String path) {
         String key = "setting.smputilities." + path;
-        return I18n.exists(key) ? net.minecraft.network.chat.Component.translatable(key) : null;
+        return I18n.exists(key) ? Texts.translatable(key) : null;
     }
 
     private void fill() {

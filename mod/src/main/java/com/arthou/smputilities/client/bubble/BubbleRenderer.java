@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.bubble;
 
+import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.SmpUtilities;
 import com.arthou.smputilities.client.ClientConfig;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -67,7 +68,7 @@ public final class BubbleRenderer {
                 continue;
             }
             String text = (bubble.tts() ? "♪ " : "") + bubble.text().trim();
-            List<FormattedCharSequence> lines = font.split(Component.literal(text), bubble.maxWidth());
+            List<FormattedCharSequence> lines = font.split(Texts.literal(text), bubble.maxWidth());
             int widest = MIN_WIDTH;
             for (FormattedCharSequence line : lines) {
                 widest = Math.max(widest, font.width(line));

@@ -10,7 +10,7 @@ import com.arthou.smputilities.core.util.SuLog;
 import com.arthou.smputilities.network.SuNetwork;
 import com.arthou.smputilities.server.SuServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.fml.loading.FMLPaths;
+import com.arthou.smputilities.platform.Platform;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -43,7 +43,7 @@ public final class ModSyncServer {
     }
 
     public static Path directory() {
-        return FMLPaths.CONFIGDIR.get().resolve("smputilities").resolve("modsync");
+        return Platform.get().configDir().resolve("smputilities").resolve("modsync");
     }
 
     public static void onServerStart() {

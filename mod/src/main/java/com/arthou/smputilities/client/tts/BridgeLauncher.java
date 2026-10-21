@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.tts;
 
+import com.arthou.smputilities.mc.Texts;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -61,8 +62,8 @@ public final class BridgeLauncher {
             startBridgeProcess(bridgeDirectory);
         } catch (Exception exception) {
             if (showError && launchErrorShown.compareAndSet(false, true)) {
-                showClientMessage(Component.translatable("tts.helper_missing")
-                    .append(Component.literal(" (" + exception.getClass().getSimpleName() + ")"))
+                showClientMessage(Texts.translatable("tts.helper_missing")
+                    .append(Texts.literal(" (" + exception.getClass().getSimpleName() + ")"))
                     .withStyle(ChatFormatting.RED));
             }
             return false;
@@ -118,7 +119,7 @@ public final class BridgeLauncher {
         }
 
         if (showError && launchErrorShown.compareAndSet(false, true)) {
-            showClientMessage(Component.translatable("tts.helper_io")
+            showClientMessage(Texts.translatable("tts.helper_io")
                 .withStyle(ChatFormatting.RED));
         }
         return false;

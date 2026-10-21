@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.staff;
 
+import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.client.ClientState;
 import com.arthou.smputilities.client.gui.Dialog;
 import com.arthou.smputilities.client.gui.Heads;
@@ -214,7 +215,7 @@ final class PlayersTab extends PanelTab {
         Theme.roundBox(graphics, splitX, top(), right() - splitX, 30, Theme.CARD, Theme.BORDER);
         Heads.draw(graphics, detail.id(), detail.name(), splitX + 5, top() + 5, 20);
         String nick = detail.get("nick");
-        Component title = nick.isEmpty() ? Component.literal(detail.name()) : Msg.styled(nick);
+        Component title = nick.isEmpty() ? Texts.literal(detail.name()) : Msg.styled(nick);
         graphics.drawString(font, Theme.clip(font, title, right() - splitX - 110), splitX + 30, top() + 6, Theme.TEXT, false);
         String subtitle = nick.isEmpty() ? detail.id().toString() : detail.name() + " · " + detail.id();
         graphics.drawString(font, Theme.clip(font, subtitle, right() - splitX - 40), splitX + 30, top() + 17, Theme.TEXT_OFF, false);
@@ -313,10 +314,10 @@ final class PlayersTab extends PanelTab {
                 }
             })).icon("✎"));
         buttons.add(onlineOnly(button(0, 0, 10, "action.gamemode", Perm.STAFF_GAMEMODE, b -> panel.choice(tr("action.gamemode"), List.of(
-            new Dialog.Choice.Option("survival", Component.translatable("gameMode.survival"), SuButton.Kind.GHOST),
-            new Dialog.Choice.Option("creative", Component.translatable("gameMode.creative"), SuButton.Kind.GHOST),
-            new Dialog.Choice.Option("adventure", Component.translatable("gameMode.adventure"), SuButton.Kind.GHOST),
-            new Dialog.Choice.Option("spectator", Component.translatable("gameMode.spectator"), SuButton.Kind.GHOST)),
+            new Dialog.Choice.Option("survival", Texts.translatable("gameMode.survival"), SuButton.Kind.GHOST),
+            new Dialog.Choice.Option("creative", Texts.translatable("gameMode.creative"), SuButton.Kind.GHOST),
+            new Dialog.Choice.Option("adventure", Texts.translatable("gameMode.adventure"), SuButton.Kind.GHOST),
+            new Dialog.Choice.Option("spectator", Texts.translatable("gameMode.spectator"), SuButton.Kind.GHOST)),
             mode -> panel.action("gamemode", id, mode))).icon("⚒"), online));
         buttons.add(onlineOnly(button(0, 0, 10, "action.heal", Perm.STAFF_STATS_EDIT, b -> panel.action("heal", id)).icon("❤"), online));
         buttons.add(onlineOnly(button(0, 0, 10, "action.feed", Perm.STAFF_STATS_EDIT, b -> panel.action("feed", id)).icon("☕"), online));
@@ -435,7 +436,7 @@ final class PlayersTab extends PanelTab {
             return;
         }
         for (int i = detail.notes().size() - 1; i >= 0 && y + 9 <= bottom(); i--) {
-            for (var line : font.split(Component.literal(detail.notes().get(i)).withStyle(ChatFormatting.GRAY), right() - splitX)) {
+            for (var line : font.split(Texts.literal(detail.notes().get(i)).withStyle(ChatFormatting.GRAY), right() - splitX)) {
                 if (y + 9 > bottom()) {
                     break;
                 }

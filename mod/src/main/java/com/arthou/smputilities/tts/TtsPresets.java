@@ -1,5 +1,6 @@
 package com.arthou.smputilities.tts;
 
+import com.arthou.smputilities.mc.Texts;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
@@ -146,7 +147,7 @@ public final class TtsPresets {
     /** Translatable language name, resolved in each player's own game language. */
     public static MutableComponent languageComponent(VoiceLanguage language) {
         VoiceLanguage safe = language == null ? VoiceLanguage.ENGLISH : language;
-        return Component.translatable("tts.language." + safe.name().toLowerCase(Locale.ROOT));
+        return Texts.translatable("tts.language." + safe.name().toLowerCase(Locale.ROOT));
     }
 
     /** Like {@link #selectionName} but translated on the client: "Feminina 1 · Português". */
@@ -157,9 +158,9 @@ public final class TtsPresets {
             case MODE_MASCULINE_1, MODE_MASCULINE_2, MODE_DUCK_MASCULINE -> true;
             default -> false;
         };
-        MutableComponent text = Component.translatable(masculine ? "tts.gender.masculine" : "tts.gender.feminine");
+        MutableComponent text = Texts.translatable(masculine ? "tts.gender.masculine" : "tts.gender.feminine");
         if (duck) {
-            text = Component.translatable("tts.duck", text);
+            text = Texts.translatable("tts.duck", text);
         } else {
             int variant = switch (normalizedMode) {
                 case MODE_FEMININE_2, MODE_MASCULINE_2 -> 2;

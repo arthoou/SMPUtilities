@@ -1,5 +1,7 @@
 package com.arthou.smputilities.profile;
 
+import com.arthou.smputilities.mc.Texts;
+import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.inventory.PlayerNbt;
 import com.arthou.smputilities.server.Lang;
@@ -33,12 +35,12 @@ public final class ProfileMenus {
 
     public static void openList(ServerPlayer viewer, UUID owner, String ownerName) {
         String title = viewer.getUUID().equals(owner) ? Lang.tr(viewer, "profile.title.own") : Lang.tr(viewer, "profile.title.other", ownerName);
-        ButtonMenu.open(viewer, Component.literal(title), (id, inventory) -> new ListMenu(id, inventory, viewer, owner, ownerName));
+        ButtonMenu.open(viewer, Texts.literal(title), (id, inventory) -> new ListMenu(id, inventory, viewer, owner, ownerName));
     }
 
     /** The original Inv Profile screen: preview of the stored slot and the Quick Change button. */
     public static void openQuickChange(ServerPlayer viewer) {
-        ButtonMenu.open(viewer, Component.literal(Lang.tr(viewer, "invprofile.title")), (id, inventory) -> new QuickChangeMenu(id, inventory, viewer));
+        ButtonMenu.open(viewer, Texts.literal(Lang.tr(viewer, "invprofile.title")), (id, inventory) -> new QuickChangeMenu(id, inventory, viewer));
     }
 
     private static final class ListMenu extends ButtonMenu {
@@ -108,7 +110,7 @@ public final class ProfileMenus {
             }
             if (button == 1 || !self) {
                 // Right-click (or staff): preview the stored contents.
-                ButtonMenu.open(viewer, Component.literal(Lang.tr(viewer, "profile.title.preview", name)),
+                ButtonMenu.open(viewer, Texts.literal(Lang.tr(viewer, "profile.title.preview", name)),
                     (id, inventory) -> new PreviewMenu(id, inventory, viewer, owner, ownerName, name, false));
                 return;
             }
@@ -142,12 +144,12 @@ public final class ProfileMenus {
             } else if (profile != null) {
                 CompoundTag data = profile.data;
                 if (ender) {
-                    ItemStack[] stacks = PlayerNbt.readEnder(data, viewer.server.registryAccess());
+                    ItemStack[] stacks = PlayerNbt.readEnder(data, Mc.server(viewer).registryAccess());
                     for (int i = 0; i < stacks.length; i++) {
                         set(i, stacks[i].copy());
                     }
                 } else {
-                    PlayerNbt.Contents contents = PlayerNbt.readInventory(data, viewer.server.registryAccess());
+                    PlayerNbt.Contents contents = PlayerNbt.readInventory(data, Mc.server(viewer).registryAccess());
                     for (int i = 0; i <= 40; i++) {
                         set(i, contents.get(i).copy());
                     }
@@ -164,7 +166,7 @@ public final class ProfileMenus {
         @Override
         protected void onButton(int slot, ClickType clickType, int button) {
             if (slot == 49) {
-                ButtonMenu.open(viewer, Component.literal(Lang.tr(viewer, "profile.title.preview", name)),
+                ButtonMenu.open(viewer, Texts.literal(Lang.tr(viewer, "profile.title.preview", name)),
                     (id, inventory) -> new PreviewMenu(id, inventory, viewer, owner, ownerName, name, !ender));
             } else if (slot == 53) {
                 openList(viewer, owner, ownerName);
@@ -185,13 +187,13 @@ public final class ProfileMenus {
             buttons.clearContent();
             CompoundTag quick = ProfileService.of(viewer.getUUID()).quick;
             if (quick.contains("Inventory")) {
-                PlayerNbt.Contents contents = PlayerNbt.readInventory(quick, viewer.server.registryAccess());
+                PlayerNbt.Contents contents = PlayerNbt.readInventory(quick, Mc.server(viewer).registryAccess());
                 for (int i = 0; i <= 40; i++) {
                     set(i, contents.get(i).copy());
                 }
             }
             set(QUICK_CHANGE_SLOT, named(new ItemStack(Items.LIME_WOOL),
-                Component.literal(Lang.tr(viewer, "invprofile.button.quick_change")).withStyle(ChatFormatting.GOLD)));
+                Texts.literal(Lang.tr(viewer, "invprofile.button.quick_change")).withStyle(ChatFormatting.GOLD)));
         }
 
         @Override
@@ -201,10 +203,10 @@ public final class ProfileMenus {
             }
             String error = ProfileService.quickChange(viewer, getCarried());
             if (error != null) {
-                viewer.sendSystemMessage(Component.literal(Lang.tr(viewer, error)).withStyle(ChatFormatting.RED));
+                Mc.send(viewer, Texts.literal(Lang.tr(viewer, error)).withStyle(ChatFormatting.RED));
                 return;
             }
-            viewer.sendSystemMessage(Component.literal(Lang.tr(viewer, "invprofile.quick_change_done")).withStyle(ChatFormatting.GREEN));
+            Mc.send(viewer, Texts.literal(Lang.tr(viewer, "invprofile.quick_change_done")).withStyle(ChatFormatting.GREEN));
             refresh();
             broadcastChanges();
         }

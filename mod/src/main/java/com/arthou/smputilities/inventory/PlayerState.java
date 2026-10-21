@@ -1,16 +1,18 @@
 package com.arthou.smputilities.inventory;
 
 import com.arthou.smputilities.core.teleport.Location;
+import com.arthou.smputilities.mc.Effects;
+import com.arthou.smputilities.mc.Mc;
+import com.arthou.smputilities.mc.Nbt;
 import com.arthou.smputilities.teleport.Teleports;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
@@ -21,23 +23,27 @@ import java.util.Set;
  * {@code Entity#load} (that would also move the player without telling the
  * client).
  *
- * <p>Keys match the vanilla player save format, so a full
- * {@code saveWithoutId} tag (old Inventory Rollback snapshots) can be applied
- * the same way as a tag captured here.
+ * <p>Keys follow the vanilla player save format of the running version, so a
+ * captured tag can be upgraded by the game's data fixers after a Minecraft
+ * update, and full vanilla player tags (old Inventory Rollback snapshots)
+ * apply the same way.
  */
 public final class PlayerState {
     public enum Part { INVENTORY, ENDER_CHEST, EXPERIENCE, HEALTH, HUNGER, EFFECTS, LOCATION }
 
     public static final Set<Part> ALL_BUT_LOCATION = EnumSet.complementOf(EnumSet.of(Part.LOCATION));
+    public static final Set<Part> ALL = EnumSet.allOf(Part.class);
+
+    private static final List<String> FOOD_KEYS = List.of("foodLevel", "foodSaturationLevel", "foodExhaustionLevel", "foodTickTimer");
 
     private PlayerState() {
     }
 
     public static CompoundTag capture(ServerPlayer player, Set<Part> parts) {
-        HolderLookup.Provider registries = player.server.registryAccess();
+        RegistryAccess registries = Mc.server(player).registryAccess();
         CompoundTag tag = new CompoundTag();
         if (parts.contains(Part.INVENTORY)) {
-            tag.put("Inventory", PlayerNbt.writeInventory(contents(player), registries));
+            PlayerNbt.writeInventory(tag, PlayerNbt.contents(player), registries);
         }
         if (parts.contains(Part.ENDER_CHEST)) {
             ItemStack[] ender = new ItemStack[PlayerNbt.ENDER];
@@ -55,14 +61,11 @@ public final class PlayerState {
             tag.putFloat("Health", player.getHealth());
         }
         if (parts.contains(Part.HUNGER)) {
-            player.getFoodData().addAdditionalSaveData(tag);
+            tag.putInt("foodLevel", player.getFoodData().getFoodLevel());
+            tag.putFloat("foodSaturationLevel", player.getFoodData().getSaturationLevel());
         }
         if (parts.contains(Part.EFFECTS)) {
-            ListTag effects = new ListTag();
-            for (MobEffectInstance effect : player.getActiveEffects()) {
-                effects.add(effect.save());
-            }
-            tag.put("active_effects", effects);
+            tag.put(Effects.SAVE_KEY, Effects.save(player, registries));
         }
         if (parts.contains(Part.LOCATION)) {
             Location location = Teleports.locationOf(player);
@@ -75,109 +78,90 @@ public final class PlayerState {
             loc.putFloat("pitch", location.pitch());
             tag.put("SuLocation", loc);
         }
+        Nbt.addCurrentDataVersion(tag);
         return tag;
-    }
-
-    public static PlayerNbt.Contents contents(ServerPlayer player) {
-        ItemStack[] main = new ItemStack[PlayerNbt.MAIN];
-        for (int i = 0; i < main.length; i++) {
-            main[i] = player.getInventory().items.get(i).copy();
-        }
-        ItemStack[] armor = new ItemStack[PlayerNbt.ARMOR];
-        for (int i = 0; i < armor.length; i++) {
-            armor[i] = player.getInventory().armor.get(i).copy();
-        }
-        return new PlayerNbt.Contents(main, armor, player.getInventory().offhand.get(0).copy());
     }
 
     /** Applies the requested parts that the tag contains. Parts missing from the tag are left alone. */
     public static void apply(ServerPlayer player, CompoundTag tag, Set<Part> parts) {
-        HolderLookup.Provider registries = player.server.registryAccess();
-        if (parts.contains(Part.INVENTORY) && tag.contains("Inventory", Tag.TAG_LIST)) {
-            setContents(player, PlayerNbt.readInventory(tag, registries));
+        RegistryAccess registries = Mc.server(player).registryAccess();
+        if (parts.contains(Part.INVENTORY) && hasInventory(tag)) {
+            PlayerNbt.setContents(player, PlayerNbt.readInventory(tag, registries));
         }
-        if (parts.contains(Part.ENDER_CHEST) && tag.contains("EnderItems", Tag.TAG_LIST)) {
+        if (parts.contains(Part.ENDER_CHEST) && Nbt.hasList(tag, "EnderItems")) {
             ItemStack[] ender = PlayerNbt.readEnder(tag, registries);
             for (int i = 0; i < player.getEnderChestInventory().getContainerSize(); i++) {
                 player.getEnderChestInventory().setItem(i, i < ender.length ? ender[i] : ItemStack.EMPTY);
             }
         }
-        if (parts.contains(Part.EXPERIENCE) && tag.contains("XpLevel")) {
-            player.experienceProgress = tag.getFloat("XpP");
-            player.totalExperience = tag.getInt("XpTotal");
+        if (parts.contains(Part.EXPERIENCE) && Nbt.has(tag, "XpLevel")) {
+            player.experienceProgress = Nbt.getFloat(tag, "XpP", 0);
+            player.totalExperience = Nbt.getInt(tag, "XpTotal", 0);
             // setExperienceLevels also forces the next experience packet.
-            player.setExperienceLevels(tag.getInt("XpLevel"));
+            player.setExperienceLevels(Nbt.getInt(tag, "XpLevel", 0));
         }
-        if (parts.contains(Part.HEALTH) && tag.contains("Health")) {
-            player.setHealth(Math.max(1.0F, Math.min(player.getMaxHealth(), tag.getFloat("Health"))));
+        if (parts.contains(Part.HEALTH) && Nbt.has(tag, "Health")) {
+            player.setHealth(Math.max(1.0F, Math.min(player.getMaxHealth(), Nbt.getFloat(tag, "Health", 20))));
         }
-        if (parts.contains(Part.HUNGER) && tag.contains("foodLevel")) {
-            player.getFoodData().readAdditionalSaveData(tag);
+        if (parts.contains(Part.HUNGER) && Nbt.has(tag, "foodLevel")) {
+            player.getFoodData().setFoodLevel(Nbt.getInt(tag, "foodLevel", 20));
+            player.getFoodData().setSaturation(Nbt.getFloat(tag, "foodSaturationLevel", 5));
         }
-        if (parts.contains(Part.EFFECTS) && tag.contains("active_effects", Tag.TAG_LIST)) {
-            player.removeAllEffects();
-            ListTag effects = tag.getList("active_effects", Tag.TAG_COMPOUND);
-            for (int i = 0; i < effects.size(); i++) {
-                MobEffectInstance effect = MobEffectInstance.load(effects.getCompound(i));
-                if (effect != null) {
-                    player.addEffect(effect);
-                }
-            }
+        if (parts.contains(Part.EFFECTS) && Effects.hasSaved(tag)) {
+            Effects.apply(player, tag, registries);
         }
-        if (parts.contains(Part.LOCATION) && tag.contains("SuLocation", Tag.TAG_COMPOUND)) {
-            CompoundTag loc = tag.getCompound("SuLocation");
-            Teleports.teleport(player, new Location(loc.getString("dimension"), loc.getDouble("x"), loc.getDouble("y"),
-                loc.getDouble("z"), loc.getFloat("yaw"), loc.getFloat("pitch")), false);
+        if (parts.contains(Part.LOCATION) && Nbt.hasCompound(tag, "SuLocation")) {
+            CompoundTag loc = Nbt.getCompound(tag, "SuLocation");
+            Teleports.teleport(player, new Location(Nbt.getString(loc, "dimension"), Nbt.getDouble(loc, "x", 0), Nbt.getDouble(loc, "y", 0),
+                Nbt.getDouble(loc, "z", 0), Nbt.getFloat(loc, "yaw", 0), Nbt.getFloat(loc, "pitch", 0)), false);
         }
         sync(player);
     }
 
-    /** Applies the same parts to an offline player's saved data. */
-    public static void applyOffline(CompoundTag saved, CompoundTag state, Set<Part> parts) {
-        List<String> keys = new ArrayList<>();
-        if (parts.contains(Part.INVENTORY)) {
-            keys.add("Inventory");
+    private static boolean hasInventory(CompoundTag tag) {
+        return Nbt.hasList(tag, "Inventory") || Nbt.hasCompound(tag, "equipment");
+    }
+
+    /** Applies the same parts to an offline player's saved data, written in the running game's layout. */
+    public static void applyOffline(CompoundTag saved, CompoundTag state, Set<Part> parts, RegistryAccess registries) {
+        if (parts.contains(Part.INVENTORY) && hasInventory(state)) {
+            PlayerNbt.writeInventory(saved, PlayerNbt.readInventory(state, registries), registries);
         }
-        if (parts.contains(Part.ENDER_CHEST)) {
-            keys.add("EnderItems");
+        if (parts.contains(Part.ENDER_CHEST) && Nbt.hasList(state, "EnderItems")) {
+            saved.put("EnderItems", Nbt.getList(state, "EnderItems").copy());
         }
         if (parts.contains(Part.EXPERIENCE)) {
-            keys.addAll(List.of("XpLevel", "XpP", "XpTotal"));
+            copy(state, saved, List.of("XpLevel", "XpP", "XpTotal"));
         }
         if (parts.contains(Part.HEALTH)) {
-            keys.add("Health");
+            copy(state, saved, List.of("Health"));
         }
         if (parts.contains(Part.HUNGER)) {
-            keys.addAll(List.of("foodLevel", "foodSaturationLevel", "foodExhaustionLevel", "foodTickTimer"));
+            copy(state, saved, FOOD_KEYS);
         }
-        if (parts.contains(Part.EFFECTS)) {
-            keys.add("active_effects");
+        if (parts.contains(Part.EFFECTS) && Effects.hasSaved(state)) {
+            saved.remove("ActiveEffects");
+            saved.remove("active_effects");
+            saved.put(Effects.SAVE_KEY, Effects.savedList(state).copy());
         }
-        for (String key : keys) {
-            Tag value = state.get(key);
-            if (value != null) {
-                saved.put(key, value.copy());
-            }
-        }
-        if (parts.contains(Part.LOCATION) && state.contains("SuLocation", Tag.TAG_COMPOUND)) {
-            CompoundTag loc = state.getCompound("SuLocation");
+        if (parts.contains(Part.LOCATION) && Nbt.hasCompound(state, "SuLocation")) {
+            CompoundTag loc = Nbt.getCompound(state, "SuLocation");
             ListTag pos = new ListTag();
-            pos.add(net.minecraft.nbt.DoubleTag.valueOf(loc.getDouble("x")));
-            pos.add(net.minecraft.nbt.DoubleTag.valueOf(loc.getDouble("y")));
-            pos.add(net.minecraft.nbt.DoubleTag.valueOf(loc.getDouble("z")));
+            pos.add(DoubleTag.valueOf(Nbt.getDouble(loc, "x", 0)));
+            pos.add(DoubleTag.valueOf(Nbt.getDouble(loc, "y", 0)));
+            pos.add(DoubleTag.valueOf(Nbt.getDouble(loc, "z", 0)));
             saved.put("Pos", pos);
-            saved.putString("Dimension", loc.getString("dimension"));
+            saved.putString("Dimension", Nbt.getString(loc, "dimension"));
         }
     }
 
-    public static void setContents(ServerPlayer player, PlayerNbt.Contents contents) {
-        for (int i = 0; i < PlayerNbt.MAIN; i++) {
-            player.getInventory().items.set(i, contents.main()[i].copy());
+    private static void copy(CompoundTag from, CompoundTag to, List<String> keys) {
+        for (String key : keys) {
+            Tag value = from.get(key);
+            if (value != null) {
+                to.put(key, value.copy());
+            }
         }
-        for (int i = 0; i < PlayerNbt.ARMOR; i++) {
-            player.getInventory().armor.set(i, contents.armor()[i].copy());
-        }
-        player.getInventory().offhand.set(0, contents.offhand().copy());
     }
 
     public static boolean isEmpty(PlayerNbt.Contents contents) {

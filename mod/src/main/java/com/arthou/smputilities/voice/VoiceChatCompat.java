@@ -4,7 +4,7 @@ import com.arthou.smputilities.moderation.PunishmentService;
 import com.arthou.smputilities.network.SuNetwork;
 import com.arthou.smputilities.server.SuServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.fml.ModList;
+import com.arthou.smputilities.platform.Platform;
 
 import java.util.UUID;
 
@@ -21,7 +21,7 @@ public final class VoiceChatCompat {
 
     public static boolean isAvailable() {
         if (available == null) {
-            available = ModList.get() != null && ModList.get().isLoaded("voicechat");
+            available = Platform.get().isModLoaded("voicechat");
         }
         return available && SuServer.config().features.voiceChat;
     }

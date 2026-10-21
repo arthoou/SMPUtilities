@@ -1,5 +1,6 @@
 package com.arthou.smputilities.dimension;
 
+import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.core.chat.Placeholders;
 import com.arthou.smputilities.core.config.SuConfig;
 import com.arthou.smputilities.core.dimension.DimensionRules;
@@ -60,7 +61,7 @@ public final class DimensionService {
         LAST_MESSAGE.put(player.getUUID(), now);
         SuConfig.Dimensions config = SuServer.config().dimensions;
         String name = DimensionRules.shortName(config, dimension.location().toString());
-        player.sendSystemMessage(Msg.styled(Placeholders.apply(config.blockedMessage, Map.of("dimension", name))));
+        Mc.send(player, Msg.styled(Placeholders.apply(config.blockedMessage, Map.of("dimension", name))));
     }
 
     public static void forget(ServerPlayer player) {

@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.gui;
 
+import com.arthou.smputilities.mc.Texts;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -79,7 +80,7 @@ public final class Theme {
             return text.getVisualOrderText();
         }
         String plain = font.plainSubstrByWidth(text.getString(), Math.max(0, width - font.width("…"))) + "…";
-        return Component.literal(plain).withStyle(text.getStyle()).getVisualOrderText();
+        return Texts.literal(plain).withStyle(text.getStyle()).getVisualOrderText();
     }
 
     public static String clip(Font font, String text, int width) {

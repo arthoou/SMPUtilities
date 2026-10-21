@@ -2,6 +2,7 @@ package com.arthou.smputilities.inventory;
 
 import com.arthou.smputilities.backup.BackupService;
 import com.arthou.smputilities.backup.SnapshotType;
+import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.server.SuServer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
@@ -28,7 +29,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Online targets are edited live. Offline targets are edited in a copy that
  * is written to their save file when the menu closes; if the target logs in
  * first, the copy is handed to the live player instead, so items can never be
- * duplicated or lost between the two.
+ * duplicated or lost between the two. Only one editable offline copy of the
+ * same inventory exists at a time: a second viewer gets a read-only view,
+ * otherwise the later save would undo the earlier one and duplicate items.
  */
 public final class TargetInventoryMenu extends AbstractContainerMenu {
     /** Open offline sessions by target, so a login can take them over. */
@@ -76,19 +79,43 @@ public final class TargetInventoryMenu extends AbstractContainerMenu {
             addSlot(new Slot(viewerInventory, col, 8 + col * 18, 161 + offset));
         }
         if (offline && mutable) {
-            OFFLINE_SESSIONS.computeIfAbsent(targetId, ignored -> new ArrayList<>()).add(this);
+            List<TargetInventoryMenu> sessions = OFFLINE_SESSIONS.computeIfAbsent(targetId, ignored -> new ArrayList<>());
+            synchronized (sessions) {
+                sessions.add(this);
+            }
         }
     }
 
     public static TargetInventoryMenu live(int containerId, Inventory viewerInventory, ServerPlayer target, boolean mutable) {
-        return new TargetInventoryMenu(containerId, viewerInventory, MenuType.GENERIC_9x5, target.server, target.getUUID(),
-            target.getGameProfile().getName(), new LivePlayerInventoryContainer(target), mutable, false, false);
+        return new TargetInventoryMenu(containerId, viewerInventory, MenuType.GENERIC_9x5, Mc.server(target), target.getUUID(),
+            Mc.name(target), new LivePlayerInventoryContainer(target), mutable, false, false);
     }
 
     public static TargetInventoryMenu liveEnderChest(int containerId, Inventory viewerInventory, ServerPlayer target, boolean mutable) {
         Container ender = target.getEnderChestInventory();
-        return new TargetInventoryMenu(containerId, viewerInventory, menuTypeForSize(ender.getContainerSize()), target.server, target.getUUID(),
-            target.getGameProfile().getName(), ender, mutable, true, false);
+        return new TargetInventoryMenu(containerId, viewerInventory, menuTypeForSize(ender.getContainerSize()), Mc.server(target), target.getUUID(),
+            Mc.name(target), ender, mutable, true, false);
+    }
+
+    /** Whether someone is already editing an offline copy of this inventory (or ender chest). */
+    public static boolean isOfflineEditOpen(UUID target, boolean enderChest) {
+        List<TargetInventoryMenu> sessions = OFFLINE_SESSIONS.get(target);
+        if (sessions == null) {
+            return false;
+        }
+        synchronized (sessions) {
+            for (TargetInventoryMenu menu : sessions) {
+                if (!menu.finished && menu.enderChest == enderChest) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** Whether any editable offline copy of the player is open. */
+    public static boolean isOfflineEditOpen(UUID target) {
+        return isOfflineEditOpen(target, false) || isOfflineEditOpen(target, true);
     }
 
     public static TargetInventoryMenu offline(int containerId, Inventory viewerInventory, MinecraftServer server, UUID id, String name,
@@ -143,9 +170,11 @@ public final class TargetInventoryMenu extends AbstractContainerMenu {
         finished = true;
         List<TargetInventoryMenu> sessions = OFFLINE_SESSIONS.get(targetId);
         if (sessions != null) {
-            sessions.remove(this);
-            if (sessions.isEmpty()) {
-                OFFLINE_SESSIONS.remove(targetId);
+            synchronized (sessions) {
+                sessions.remove(this);
+                if (sessions.isEmpty()) {
+                    OFFLINE_SESSIONS.remove(targetId);
+                }
             }
         }
         if (!changed()) {
@@ -157,7 +186,7 @@ public final class TargetInventoryMenu extends AbstractContainerMenu {
             return;
         }
         BackupService.snapshotOffline(server, targetId, targetName, SnapshotType.STAFF_EDIT,
-            player instanceof ServerPlayer staff ? "edit by " + staff.getGameProfile().getName() : "staff edit");
+            player instanceof ServerPlayer staff ? "edit by " + Mc.name(staff) : "staff edit");
         OfflinePlayerAccess.edit(server, targetId, tag -> {
             write(tag);
             return tag;
@@ -182,7 +211,7 @@ public final class TargetInventoryMenu extends AbstractContainerMenu {
                 menu.applyTo(target);
             }
         }
-        for (ServerPlayer staff : target.server.getPlayerList().getPlayers()) {
+        for (ServerPlayer staff : Mc.server(target).getPlayerList().getPlayers()) {
             if (staff.containerMenu instanceof TargetInventoryMenu menu && sessions.contains(menu)) {
                 staff.closeContainer();
             }
@@ -195,13 +224,9 @@ public final class TargetInventoryMenu extends AbstractContainerMenu {
                 live.getEnderChestInventory().setItem(i, targetContainer.getItem(i).copy());
             }
         } else {
-            for (int i = 0; i < 36; i++) {
-                live.getInventory().items.set(i, targetContainer.getItem(i).copy());
+            for (int i = 0; i <= 40; i++) {
+                live.getInventory().setItem(i, targetContainer.getItem(i).copy());
             }
-            for (int i = 0; i < 4; i++) {
-                live.getInventory().armor.set(i, targetContainer.getItem(36 + i).copy());
-            }
-            live.getInventory().offhand.set(0, targetContainer.getItem(40).copy());
         }
         live.getInventory().setChanged();
         live.inventoryMenu.broadcastChanges();
@@ -223,8 +248,8 @@ public final class TargetInventoryMenu extends AbstractContainerMenu {
             for (int i = 0; i < 4; i++) {
                 contents.armor()[i] = targetContainer.getItem(36 + i).copy();
             }
-            tag.put("Inventory", PlayerNbt.writeInventory(new PlayerNbt.Contents(contents.main(), contents.armor(),
-                targetContainer.getItem(40).copy()), server.registryAccess()));
+            PlayerNbt.writeInventory(tag, new PlayerNbt.Contents(contents.main(), contents.armor(), targetContainer.getItem(40).copy()),
+                server.registryAccess());
         }
     }
 

@@ -38,6 +38,47 @@ def preprocess = tasks.register('preprocessSources', su.gradle.PreprocessTask) {
     outputDirectory = layout.buildDirectory.dir('preprocessed/java')
 }
 
+// Mixin configs are generated from the classes that survive preprocessing, so a
+// mixin needed only on some versions simply does not exist on the others.
+// Common mixins live in com.arthou.smputilities.mixin (client ones in .client),
+// loader mixins in com.arthou.smputilities.<loader>.mixin.
+def mixinConfigs = tasks.register('generateMixinConfigs') {
+    def sources = preprocess.flatMap { it.outputDirectory }
+    def output = layout.buildDirectory.dir('generated/mixins')
+    inputs.dir(sources)
+    outputs.dir(output)
+    doLast {
+        def root = sources.get().asFile
+        def out = output.get().asFile
+        out.mkdirs()
+        def write = { String fileName, String packageName ->
+            def dir = new File(root, packageName.replace('.', '/'))
+            def common = []
+            def client = []
+            if (dir.isDirectory()) {
+                dir.eachFileRecurse { file ->
+                    if (file.name.endsWith('.java') && file.text.contains('@Mixin(')) {
+                        def name = dir.toPath().relativize(file.toPath()).toString().replace(File.separatorChar, '.' as char) - '.java'
+                        (name.startsWith('client.') ? client : common) << name
+                    }
+                }
+            }
+            def json = [
+                required          : true,
+                minVersion        : '0.8',
+                'package'         : packageName,
+                compatibilityLevel: "JAVA_${javaVersion}",
+                mixins            : common.sort(),
+                client            : client.sort(),
+                injectors         : [defaultRequire: 1],
+            ]
+            new File(out, fileName).text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(json))
+        }
+        write('smputilities.mixins.json', 'com.arthou.smputilities.mixin')
+        write("smputilities.${loader}.mixins.json", "com.arthou.smputilities.${loader}.mixin")
+    }
+}
+
 sourceSets {
     main {
         java {
@@ -46,6 +87,7 @@ sourceSets {
         }
         resources {
             srcDirs = [new File(modRoot, 'src/main/resources'), new File(modRoot, "src/${loader}/resources")]
+            srcDir mixinConfigs
         }
     }
 }
@@ -56,7 +98,7 @@ loom {
     silentMojangMappingsLicense()
     if (isForge) {
         forge {
-            mixinConfig 'smputilities.mixins.json'
+            mixinConfig 'smputilities.mixins.json', 'smputilities.forge.mixins.json'
         }
     }
 }
@@ -111,12 +153,11 @@ def metadata = [
     fabric_mc_range   : project.findProperty('fabric_minecraft_range') ?: mc,
     pack_format       : project.property('pack_format'),
     java_version      : javaVersion,
-    mixin_java        : "JAVA_${javaVersion}",
 ]
 
 processResources {
     inputs.properties metadata
-    filesMatching(['fabric.mod.json', 'META-INF/mods.toml', 'META-INF/neoforge.mods.toml', 'pack.mcmeta', '*.mixins.json']) {
+    filesMatching(['fabric.mod.json', 'META-INF/mods.toml', 'META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
         expand metadata
     }
     // NeoForge read META-INF/mods.toml before 1.20.5.

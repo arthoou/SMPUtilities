@@ -8,13 +8,13 @@ import com.arthou.smputilities.inventory.PlayerState;
 import com.arthou.smputilities.server.Msg;
 import com.arthou.smputilities.server.SuServer;
 import com.arthou.smputilities.teleport.Teleports;
+import com.arthou.smputilities.inventory.TargetInventoryMenu;
+import com.arthou.smputilities.mc.Mc;
+import com.arthou.smputilities.mc.Nbt;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.datafix.DataFixTypes;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -56,12 +56,17 @@ public final class BackupService {
 
     // ------------------------------------------------------------ capture
 
+    /**
+     * Takes a snapshot of everything a restore can bring back (inventory, ender
+     * chest, XP, health, hunger, effects and position) instead of the whole
+     * player save: snapshots stay small and nothing else (recipe book,
+     * attributes, other mods' data) is kept around.
+     */
     public static PlayerSnapshot snapshot(ServerPlayer player, SnapshotType type, String detail, String createdBy) {
         if (store == null) {
             return null;
         }
-        CompoundTag data = player.saveWithoutId(new CompoundTag());
-        NbtUtils.addCurrentDataVersion(data);
+        CompoundTag data = PlayerState.capture(player, PlayerState.ALL);
         CompoundTag compat = CompatInventorySupport.capture(player);
         PlayerSnapshot snapshot = new PlayerSnapshot(store.newId(player.getUUID()), System.currentTimeMillis(), type, detail, createdBy, data, compat);
         store.add(player.getUUID(), snapshot, limitFor(type));
@@ -77,7 +82,7 @@ public final class BackupService {
         if (data.isEmpty()) {
             return null;
         }
-        NbtUtils.addCurrentDataVersion(data.get());
+        Nbt.addCurrentDataVersion(data.get());
         PlayerSnapshot snapshot = new PlayerSnapshot(store.newId(id), System.currentTimeMillis(), type, detail, "", data.get(), new CompoundTag());
         store.add(id, snapshot, limitFor(type));
         return snapshot;
@@ -147,9 +152,13 @@ public final class BackupService {
      */
     public static boolean restore(MinecraftServer server, ServerPlayer actor, UUID targetId, String targetName, PlayerSnapshot snapshot,
                                   Set<PlayerState.Part> parts, boolean includeCompat) {
-        String actorName = actor == null ? "Console" : actor.getGameProfile().getName();
+        String actorName = actor == null ? "Console" : Mc.name(actor);
         CompoundTag data = upgraded(server, snapshot.playerData());
         ServerPlayer online = server.getPlayerList().getPlayer(targetId);
+        if (online == null && TargetInventoryMenu.isOfflineEditOpen(targetId)) {
+            // A staff member has the offline inventory open; their save would undo this restore.
+            return false;
+        }
         if (SuServer.config().inventory.backupBeforeRestore) {
             if (online != null) {
                 snapshot(online, SnapshotType.PRE_RESTORE, "before restoring " + snapshot.id(), actorName);
@@ -167,7 +176,7 @@ public final class BackupService {
             ok = true;
         } else {
             ok = OfflinePlayerAccess.edit(server, targetId, saved -> {
-                PlayerState.applyOffline(saved, data, parts);
+                PlayerState.applyOffline(saved, data, parts, server.registryAccess());
                 return saved;
             });
         }
@@ -179,45 +188,51 @@ public final class BackupService {
 
     /** Copies a snapshot onto another online player (Inventory Rollback Plus "Transfer To Player"). */
     public static void transfer(ServerPlayer actor, String sourceName, PlayerSnapshot snapshot, ServerPlayer destination) {
-        String actorName = actor == null ? "Console" : actor.getGameProfile().getName();
+        String actorName = actor == null ? "Console" : Mc.name(actor);
         if (SuServer.config().inventory.backupBeforeRestore) {
             snapshot(destination, SnapshotType.PRE_RESTORE, "before transfer of " + snapshot.id(), actorName);
         }
-        PlayerState.apply(destination, upgraded(destination.server, snapshot.playerData()),
+        PlayerState.apply(destination, upgraded(Mc.server(destination), snapshot.playerData()),
             EnumSet.of(PlayerState.Part.INVENTORY, PlayerState.Part.ENDER_CHEST));
         CompatInventorySupport.apply(destination, snapshot.compatData());
         Msg.info(destination, "backup.transferred_you");
         if (SuServer.get() != null) {
-            SuServer.get().log(actor, "backup.transfer", destination.getUUID(), destination.getGameProfile().getName(),
+            SuServer.get().log(actor, "backup.transfer", destination.getUUID(), Mc.name(destination),
                 "from " + sourceName + " " + snapshot.id());
         }
     }
 
-    /** Where the player stood when the snapshot was taken. */
+    /** Where the player stood when the snapshot was taken (own snapshots and full player saves). */
     public static Optional<Location> location(PlayerSnapshot snapshot) {
         CompoundTag data = snapshot.playerData();
-        if (!data.contains("Pos", Tag.TAG_LIST)) {
+        if (Nbt.hasCompound(data, "SuLocation")) {
+            CompoundTag loc = Nbt.getCompound(data, "SuLocation");
+            return Optional.of(new Location(Nbt.getString(loc, "dimension", "minecraft:overworld"), Nbt.getDouble(loc, "x", 0),
+                Nbt.getDouble(loc, "y", 0), Nbt.getDouble(loc, "z", 0), Nbt.getFloat(loc, "yaw", 0), Nbt.getFloat(loc, "pitch", 0)));
+        }
+        if (!Nbt.hasList(data, "Pos")) {
             return Optional.empty();
         }
-        ListTag pos = data.getList("Pos", Tag.TAG_DOUBLE);
-        ListTag rotation = data.getList("Rotation", Tag.TAG_FLOAT);
-        String dimension = data.contains("Dimension") ? data.getString("Dimension") : "minecraft:overworld";
-        return Optional.of(new Location(dimension, pos.getDouble(0), pos.getDouble(1), pos.getDouble(2),
-            rotation.size() > 0 ? rotation.getFloat(0) : 0, rotation.size() > 1 ? rotation.getFloat(1) : 0));
+        ListTag pos = Nbt.getList(data, "Pos");
+        ListTag rotation = Nbt.getList(data, "Rotation");
+        String dimension = Nbt.getString(data, "Dimension", "minecraft:overworld");
+        return Optional.of(new Location(dimension, Nbt.listDouble(pos, 0, 0), Nbt.listDouble(pos, 1, 0), Nbt.listDouble(pos, 2, 0),
+            Nbt.listFloat(rotation, 0, 0), Nbt.listFloat(rotation, 1, 0)));
     }
 
     public static boolean teleportTo(ServerPlayer staff, PlayerSnapshot snapshot) {
         return location(snapshot).map(location -> Teleports.teleport(staff, location, true)).orElse(false);
     }
 
+    /** A copy of snapshot data, upgraded by the game's data fixers when it was taken on an older version. */
     public static CompoundTag upgraded(MinecraftServer server, CompoundTag data) {
         CompoundTag copy = data.copy();
-        int version = NbtUtils.getDataVersion(copy, -1);
-        if (version < 0 || version >= OfflinePlayerAccess.currentDataVersion()) {
+        int version = Nbt.dataVersion(copy, -1);
+        if (version < 0 || version >= Mc.dataVersion()) {
             return copy;
         }
         try {
-            return DataFixTypes.PLAYER.updateToCurrentVersion(server.getFixerUpper(), copy, version);
+            return Mc.upgradePlayer(server, copy, version);
         } catch (RuntimeException e) {
             SuLog.warn("Could not upgrade backup data from version " + version, e);
             return copy;

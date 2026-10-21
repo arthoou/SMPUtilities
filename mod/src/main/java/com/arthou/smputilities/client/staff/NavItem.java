@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.staff;
 
+import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.client.gui.Theme;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -17,7 +18,7 @@ final class NavItem extends AbstractButton {
     private long lastFrame = Util.getMillis();
 
     NavItem(int x, int y, int width, int height, StaffPanelScreen.TabInfo info, StaffPanelScreen panel) {
-        super(x, y, width, height, Component.translatable("panel.smputilities.tab." + info.id()));
+        super(x, y, width, height, Texts.translatable("panel.smputilities.tab." + info.id()));
         this.info = info;
         this.panel = panel;
     }

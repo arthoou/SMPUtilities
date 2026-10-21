@@ -1,5 +1,8 @@
 package com.arthou.smputilities.troll;
 
+import com.arthou.smputilities.mc.Ids;
+import com.arthou.smputilities.mc.Mc;
+import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.SmpUtilities;
 import com.arthou.smputilities.chat.ChatService;
 import com.arthou.smputilities.core.config.SuConfig;
@@ -102,7 +105,7 @@ public final class TrollService {
             case SOUND -> {
                 SoundEvent sound = SoundEvents.CREEPER_PRIMED;
                 if (argument != null && !argument.isBlank()) {
-                    ResourceLocation id = ResourceLocation.tryParse(argument.trim());
+                    ResourceLocation id = Ids.parse(argument.trim());
                     if (id != null) {
                         SoundEvent found = BuiltInRegistries.SOUND_EVENT.get(id);
                         sound = found != null ? found : SoundEvent.createVariableRangeEvent(id);
@@ -137,17 +140,17 @@ public final class TrollService {
             case FAKE_MESSAGE -> {
                 String[] parts = argument == null ? new String[0] : argument.split(" ", 2);
                 if (parts.length == 2) {
-                    target.sendSystemMessage(Component.literal("<" + parts[0] + "> " + parts[1]));
+                    Mc.send(target, Texts.literal("<" + parts[0] + "> " + parts[1]));
                 }
             }
             case FAKE_JOIN, FAKE_QUIT -> {
                 String name = argument == null || argument.isBlank() ? "Herobrine" : argument.trim();
-                Component line = Component.empty().append(Component.translatable(
+                Component line = Texts.empty().append(Texts.translatable(
                     action == Action.FAKE_JOIN ? "multiplayer.player.joined" : "multiplayer.player.left", name).withStyle(ChatFormatting.YELLOW));
-                target.sendSystemMessage(line);
+                Mc.send(target, line);
             }
-            case TITLE_ACTION -> title(target, Component.literal("This action will have consequences...").withStyle(ChatFormatting.RED),
-                argument == null || argument.isBlank() ? Component.empty() : Component.literal(argument), THIS_ACTION_SOUND);
+            case TITLE_ACTION -> title(target, Texts.literal("This action will have consequences...").withStyle(ChatFormatting.RED),
+                argument == null || argument.isBlank() ? Texts.empty() : Texts.literal(argument), THIS_ACTION_SOUND);
             case TITLE_DEATH -> {
                 String[] parts = argument == null ? new String[0] : argument.trim().split(" ");
                 String name = parts.length > 0 && !parts[0].isEmpty() ? parts[0] : target.getGameProfile().getName();
@@ -155,7 +158,7 @@ public final class TrollService {
                 if (color == null || !color.isColor()) {
                     color = ChatFormatting.RED;
                 }
-                title(target, Component.literal(name + " -1").withStyle(color), Component.empty(), SoundEvents.WITHER_SPAWN);
+                title(target, Texts.literal(name + " -1").withStyle(color), Texts.empty(), SoundEvents.WITHER_SPAWN);
             }
         }
     }

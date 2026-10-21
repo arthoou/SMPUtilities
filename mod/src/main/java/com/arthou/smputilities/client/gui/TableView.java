@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.gui;
 
+import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.network.Dto;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -50,10 +51,10 @@ public class TableView extends AbstractWidget {
     public BiConsumer<Dto.Row, String> onButton = (row, button) -> {
     };
     public RowRenderer rowRenderer;
-    public Component emptyText = Component.empty();
+    public Component emptyText = Texts.empty();
 
     public TableView(int x, int y, int width, int height, List<Column> columns) {
-        super(x, y, width, height, Component.empty());
+        super(x, y, width, height, Texts.empty());
         this.columns = columns;
     }
 

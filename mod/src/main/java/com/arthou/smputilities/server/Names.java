@@ -1,5 +1,7 @@
 package com.arthou.smputilities.server;
 
+import com.arthou.smputilities.mc.Mc;
+import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.core.chat.StyledText;
 import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.core.player.PlayerRecord;
@@ -55,7 +57,7 @@ public final class Names {
     /** RP nickname (with colors) when set, otherwise the account name. */
     public static MutableComponent display(ServerPlayer player) {
         String nick = nickname(player.getUUID());
-        return nick.isEmpty() ? Component.literal(realName(player)) : Msg.styled(nick);
+        return nick.isEmpty() ? Texts.literal(realName(player)) : Msg.styled(nick);
     }
 
     public static String plainDisplay(ServerPlayer player) {
@@ -153,7 +155,7 @@ public final class Names {
      */
     public static SuggestionProvider<CommandSourceStack> onlineSuggestions() {
         return (context, builder) -> {
-            ServerPlayer viewer = context.getSource().getPlayer();
+            ServerPlayer viewer = Mc.player(context.getSource());
             List<String> names = new ArrayList<>();
             for (ServerPlayer player : context.getSource().getServer().getPlayerList().getPlayers()) {
                 if (viewer != null && !VanishService.canSee(viewer, player)) {

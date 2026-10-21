@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.gui;
 
+import com.arthou.smputilities.mc.Texts;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -164,7 +165,7 @@ public abstract class Dialog {
             x = (screenWidth - width) / 2;
             y = (screenHeight - height) / 2;
             int buttonWidth = (width - 24) / 2;
-            add(new SuButton(x + 8, y + height - 28, buttonWidth, 20, Component.translatable("gui.smputilities.cancel"), button -> close()));
+            add(new SuButton(x + 8, y + height - 28, buttonWidth, 20, Texts.translatable("gui.smputilities.cancel"), button -> close()));
             add(new SuButton(x + width - 8 - buttonWidth, y + height - 28, buttonWidth, 20, confirmLabel, button -> submit())
                 .kind(danger ? SuButton.Kind.DANGER : SuButton.Kind.PRIMARY));
         }
@@ -220,7 +221,7 @@ public abstract class Dialog {
                 boxes.add(box);
             }
             int buttonWidth = (width - 24) / 2;
-            add(new SuButton(x + 8, y + height - 28, buttonWidth, 20, Component.translatable("gui.smputilities.cancel"), button -> close()));
+            add(new SuButton(x + 8, y + height - 28, buttonWidth, 20, Texts.translatable("gui.smputilities.cancel"), button -> close()));
             add(new SuButton(x + width - 8 - buttonWidth, y + height - 28, buttonWidth, 20, submitLabel, button -> submit())
                 .kind(danger ? SuButton.Kind.DANGER : SuButton.Kind.PRIMARY));
         }
@@ -279,7 +280,7 @@ public abstract class Dialog {
                     onChoose.accept(option.id());
                 }).kind(option.kind()));
             }
-            add(new SuButton(x + 8, y + height - 26, width - 16, 18, Component.translatable("gui.smputilities.cancel"), button -> close())
+            add(new SuButton(x + 8, y + height - 26, width - 16, 18, Texts.translatable("gui.smputilities.cancel"), button -> close())
                 .kind(SuButton.Kind.SUBTLE));
         }
     }

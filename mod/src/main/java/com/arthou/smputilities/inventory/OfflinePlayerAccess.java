@@ -1,17 +1,15 @@
 package com.arthou.smputilities.inventory;
 
 import com.arthou.smputilities.core.util.SuLog;
-import net.minecraft.SharedConstants;
+import com.arthou.smputilities.mc.Mc;
+import com.arthou.smputilities.mc.Nbt;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtAccounter;
-import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.storage.LevelResource;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
@@ -38,9 +36,12 @@ public final class OfflinePlayerAccess {
             return Optional.empty();
         }
         try {
-            CompoundTag tag = NbtIo.readCompressed(path, NbtAccounter.unlimitedHeap());
-            int version = NbtUtils.getDataVersion(tag, -1);
-            return Optional.of(DataFixTypes.PLAYER.updateToCurrentVersion(server.getFixerUpper(), tag, version));
+            CompoundTag tag = Nbt.readCompressed(path);
+            int version = Nbt.dataVersion(tag, -1);
+            if (version >= 0 && version < Mc.dataVersion()) {
+                tag = Mc.upgradePlayer(server, tag, version);
+            }
+            return Optional.of(tag);
         } catch (IOException | RuntimeException e) {
             SuLog.warn("Could not read offline player data of " + id, e);
             return Optional.empty();
@@ -66,19 +67,17 @@ public final class OfflinePlayerAccess {
         Path dir = server.getWorldPath(LevelResource.PLAYER_DATA_DIR);
         try {
             Files.createDirectories(dir);
-            NbtUtils.addCurrentDataVersion(tag);
+            Nbt.addCurrentDataVersion(tag);
             Path temp = Files.createTempFile(dir, id + "-", ".dat");
-            NbtIo.writeCompressed(tag, temp);
+            try (OutputStream out = Files.newOutputStream(temp)) {
+                Nbt.writeCompressed(tag, out);
+            }
             Util.safeReplaceFile(file(server, id), temp, dir.resolve(id + ".dat_old"));
             return true;
         } catch (IOException | RuntimeException e) {
             SuLog.error("Could not write offline player data of " + id, e);
             return false;
         }
-    }
-
-    public static int currentDataVersion() {
-        return SharedConstants.getCurrentVersion().getDataVersion().getVersion();
     }
 
     private static Path file(MinecraftServer server, UUID id) {

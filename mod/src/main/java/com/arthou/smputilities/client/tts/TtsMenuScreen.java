@@ -1,5 +1,7 @@
 package com.arthou.smputilities.client.tts;
 
+import com.arthou.smputilities.mc.Texts;
+import com.arthou.smputilities.client.ClientNetwork;
 import com.arthou.smputilities.network.Payloads;
 import com.arthou.smputilities.tts.TtsPresets;
 import com.arthou.smputilities.tts.TtsPresets.VoiceLanguage;
@@ -14,7 +16,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.function.Consumer;
 
@@ -64,7 +65,7 @@ public final class TtsMenuScreen extends Screen {
     private int sideWidth;
 
     private TtsMenuScreen(int currentMode, int currentLanguage) {
-        super(Component.translatable("tts.title"));
+        super(Texts.translatable("tts.title"));
         this.currentMode = currentMode;
         this.currentLanguage = currentLanguage;
 
@@ -105,7 +106,7 @@ public final class TtsMenuScreen extends Screen {
         }
 
         FlatButton off = new FlatButton(panelLeft + 8, panelTop + panelHeight - 30, sideWidth - 16, 20,
-            Component.translatable("tts.off"), button -> turnOff());
+            Texts.translatable("tts.off"), button -> turnOff());
         off.kind = Kind.DANGER;
         off.active = currentMode > 0;
         addRenderableWidget(off);
@@ -124,7 +125,7 @@ public final class TtsMenuScreen extends Screen {
                         genderName(g), button -> pickGender(value));
                     card.big = g == GENDER_MASCULINE ? "♂" : "♀";
                     card.bigColor = g == GENDER_MASCULINE ? MASCULINE : FEMININE;
-                    card.subtitle = Component.translatable("tts.gender.variants", VARIANTS[g]);
+                    card.subtitle = Texts.translatable("tts.gender.variants", VARIANTS[g]);
                     card.selected = gender == g;
                     addRenderableWidget(card);
                 }
@@ -135,10 +136,10 @@ public final class TtsMenuScreen extends Screen {
                 for (int v = 1; v <= count; v++) {
                     int value = v;
                     OptionCard card = new OptionCard(contentLeft + (v - 1) * (cardWidth + 8), optionsTop, cardWidth, 70,
-                        Component.literal(speakerName(modeFor(gender, v))), button -> pickVariant(value));
+                        Texts.literal(speakerName(modeFor(gender, v))), button -> pickVariant(value));
                     card.big = Integer.toString(v);
                     card.bigColor = gender == GENDER_MASCULINE ? MASCULINE : FEMININE;
-                    card.subtitle = Component.translatable("tts.variant", v);
+                    card.subtitle = Texts.translatable("tts.variant", v);
                     card.selected = variant == v;
                     addRenderableWidget(card);
                 }
@@ -161,12 +162,12 @@ public final class TtsMenuScreen extends Screen {
         int footerY = panelTop + panelHeight - 30;
         int right = contentRight();
         FlatButton confirm = new FlatButton(right - buttonWidth, footerY, buttonWidth, 20,
-            Component.translatable("tts.confirm"), button -> confirm());
+            Texts.translatable("tts.confirm"), button -> confirm());
         confirm.kind = Kind.PRIMARY;
         confirm.active = isComplete();
         addRenderableWidget(confirm);
         addRenderableWidget(new FlatButton(right - buttonWidth * 2 - 6, footerY, buttonWidth, 20,
-            Component.translatable("tts.cancel"), button -> onClose()));
+            Texts.translatable("tts.cancel"), button -> onClose()));
     }
 
     private int stepY(int index) {
@@ -221,12 +222,12 @@ public final class TtsMenuScreen extends Screen {
         if (!isComplete()) {
             return;
         }
-        PacketDistributor.sendToServer(new Payloads.TtsSelect(modeFor(gender, variant), language));
+        ClientNetwork.send(new Payloads.TtsSelect(modeFor(gender, variant), language));
         onClose();
     }
 
     private void turnOff() {
-        PacketDistributor.sendToServer(new Payloads.TtsSelect(0, -1));
+        ClientNetwork.send(new Payloads.TtsSelect(0, -1));
         onClose();
     }
 
@@ -248,11 +249,11 @@ public final class TtsMenuScreen extends Screen {
     }
 
     private static Component genderName(int gender) {
-        return Component.translatable(gender == GENDER_MASCULINE ? "tts.gender.masculine" : "tts.gender.feminine");
+        return Texts.translatable(gender == GENDER_MASCULINE ? "tts.gender.masculine" : "tts.gender.feminine");
     }
 
     private Component stepName(int index) {
-        return Component.translatable(switch (index) {
+        return Texts.translatable(switch (index) {
             case STEP_GENDER -> "tts.step.gender";
             case STEP_VARIANT -> "tts.step.variant";
             default -> "tts.step.language";
@@ -263,14 +264,14 @@ public final class TtsMenuScreen extends Screen {
         return switch (index) {
             case STEP_GENDER -> gender >= 0 ? genderName(gender) : null;
             case STEP_VARIANT -> variant > 0
-                ? Component.translatable("tts.variant", variant).append(" · " + speakerName(modeFor(gender, variant)))
+                ? Texts.translatable("tts.variant", variant).append(" · " + speakerName(modeFor(gender, variant)))
                 : null;
             default -> language >= 0 ? TtsPresets.languageComponent(VoiceLanguage.values()[language]) : null;
         };
     }
 
     private Component stepTitle() {
-        return Component.translatable(switch (step) {
+        return Texts.translatable(switch (step) {
             case STEP_GENDER -> "tts.pick.gender";
             case STEP_VARIANT -> "tts.pick.variant";
             default -> "tts.pick.language";
@@ -279,11 +280,11 @@ public final class TtsMenuScreen extends Screen {
 
     private Component status() {
         if (currentMode <= 0) {
-            return Component.translatable("tts.status.off");
+            return Texts.translatable("tts.status.off");
         }
         VoiceLanguage[] languages = VoiceLanguage.values();
         VoiceLanguage active = currentLanguage >= 0 && currentLanguage < languages.length ? languages[currentLanguage] : VoiceLanguage.ENGLISH;
-        return Component.translatable("tts.status.on", TtsPresets.selectionComponent(currentMode, active));
+        return Texts.translatable("tts.status.on", TtsPresets.selectionComponent(currentMode, active));
     }
 
     // ------------------------------------------------------------ painting
@@ -313,7 +314,7 @@ public final class TtsMenuScreen extends Screen {
         roundRect(graphics, logoX, logoY, logoX + 20, logoY + 20, ACCENT);
         graphics.drawString(font, "♪", logoX + 7, logoY + 6, 0xFF0B1A0C, false);
         graphics.drawString(font, title.copy().withStyle(ChatFormatting.BOLD), logoX + 26, logoY + 2, TEXT, false);
-        graphics.drawString(font, clip(font, Component.translatable("tts.subtitle"), sideWidth - 42), logoX + 26, logoY + 12, TEXT_DIM, false);
+        graphics.drawString(font, clip(font, Texts.translatable("tts.subtitle"), sideWidth - 42), logoX + 26, logoY + 12, TEXT_DIM, false);
 
         // stepper connectors between the step badges
         for (int i = 0; i < STEP_COUNT - 1; i++) {
@@ -326,7 +327,7 @@ public final class TtsMenuScreen extends Screen {
         // content header
         int contentLeft = contentLeft();
         int contentRight = contentRight();
-        Component progress = Component.translatable("tts.step_of", step + 1, STEP_COUNT);
+        Component progress = Texts.translatable("tts.step_of", step + 1, STEP_COUNT);
         graphics.drawString(font, progress.copy().withStyle(ChatFormatting.BOLD), contentLeft, panelTop + 12, ACCENT, false);
         graphics.drawString(font, clip(font, stepTitle().copy().withStyle(ChatFormatting.BOLD), contentRight - contentLeft), contentLeft, panelTop + 26, TEXT, false);
 
@@ -353,7 +354,7 @@ public final class TtsMenuScreen extends Screen {
             return text.getVisualOrderText();
         }
         String plain = font.plainSubstrByWidth(text.getString(), Math.max(0, width - font.width("…"))) + "…";
-        return Component.literal(plain).withStyle(text.getStyle()).getVisualOrderText();
+        return Texts.literal(plain).withStyle(text.getStyle()).getVisualOrderText();
     }
 
     /** Rectangle with the corner pixels cut, which reads as rounded at GUI scale. */
@@ -497,7 +498,7 @@ public final class TtsMenuScreen extends Screen {
                 }
             }
             roundBox(graphics, getX(), getY(), getWidth(), getHeight(), background, border);
-            Component label = kind == Kind.PRIMARY && active ? Component.literal("✔ ").append(getMessage()) : getMessage();
+            Component label = kind == Kind.PRIMARY && active ? Texts.literal("✔ ").append(getMessage()) : getMessage();
             FormattedCharSequence text = clip(font, label.copy().withStyle(ChatFormatting.BOLD), getWidth() - 8);
             graphics.drawString(font, text, getX() + (getWidth() - font.width(text)) / 2, getY() + (getHeight() - 8) / 2, textColor, false);
         }

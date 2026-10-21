@@ -1,5 +1,7 @@
 package com.arthou.smputilities.teleport;
 
+import com.arthou.smputilities.mc.Texts;
+import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.chat.ChatService;
 import com.arthou.smputilities.core.config.SuConfig;
 import com.arthou.smputilities.core.perm.Perm;
@@ -136,7 +138,7 @@ public final class TeleportCommands {
     private static int request(CommandContext<CommandSourceStack> context, TpaRequests.Kind kind) throws CommandSyntaxException {
         ServerPlayer requester = context.getSource().getPlayerOrException();
         String input = StringArgumentType.getString(context, "target");
-        Optional<Names.Target> found = Names.resolve(requester.server, input, requester);
+        Optional<Names.Target> found = Names.resolve(Mc.server(requester), input, requester);
         if (found.isEmpty() || !found.get().isOnline()) {
             return Msg.error(context.getSource(), "player.not_found_online", input);
         }
@@ -157,21 +159,21 @@ public final class TeleportCommands {
         String requesterShown = Names.seesRealNames(target) ? Names.realName(requester) : Names.plainDisplay(requester);
         Msg.ok(requester, kind == TpaRequests.Kind.TO_TARGET ? "tpa.sent" : "tpa.sent_here", targetShown, SuServer.config().teleport.requestTimeoutSeconds);
         Msg.info(target, kind == TpaRequests.Kind.TO_TARGET ? "tpa.received" : "tpa.received_here", requesterShown);
-        target.sendSystemMessage(decisionRow(target, Names.realName(requester)));
+        Mc.send(target, decisionRow(target, Names.realName(requester)));
         target.playNotifySound(SoundEvents.NOTE_BLOCK_HAT.value(), SoundSource.PLAYERS, 3.0F, 1.0F);
         return 1;
     }
 
     private static Component decisionRow(ServerPlayer viewer, String requesterName) {
-        MutableComponent accept = Component.literal("[" + Lang.tr(viewer, "tpa.accept_button") + "]").withStyle(style -> style
+        MutableComponent accept = Texts.literal("[" + Lang.tr(viewer, "tpa.accept_button") + "]").withStyle(style -> style
             .withColor(ChatFormatting.GREEN).withBold(true)
-            .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tpaccept " + requesterName))
-            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(Lang.tr(viewer, "tpa.accept_hover")))));
-        MutableComponent deny = Component.literal("[" + Lang.tr(viewer, "tpa.deny_button") + "]").withStyle(style -> style
+            .withClickEvent(Texts.runCommand("/tpaccept " + requesterName))
+            .withHoverEvent(Texts.showText(Texts.literal(Lang.tr(viewer, "tpa.accept_hover")))));
+        MutableComponent deny = Texts.literal("[" + Lang.tr(viewer, "tpa.deny_button") + "]").withStyle(style -> style
             .withColor(ChatFormatting.RED).withBold(true)
-            .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/tpdeny " + requesterName))
-            .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(Lang.tr(viewer, "tpa.deny_hover")))));
-        return Msg.prefix().append(accept).append(Component.literal("  ")).append(deny);
+            .withClickEvent(Texts.runCommand("/tpdeny " + requesterName))
+            .withHoverEvent(Texts.showText(Texts.literal(Lang.tr(viewer, "tpa.deny_hover")))));
+        return Msg.prefix().append(accept).append(Texts.literal("  ")).append(deny);
     }
 
     private static int accept(CommandContext<CommandSourceStack> context, String from) throws CommandSyntaxException {
@@ -180,7 +182,7 @@ public final class TeleportCommands {
         if (request.isEmpty()) {
             return Msg.error(context.getSource(), "tpa.none");
         }
-        ServerPlayer requester = target.server.getPlayerList().getPlayer(request.get().requester());
+        ServerPlayer requester = Mc.server(target).getPlayerList().getPlayer(request.get().requester());
         if (requester == null) {
             return Msg.error(context.getSource(), "tpa.requester_offline");
         }
@@ -189,13 +191,13 @@ public final class TeleportCommands {
         if (request.get().kind() == TpaRequests.Kind.TO_TARGET) {
             UUID targetId = target.getUUID();
             started = Teleports.schedule(requester, "tpa", cooldown, () -> {
-                ServerPlayer current = requester.server.getPlayerList().getPlayer(targetId);
+                ServerPlayer current = Mc.server(requester).getPlayerList().getPlayer(targetId);
                 return current == null ? null : Teleports.locationOf(current);
             }, true, null);
         } else {
             UUID requesterId = requester.getUUID();
             started = Teleports.schedule(target, "tpa", cooldown, () -> {
-                ServerPlayer current = target.server.getPlayerList().getPlayer(requesterId);
+                ServerPlayer current = Mc.server(target).getPlayerList().getPlayer(requesterId);
                 return current == null ? null : Teleports.locationOf(current);
             }, true, null);
         }
@@ -212,7 +214,7 @@ public final class TeleportCommands {
         if (request.isEmpty()) {
             return Msg.error(context.getSource(), "tpa.none");
         }
-        ServerPlayer requester = target.server.getPlayerList().getPlayer(request.get().requester());
+        ServerPlayer requester = Mc.server(target).getPlayerList().getPlayer(request.get().requester());
         if (requester != null) {
             Msg.error(requester, "tpa.denied_by", Names.seesRealNames(requester) ? Names.realName(target) : Names.plainDisplay(target));
         }
@@ -223,7 +225,7 @@ public final class TeleportCommands {
         long timeout = SuServer.config().teleport.requestTimeoutSeconds * 1000L;
         UUID requester = null;
         if (from != null) {
-            Optional<Names.Target> found = Names.resolve(target.server, from, target);
+            Optional<Names.Target> found = Names.resolve(Mc.server(target), from, target);
             if (found.isEmpty()) {
                 return Optional.empty();
             }
@@ -240,7 +242,7 @@ public final class TeleportCommands {
 
     private static SuggestionProvider<CommandSourceStack> homeSuggestions() {
         return (context, builder) -> {
-            ServerPlayer player = context.getSource().getPlayer();
+            ServerPlayer player = Mc.player(context.getSource());
             if (player == null || SuServer.get() == null) {
                 return builder.buildFuture();
             }
@@ -278,15 +280,15 @@ public final class TeleportCommands {
         if (record.homes.isEmpty()) {
             return Msg.info(context.getSource(), "home.none");
         }
-        MutableComponent line = Msg.prefix().append(Component.literal(Lang.tr(player, "home.list_header", record.homes.size(), limitText(player))).withStyle(ChatFormatting.GRAY));
+        MutableComponent line = Msg.prefix().append(Texts.literal(Lang.tr(player, "home.list_header", record.homes.size(), limitText(player))).withStyle(ChatFormatting.GRAY));
         for (String name : record.homes.keySet()) {
-            line.append(Component.literal(" "));
-            line.append(Component.literal("[" + name + (name.equals(record.defaultHome) ? "*" : "") + "]").withStyle(style -> style
+            line.append(Texts.literal(" "));
+            line.append(Texts.literal("[" + name + (name.equals(record.defaultHome) ? "*" : "") + "]").withStyle(style -> style
                 .withColor(ChatFormatting.AQUA)
-                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/home " + name))
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(record.homes.get(name).shortText())))));
+                .withClickEvent(Texts.runCommand("/home " + name))
+                .withHoverEvent(Texts.showText(Texts.literal(record.homes.get(name).shortText())))));
         }
-        player.sendSystemMessage(line);
+        Mc.send(player, line);
         return 1;
     }
 
@@ -356,7 +358,7 @@ public final class TeleportCommands {
         if (spawn != null) {
             return spawn;
         }
-        ServerLevel overworld = player.server.overworld();
+        ServerLevel overworld = Mc.server(player).overworld();
         BlockPos pos = overworld.getSharedSpawnPos();
         return new Location(overworld.dimension().location().toString(), pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, overworld.getSharedSpawnAngle(), 0);
     }
@@ -399,14 +401,14 @@ public final class TeleportCommands {
         if (warps.isEmpty()) {
             return Msg.info(context.getSource(), "warp.none");
         }
-        ServerPlayer player = context.getSource().getPlayer();
-        MutableComponent line = Msg.prefix().append(Component.literal(Lang.tr(player, "warp.list_header")).withStyle(ChatFormatting.GRAY));
+        ServerPlayer player = Mc.player(context.getSource());
+        MutableComponent line = Msg.prefix().append(Texts.literal(Lang.tr(player, "warp.list_header")).withStyle(ChatFormatting.GRAY));
         for (String name : warps.keySet()) {
-            line.append(Component.literal(" "));
-            line.append(Component.literal("[" + name + "]").withStyle(style -> style.withColor(ChatFormatting.AQUA)
-                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/warp " + name))));
+            line.append(Texts.literal(" "));
+            line.append(Texts.literal("[" + name + "]").withStyle(style -> style.withColor(ChatFormatting.AQUA)
+                .withClickEvent(Texts.runCommand("/warp " + name))));
         }
-        context.getSource().sendSystemMessage(line);
+        Mc.reply(context.getSource(), line);
         return 1;
     }
 
@@ -423,7 +425,7 @@ public final class TeleportCommands {
         if (!SuServer.get().teleports().removeWarp(name)) {
             return Msg.error(context.getSource(), "warp.not_found", name);
         }
-        SuServer.get().log(context.getSource().getPlayer(), "warp.delete", null, name, "");
+        SuServer.get().log(Mc.player(context.getSource()), "warp.delete", null, name, "");
         return Msg.ok(context.getSource(), "warp.deleted", name);
     }
 
@@ -461,7 +463,7 @@ public final class TeleportCommands {
         ServerPlayer player = context.getSource().getPlayerOrException();
         Location here = Teleports.locationOf(player);
         int count = 0;
-        for (ServerPlayer online : player.server.getPlayerList().getPlayers()) {
+        for (ServerPlayer online : Mc.server(player).getPlayerList().getPlayers()) {
             if (online != player && !VanishService.isVanished(online.getUUID()) && Teleports.teleport(online, here, true)) {
                 count++;
             }
@@ -473,7 +475,7 @@ public final class TeleportCommands {
     private static int tpLogout(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = context.getSource().getPlayerOrException();
         String input = StringArgumentType.getString(context, "target");
-        Optional<Names.Target> target = Names.resolve(player.server, input, player);
+        Optional<Names.Target> target = Names.resolve(Mc.server(player), input, player);
         if (target.isEmpty()) {
             return Msg.error(context.getSource(), "player.not_found", input);
         }

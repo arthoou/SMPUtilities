@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.tts;
 
+import com.arthou.smputilities.mc.Texts;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -64,7 +65,7 @@ public final class VoiceClient {
                         }
                     } catch (IOException retryException) {
                         if (!(retryException instanceof ConnectException) && helperMissingShown.compareAndSet(false, true)) {
-                            showClientMessage(Component.translatable("tts.helper_io")
+                            showClientMessage(Texts.translatable("tts.helper_io")
                                 .withStyle(ChatFormatting.RED));
                         }
                     } catch (InterruptedException retryException) {
@@ -74,11 +75,11 @@ public final class VoiceClient {
                 }
 
                 if (helperMissingShown.compareAndSet(false, true)) {
-                    showClientMessage(Component.translatable("tts.helper_missing")
+                    showClientMessage(Texts.translatable("tts.helper_missing")
                         .withStyle(ChatFormatting.RED));
                 }
             } else {
-                showClientMessage(Component.translatable("tts.helper_io")
+                showClientMessage(Texts.translatable("tts.helper_io")
                     .withStyle(ChatFormatting.RED));
             }
         } catch (InterruptedException exception) {
@@ -99,7 +100,7 @@ public final class VoiceClient {
             return true;
         }
 
-        showClientMessage(Component.translatable("tts.helper_error", response.statusCode())
+        showClientMessage(Texts.translatable("tts.helper_error", response.statusCode())
             .withStyle(ChatFormatting.RED));
         return false;
     }

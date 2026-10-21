@@ -34,16 +34,8 @@ public final class LivePlayerInventoryContainer implements Container {
 
     @Override
     public ItemStack getItem(int slot) {
-        if (slot < 36) {
-            return target.getInventory().items.get(slot);
-        }
-        if (slot < 40) {
-            return target.getInventory().armor.get(slot - 36);
-        }
-        if (slot == 40) {
-            return target.getInventory().offhand.get(0);
-        }
-        return ItemStack.EMPTY;
+        // Inventory indexes 0-40 as main, armor (feet..head) and offhand on every version.
+        return slot >= 0 && slot <= 40 ? target.getInventory().getItem(slot) : ItemStack.EMPTY;
     }
 
     @Override
@@ -63,12 +55,8 @@ public final class LivePlayerInventoryContainer implements Container {
 
     @Override
     public void setItem(int slot, ItemStack stack) {
-        if (slot < 36) {
-            target.getInventory().items.set(slot, stack);
-        } else if (slot < 40) {
-            target.getInventory().armor.set(slot - 36, stack);
-        } else if (slot == 40) {
-            target.getInventory().offhand.set(0, stack);
+        if (slot >= 0 && slot <= 40) {
+            target.getInventory().setItem(slot, stack);
         }
         setChanged();
     }
@@ -89,13 +77,9 @@ public final class LivePlayerInventoryContainer implements Container {
 
     @Override
     public void clearContent() {
-        for (int i = 0; i < 36; i++) {
-            target.getInventory().items.set(i, ItemStack.EMPTY);
+        for (int i = 0; i <= 40; i++) {
+            target.getInventory().setItem(i, ItemStack.EMPTY);
         }
-        for (int i = 0; i < 4; i++) {
-            target.getInventory().armor.set(i, ItemStack.EMPTY);
-        }
-        target.getInventory().offhand.set(0, ItemStack.EMPTY);
         setChanged();
     }
 }
