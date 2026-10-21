@@ -179,6 +179,10 @@ processResources {
     from(project(':tts-bridge').tasks.named('jar')) {
         into 'smputilities/voice-bridge'
     }
+    // The license and third-party notices travel with the jar.
+    from(rootProject.files('LICENSE', 'THIRD_PARTY_NOTICES.md')) {
+        rename { it.replaceFirst(/^([A-Z_]+)/, '$1_smputilities') }
+    }
 }
 
 // ----------------------------------------------------------------- jars

@@ -11,7 +11,7 @@ logoFile="smputilities_logo.png"
 # Vanilla and mod-less clients can join: server features work without the
 # client mod; the staff panel, nametags and speech bubbles need it.
 displayTest="IGNORE_ALL_VERSION"
-description='''${mod_description}'''
+description='''Made by <a href="https://discord.com/users/990003604725321808">Arthou</a>'''
 
 [[mixins]]
 config="smputilities.mixins.json"
