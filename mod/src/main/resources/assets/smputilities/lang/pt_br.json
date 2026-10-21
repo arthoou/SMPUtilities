@@ -676,7 +676,6 @@
   "setting.smputilities.tts.bubbleRange": "Distância em blocos para ver o balão",
   "setting.smputilities.tts.bubbleSeconds": "Segundos que o balão fica",
   "setting.smputilities.tts.bubblesForAllChat": "Balões para todo o chat",
-  "setting.smputilities.tts.echoToChat": "Também mostrar TTS no chat",
   "setting.smputilities.tts.maxLength": "Máximo de caracteres de TTS",
   "setting.smputilities.vanish.fakeMessagesOnToggle": "Mensagem falsa de saída/entrada ao alternar",
   "setting.smputilities.vanish.hideFromTabList": "Remover staff invisível da TAB",

@@ -198,19 +198,17 @@ public final class SuConfig {
 
     public static final class Tts {
         public int maxLength = 300;
-        /** Also print the TTS line in chat (with a ♪ marker). */
-        public boolean echoToChat = true;
-        public String chatMarker = "&b♪ ";
         public boolean bubbles = true;
         /** Show speech bubbles for regular chat too, not only TTS. */
         public boolean bubblesForAllChat = false;
-        public double bubbleSeconds = 6.0;
-        public double bubbleFadeSeconds = 0.75;
+        // NEXEL's bubble defaults.
+        public double bubbleSeconds = 8.0;
+        public double bubbleFadeSeconds = 0.6;
         public double bubbleRange = 32.0;
         public int bubbleMaxWidth = 180;
-        public int bubbleTextColor = 0x1A1A1A;
+        public int bubbleTextColor = 0x000000;
         public int bubbleFillColor = 0xFFFFFF;
-        public int bubbleBorderColor = 0x101010;
+        public int bubbleBorderColor = 0x000000;
         public String bubbleStyle = "rounded";
     }
 

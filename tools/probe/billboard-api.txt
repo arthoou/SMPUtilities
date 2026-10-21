@@ -4,3 +4,4 @@ code:net.minecraft.client.Camera | ldc|rotationYXZ|rotationDegrees|Quaternion
 code:net.minecraft.client.renderer.entity.EntityRenderer | ldc.*0\.025|cameraOrientation|scale|mulPose
 com.mojang.math.Axis | YP|XP
 com.mojang.math.Vector3f | YP|XP
+net.minecraft.client.gui.screens.ChatScreen | EditBox|input

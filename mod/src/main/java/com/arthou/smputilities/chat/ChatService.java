@@ -70,10 +70,9 @@ public final class ChatService {
         }
 
         String text = SpamGuard.limitCaps(rawText, config.chat.spam.capsRatio);
-        if (config.features.tts && TtsService.handleChat(player, text)) {
-            return true;
-        }
-        if (config.tts.bubbles && config.tts.bubblesForAllChat) {
+        // A TTS line is spoken and still posted to chat below, like any message.
+        boolean spoken = config.features.tts && TtsService.speak(player, text);
+        if (!spoken && config.tts.bubbles && config.tts.bubblesForAllChat) {
             TtsService.sendBubble(player, text, false);
         }
 
@@ -83,6 +82,18 @@ public final class ChatService {
         }
         broadcastFormatted(player, text, mentioned);
         return true;
+    }
+
+    /** Muted, or the chat is locked for them: such players show no typing bubble. */
+    public static boolean isSilenced(ServerPlayer player) {
+        SuServer context = SuServer.get();
+        if (context == null) {
+            return true;
+        }
+        if (context.punishments().active(PunishmentType.MUTE, player.getUUID(), System.currentTimeMillis()).isPresent()) {
+            return true;
+        }
+        return !SuServer.config().chat.globalChatEnabled && !Perms.has(player, Perm.CHAT_BYPASS_LOCK);
     }
 
     /**

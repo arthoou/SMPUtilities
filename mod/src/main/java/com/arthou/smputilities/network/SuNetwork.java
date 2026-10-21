@@ -81,6 +81,8 @@ public final class SuNetwork {
                 StaffService.handleAction(player, action);
             } else if (message instanceof Payloads.TtsSelect select) {
                 TtsService.select(player, select.mode(), select.language());
+            } else if (message instanceof Payloads.Typing typing) {
+                TtsService.typing(player, typing.active());
             }
         });
     }
@@ -211,6 +213,10 @@ public final class SuNetwork {
         SuConfig.Tts config = SuServer.config().tts;
         send(viewer, new Payloads.Bubble(speaker, text, tts, (float) config.bubbleSeconds, (float) config.bubbleFadeSeconds,
             config.bubbleMaxWidth, config.bubbleTextColor, config.bubbleFillColor, config.bubbleBorderColor, config.bubbleStyle));
+    }
+
+    public static void bubbleTyping(ServerPlayer viewer, UUID speaker, boolean active) {
+        send(viewer, new Payloads.BubbleTyping(speaker, active));
     }
 
     public static void sendVoiceRestriction(ServerPlayer player, boolean forceMute) {

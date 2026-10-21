@@ -40,9 +40,11 @@ public final class Payloads {
     public static final int BUBBLE = 11;
     public static final int VOICE_RESTRICTION = 12;
     public static final int MANIFEST = 13;
+    public static final int BUBBLE_TYPING = 14;
     public static final int REQUEST = 64;
     public static final int ACTION = 65;
     public static final int TTS_SELECT = 66;
+    public static final int TYPING = 67;
 
     /** Client side: decodes a message sent by the server, or null for unknown ids. */
     public static Message readClientbound(int id, FriendlyByteBuf buf) {
@@ -60,6 +62,7 @@ public final class Payloads {
             case BUBBLE -> Bubble.read(buf);
             case VOICE_RESTRICTION -> VoiceRestriction.read(buf);
             case MANIFEST -> Manifest.read(buf);
+            case BUBBLE_TYPING -> BubbleTyping.read(buf);
             default -> null;
         };
     }
@@ -70,6 +73,7 @@ public final class Payloads {
             case REQUEST -> Request.read(buf);
             case ACTION -> Action.read(buf);
             case TTS_SELECT -> TtsSelect.read(buf);
+            case TYPING -> Typing.read(buf);
             default -> null;
         };
     }
@@ -305,6 +309,24 @@ public final class Payloads {
         }
     }
 
+    /** A player started or stopped typing (Nexel's "..." bubble); repeated while they type. */
+    public record BubbleTyping(UUID speaker, boolean active) implements Message {
+        @Override
+        public void write(FriendlyByteBuf buf) {
+            buf.writeUUID(speaker);
+            buf.writeBoolean(active);
+        }
+
+        public static BubbleTyping read(FriendlyByteBuf buf) {
+            return new BubbleTyping(buf.readUUID(), buf.readBoolean());
+        }
+
+        @Override
+        public int id() {
+            return BUBBLE_TYPING;
+        }
+    }
+
     public record VoiceRestriction(boolean forceMute) implements Message {
         @Override
         public void write(FriendlyByteBuf buf) {
@@ -419,6 +441,23 @@ public final class Payloads {
         @Override
         public int id() {
             return TTS_SELECT;
+        }
+    }
+
+    /** The chat box holds a message (not a command): sent on change and as a heartbeat while typing. */
+    public record Typing(boolean active) implements Message {
+        @Override
+        public void write(FriendlyByteBuf buf) {
+            buf.writeBoolean(active);
+        }
+
+        public static Typing read(FriendlyByteBuf buf) {
+            return new Typing(buf.readBoolean());
+        }
+
+        @Override
+        public int id() {
+            return TYPING;
         }
     }
 }
