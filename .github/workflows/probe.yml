@@ -16,12 +16,8 @@ jobs:
       - run: bash tools/probe/versions.sh
 
   api:
-    name: api ${{ matrix.target }}
+    name: api differences
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        target: [1.18.2-fabric, 1.19.2-fabric, 1.19.4-fabric, 1.20.1-fabric, 1.20.4-fabric, 1.20.6-fabric, 1.21.1-fabric, 1.21.3-fabric, 1.21.4-fabric, 1.21.5-fabric, 1.21.8-fabric, 1.21.10-fabric, 1.21.11-fabric]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -29,4 +25,7 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
-      - run: ./gradlew -q "-Psu.targets=${{ matrix.target }}" ":${{ matrix.target }}:apiProbe" 2>&1 | grep -v "^Architectury Loom" > api.txt; cat api.txt
+        with:
+          cache-disabled: true
+      - run: ./gradlew -q "-Psu.targets=1.18.2-fabric,1.19.2-fabric,1.19.4-fabric,1.20.1-fabric,1.20.4-fabric,1.20.6-fabric,1.21.1-fabric,1.21.3-fabric,1.21.4-fabric,1.21.5-fabric,1.21.8-fabric,1.21.10-fabric,1.21.11-fabric" apiProbe
+      - run: python3 tools/probe/api_diff.py versions/*-fabric/build/api.txt

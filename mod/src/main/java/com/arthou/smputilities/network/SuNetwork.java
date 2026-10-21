@@ -1,21 +1,21 @@
 package com.arthou.smputilities.network;
 
-import com.arthou.smputilities.client.ClientPayloads;
 import com.arthou.smputilities.core.config.SuConfig;
 import com.arthou.smputilities.core.modsync.ModManifest;
 import com.arthou.smputilities.core.perm.Perm;
-import com.arthou.smputilities.nick.NicknameService;
+import com.arthou.smputilities.server.Names;
 import com.arthou.smputilities.server.Perms;
 import com.arthou.smputilities.server.SuServer;
 import com.arthou.smputilities.staff.StaffService;
 import com.arthou.smputilities.tts.TtsService;
 import com.arthou.smputilities.vanish.VanishService;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import com.arthou.smputilities.core.util.SuLog;
+import com.arthou.smputilities.mc.Mc;
+import com.arthou.smputilities.platform.Platform;
+import io.netty.buffer.Unpooled;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,66 +24,75 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Payload registration and the send helpers used by the server systems.
- * Every payload is optional, and nothing is sent to a client that did not
- * announce the channel, so players without the mod connect normally.
+ * SMPutilities' channel and the send helpers used by the server systems.
+ * The channel is optional, and nothing is sent to a client that did not
+ * announce it, so players without the mod connect normally. Each loader moves
+ * the bytes; framing and dispatch are shared.
  */
 public final class SuNetwork {
-    private static final String PROTOCOL = "1";
+    /** The channel id, "smputilities:main". */
+    public static final String CHANNEL_PATH = "main";
+    /** Clients reject messages from a server speaking another protocol version. */
+    public static final String PROTOCOL = "2";
+    /** Serverbound messages larger than this are dropped (vanilla allows 32 KiB). */
+    private static final int MAX_SERVERBOUND = 32 * 1024;
 
     private SuNetwork() {
     }
 
-    public static void register(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar(PROTOCOL).optional();
-
-        // Client handlers live in ClientPayloads; the lambdas only reach it on the client.
-        registrar.playToClient(Payloads.State.TYPE, Payloads.State.CODEC, (payload, context) -> context.enqueueWork(() -> ClientPayloads.state(payload)));
-        registrar.playToClient(Payloads.Nicknames.TYPE, Payloads.Nicknames.CODEC, (payload, context) -> context.enqueueWork(() -> ClientPayloads.nicknames(payload)));
-        registrar.playToClient(Payloads.OpenPanel.TYPE, Payloads.OpenPanel.CODEC, (payload, context) -> context.enqueueWork(() -> ClientPayloads.openPanel(payload)));
-        registrar.playToClient(Payloads.DashboardData.TYPE, Payloads.DashboardData.CODEC, (payload, context) -> context.enqueueWork(() -> ClientPayloads.dashboard(payload)));
-        registrar.playToClient(Payloads.DetailData.TYPE, Payloads.DetailData.CODEC, (payload, context) -> context.enqueueWork(() -> ClientPayloads.detail(payload)));
-        registrar.playToClient(Payloads.TableData.TYPE, Payloads.TableData.CODEC, (payload, context) -> context.enqueueWork(() -> ClientPayloads.table(payload)));
-        registrar.playToClient(Payloads.SettingsData.TYPE, Payloads.SettingsData.CODEC, (payload, context) -> context.enqueueWork(() -> ClientPayloads.settings(payload)));
-        registrar.playToClient(Payloads.Feedback.TYPE, Payloads.Feedback.CODEC, (payload, context) -> context.enqueueWork(() -> ClientPayloads.feedback(payload)));
-        registrar.playToClient(Payloads.TtsSpeak.TYPE, Payloads.TtsSpeak.CODEC, (payload, context) -> context.enqueueWork(() -> ClientPayloads.ttsSpeak(payload)));
-        registrar.playToClient(Payloads.TtsMenu.TYPE, Payloads.TtsMenu.CODEC, (payload, context) -> context.enqueueWork(() -> ClientPayloads.ttsMenu(payload)));
-        registrar.playToClient(Payloads.Bubble.TYPE, Payloads.Bubble.CODEC, (payload, context) -> context.enqueueWork(() -> ClientPayloads.bubble(payload)));
-        registrar.playToClient(Payloads.VoiceRestriction.TYPE, Payloads.VoiceRestriction.CODEC, (payload, context) -> context.enqueueWork(() -> ClientPayloads.voiceRestriction(payload)));
-        registrar.playToClient(Payloads.Manifest.TYPE, Payloads.Manifest.CODEC, (payload, context) -> context.enqueueWork(() -> ClientPayloads.manifest(payload)));
-
-        registrar.playToServer(Payloads.Request.TYPE, Payloads.Request.CODEC, (payload, context) -> context.enqueueWork(() -> {
-            if (context.player() instanceof ServerPlayer player) {
-                StaffService.handleRequest(player, payload);
-            }
-        }));
-        registrar.playToServer(Payloads.Action.TYPE, Payloads.Action.CODEC, (payload, context) -> context.enqueueWork(() -> {
-            if (context.player() instanceof ServerPlayer player) {
-                StaffService.handleAction(player, payload);
-            }
-        }));
-        registrar.playToServer(Payloads.TtsSelect.TYPE, Payloads.TtsSelect.CODEC, (payload, context) -> context.enqueueWork(() -> {
-            if (context.player() instanceof ServerPlayer player) {
-                TtsService.select(player, payload.mode(), payload.language());
-            }
-        }));
+    /** Encodes a message: varint id, then the fields. */
+    public static byte[] encode(Payloads.Message message) {
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+        try {
+            buf.writeVarInt(message.id());
+            message.write(buf);
+            byte[] bytes = new byte[buf.readableBytes()];
+            buf.readBytes(bytes);
+            return bytes;
+        } finally {
+            buf.release();
+        }
     }
 
-    public static boolean has(ServerPlayer player, CustomPacketPayload.Type<?> type) {
-        return player.connection != null && player.connection.hasChannel(type);
+    /** Called by the loader when a client message arrives, on any thread. */
+    public static void receive(ServerPlayer player, byte[] bytes) {
+        if (bytes.length == 0 || bytes.length > MAX_SERVERBOUND) {
+            return;
+        }
+        MinecraftServer server = Mc.server(player);
+        server.execute(() -> {
+            Payloads.Message message;
+            FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.wrappedBuffer(bytes));
+            try {
+                message = Payloads.readServerbound(buf.readVarInt(), buf);
+            } catch (RuntimeException e) {
+                SuLog.warn("Dropped a malformed SMPutilities message from " + Mc.name(player), e);
+                return;
+            }
+            if (message == null || player.hasDisconnected()) {
+                return;
+            }
+            if (message instanceof Payloads.Request request) {
+                StaffService.handleRequest(player, request);
+            } else if (message instanceof Payloads.Action action) {
+                StaffService.handleAction(player, action);
+            } else if (message instanceof Payloads.TtsSelect select) {
+                TtsService.select(player, select.mode(), select.language());
+            }
+        });
     }
 
-    /** Sends when the client understands the payload. @return whether it was sent */
-    public static boolean send(ServerPlayer player, CustomPacketPayload payload) {
-        if (!has(player, payload.type())) {
+    /** Sends when the client understands SMPutilities' channel. @return whether it was sent */
+    public static boolean send(ServerPlayer player, Payloads.Message message) {
+        if (!hasMod(player)) {
             return false;
         }
-        PacketDistributor.sendToPlayer(player, payload);
+        Platform.get().send(player, encode(message));
         return true;
     }
 
     public static boolean hasMod(ServerPlayer player) {
-        return has(player, Payloads.State.TYPE);
+        return player.connection != null && Platform.get().canSend(player);
     }
 
     // ------------------------------------------------------------ state sync
@@ -91,6 +100,7 @@ public final class SuNetwork {
     public static long permissionMask(ServerPlayer player) {
         long mask = 0;
         for (Perm perm : Perm.values()) {
+            // The mask has room for 64 nodes; Perm stays below that (checked in CoreLogicTest).
             if (perm.ordinal() < 64 && Perms.has(player, perm)) {
                 mask |= 1L << perm.ordinal();
             }
@@ -115,29 +125,52 @@ public final class SuNetwork {
         }
     }
 
-    public static void syncNicknames(ServerPlayer player) {
+    /**
+     * Nicknames of the players online: clients only draw names above players
+     * they can see, so offline records are never sent.
+     */
+    private static Map<UUID, String> onlineNicknames(MinecraftServer server) {
+        Map<UUID, String> nicks = new HashMap<>();
         SuServer context = SuServer.get();
-        if (context == null || !has(player, Payloads.Nicknames.TYPE)) {
+        if (context == null || !SuServer.config().features.nicknames) {
+            return nicks;
+        }
+        for (ServerPlayer online : server.getPlayerList().getPlayers()) {
+            String nick = Names.nickname(online.getUUID());
+            if (!nick.isEmpty()) {
+                nicks.put(online.getUUID(), nick);
+            }
+        }
+        return nicks;
+    }
+
+    public static void syncNicknames(ServerPlayer player) {
+        syncNicknames(player, onlineNicknames(Mc.server(player)));
+    }
+
+    private static void syncNicknames(ServerPlayer player, Map<UUID, String> nicks) {
+        SuServer context = SuServer.get();
+        if (context == null || !hasMod(player)) {
             return;
         }
         SuConfig config = SuServer.config();
-        Map<UUID, String> nicks = NicknameService.snapshot();
         Map<UUID, String> real = new HashMap<>();
         boolean showReal = context.players().get(player.getUUID()).realNames && Perms.has(player, Perm.STAFF_REALNAMES);
-        if (showReal || !config.nicknames.hideRealNames) {
-            for (ServerPlayer online : player.server.getPlayerList().getPlayers()) {
+        if (showReal) {
+            for (ServerPlayer online : Mc.server(player).getPlayerList().getPlayers()) {
                 if (nicks.containsKey(online.getUUID())) {
-                    real.put(online.getUUID(), online.getGameProfile().getName());
+                    real.put(online.getUUID(), Mc.name(online));
                 }
             }
         }
         boolean aboveHead = config.features.nicknames && config.nicknames.showAboveHead;
-        send(player, new Payloads.Nicknames(aboveHead ? nicks : Map.of(), showReal ? real : Map.of(), aboveHead));
+        send(player, new Payloads.Nicknames(aboveHead ? nicks : Map.of(), real, aboveHead));
     }
 
     public static void syncNicknamesToAll(MinecraftServer server) {
+        Map<UUID, String> nicks = onlineNicknames(server);
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            syncNicknames(player);
+            syncNicknames(player, nicks);
         }
     }
 
