@@ -22,12 +22,22 @@ import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 //$$ import net.minecraftforge.client.event.RenderGameOverlayEvent;
 //$$ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 //#endif
+//#if MC<1.21.3 || MC>=1.21.9
+import com.arthou.smputilities.client.bubble.BubbleRenderer;
+//#endif
 //#if MC<1.21.3
-//$$ import com.arthou.smputilities.client.bubble.BubbleRenderer;
 //$$ import net.minecraftforge.client.event.RenderLevelStageEvent;
 //#endif
-//#if MC>=1.20.5 && MC<1.21.3
-//$$ import com.mojang.blaze3d.vertex.PoseStack;
+//#if MC>=1.20.5 && MC<1.21.3 || MC>=1.21.9
+import com.mojang.blaze3d.vertex.PoseStack;
+//#endif
+//#if MC>=1.21.9
+import com.mojang.blaze3d.framegraph.FramePass;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.renderer.LevelTargetBundle;
+import net.minecraft.client.renderer.state.LevelRenderState;
+import net.minecraftforge.client.FramePassManager;
+import net.minecraftforge.client.event.AddFramePassEvent;
 //#endif
 //#if MC>=1.20.2
 import net.minecraftforge.network.PacketDistributor;
@@ -37,8 +47,8 @@ import net.minecraftforge.network.PacketDistributor;
 
 /**
  * Forge client glue. Only loaded on a physical client. Speech bubbles use
- * the level stage event up to 1.21.1 and a LevelRenderer mixin on 1.21.3 to
- * 1.21.8; Forge 1.21.9+ has no hook for them yet.
+ * the level stage event up to 1.21.1, a LevelRenderer mixin on 1.21.3 to
+ * 1.21.8 and a frame pass of their own from 1.21.9.
  */
 public final class ForgeClient {
     private ForgeClient() {
@@ -72,8 +82,10 @@ public final class ForgeClient {
         //$$     }
         //$$ });
         //#endif
-        //#if MC>=1.21.3
-        // No level render event from Forge 1.21.3: see mixin.client.LevelRendererMixin.
+        //#if MC>=1.21.9
+        ForgeBus.on(AddFramePassEvent.class, event -> event.addPass(SmpUtilities.id("speech_bubbles"), new BubblePass()));
+        //#elif MC>=1.21.3
+        //$$ // No level render event from Forge 1.21.3: see mixin.client.LevelRendererMixin.
         //#elif MC>=1.20.5
         //$$ ForgeBus.on(RenderLevelStageEvent.class, event -> {
         //$$     if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_ENTITIES) {
@@ -96,6 +108,25 @@ public final class ForgeClient {
         //$$ });
         //#endif
     }
+
+    //#if MC>=1.21.9
+    /**
+     * Runs after the vanilla passes on the main target. The model-view matrix
+     * carries the camera rotation there, so an identity pose stack is
+     * camera-relative, as in Forge's own frame pass test.
+     */
+    private static final class BubblePass implements FramePassManager.PassDefinition {
+        @Override
+        public void extracts(LevelTargetBundle bundle, FramePass pass, DeltaTracker deltaTracker) {
+            bundle.main = pass.readsAndWrites(bundle.main);
+        }
+
+        @Override
+        public void executes(LevelRenderState state) {
+            BubbleRenderer.renderWorld(new PoseStack());
+        }
+    }
+    //#endif
 
     //#if MC>=1.19 && MC<1.20.5
     //$$ private static Gfx gfx(RenderGuiEvent.Post event) {

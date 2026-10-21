@@ -167,9 +167,10 @@ funcionando.
 
 * Nickname acima da cabeça só para clientes com o mod (o nome da entidade é desenhado pelo cliente).
   Sugestões de comandos e a tela de "interações sociais" do jogo ainda mostram nomes de conta.
-* Balões de fala: no Forge 1.21.9+ ainda não aparecem (o Forge não tem mais um evento de renderização de
-  mundo e o pipeline novo de entidades não foi adaptado); no Forge 1.21.3–1.21.8 usam um mixin. Nos
-  outros loaders/versões usam o evento de renderização do mundo.
+* Balões de fala: o Forge não tem evento de renderização do mundo a partir da 1.21.3, então no Forge
+  1.21.3–1.21.8 eles são desenhados por um mixin e no Forge 1.21.9+ por uma etapa própria do frame graph
+  (`AddFramePassEvent`); nos outros loaders/versões, pelo evento do loader. Esses dois caminhos do Forge
+  ainda não foram vistos em jogo.
 * Vanish: a contagem de jogadores na lista de servidores não é alterada.
 * Limite de portais: portais de destino gerados automaticamente pelo jogo não são contados; portais de
   outros mods só são limitados se o mod disparar o `PortalSpawnEvent` do Forge/NeoForge (no Fabric, só
