@@ -1,0 +1,15 @@
+name: probe
+# Prints published loader and tool versions (and, later, API signatures) to the job log.
+on:
+  push:
+    paths:
+      - 'tools/probe/**'
+      - '.github/workflows/probe.yml'
+  workflow_dispatch:
+
+jobs:
+  versions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash tools/probe/versions.sh
