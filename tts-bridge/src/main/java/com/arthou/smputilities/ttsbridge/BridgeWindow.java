@@ -17,7 +17,7 @@ final class BridgeWindow extends JFrame {
     private final Runnable onStop;
 
     BridgeWindow(int port, Runnable onStop) {
-        super("SMPutilities Voice Bridge");
+        super("SMPutilities Voice Studio");
         this.onStop = onStop;
 
         setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
@@ -60,13 +60,13 @@ final class BridgeWindow extends JFrame {
         panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 62));
 
         JPanel bar = new JPanel();
-        bar.setBackground(Theme.AMBER);
+        bar.setBackground(Theme.ACCENT);
         bar.setPreferredSize(new Dimension(5, 52));
 
         JPanel text = new JPanel();
         text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
         text.setOpaque(false);
-        JLabel title = new JLabel("SMPutilities Voice Bridge");
+        JLabel title = new JLabel("SMPutilities Voice Studio");
         title.setFont(Theme.ui(Font.BOLD, 24));
         title.setForeground(Theme.TEXT);
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -118,7 +118,7 @@ final class BridgeWindow extends JFrame {
         JLabel k = Ui.body("Phrases spoken", Theme.TEXT_DIM, 12, Font.PLAIN);
         k.setPreferredSize(new Dimension(130, 20));
         servedLabel.setFont(Theme.mono(Font.BOLD, 12));
-        servedLabel.setForeground(Theme.AMBER);
+        servedLabel.setForeground(Theme.ACCENT);
         served.add(k, BorderLayout.WEST);
         served.add(servedLabel, BorderLayout.CENTER);
         card.add(served);
@@ -181,7 +181,7 @@ final class BridgeWindow extends JFrame {
         row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
         JLabel index = new JLabel(String.valueOf(number));
         index.setFont(Theme.mono(Font.BOLD, 12));
-        index.setForeground(Theme.AMBER);
+        index.setForeground(Theme.ACCENT);
         index.setPreferredSize(new Dimension(16, 18));
         index.setHorizontalAlignment(SwingConstants.RIGHT);
         JLabel label = Ui.body(text, Theme.TEXT, 12, Font.PLAIN);
@@ -279,7 +279,7 @@ final class BridgeWindow extends JFrame {
             card.add(Ui.heading("Not available"));
             card.add(Box.createVerticalStrut(10));
             card.add(Ui.body(Tts.WINDOWS
-                ? "On Windows, install VB-Cable and set it as your default playback device."
+                ? "On Windows, install VB-Cable and pick \"CABLE Input\" as the voice output below."
                 : "PulseAudio / PipeWire tools were not found on this system.",
                 Theme.TEXT, 12, Font.PLAIN));
             panel.add(card);
@@ -301,7 +301,7 @@ final class BridgeWindow extends JFrame {
                 Theme.TEXT_DIM, 12, Font.PLAIN));
             vb.add(Ui.body("\"CABLE Input\" below as the voice output.", Theme.TEXT_DIM, 12, Font.PLAIN));
             vb.add(Box.createVerticalStrut(8));
-            JLabel link = Ui.body("vb-audio.com/Cable", Theme.AMBER, 12, Font.BOLD);
+            JLabel link = Ui.body("vb-audio.com/Cable", Theme.ACCENT, 12, Font.BOLD);
             vb.add(link);
             panel.add(vb);
             panel.add(Box.createVerticalStrut(14));
@@ -395,7 +395,7 @@ final class BridgeWindow extends JFrame {
         gameCard.add(Box.createVerticalStrut(6));
         JLabel monitor = new JLabel(Audio.canCreateCable() ? Audio.MIC_DESCRIPTION : "CABLE Output (VB-Audio Virtual Cable)");
         monitor.setFont(Theme.mono(Font.BOLD, 12));
-        monitor.setForeground(Theme.AMBER);
+        monitor.setForeground(Theme.ACCENT);
         monitor.setAlignmentX(Component.LEFT_ALIGNMENT);
         gameCard.add(monitor);
         gameCard.add(Box.createVerticalStrut(10));

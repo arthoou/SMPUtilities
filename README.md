@@ -132,12 +132,16 @@ nickname ou UUID, e guardam sempre o UUID. Não use o HiddenNames junto: o SMPut
 importa o `hiddennames/data.json`).
 
 ### TTS e balões de fala — `/su tts`
-O menu do DuTTS (gênero, variação, idioma). Com uma voz ativa, o que o jogador digita vai para o chat
+O estúdio de voz: uma página só, com as cinco vozes (pelo nome de quem fala) à esquerda, os idiomas com
+bandeira à direita e uma onda animada na cor da voz. Com uma voz ativa, o que o jogador digita vai para o chat
 normalmente e também vira fala: o servidor envia o texto ao cliente dele, cujo *SMPutilities Voice Bridge*
 (um jar à parte, embutido no mod e iniciado só quando necessário) fala num microfone virtual que o voice
 chat/Discord usa. Todos por perto com o mod veem o balão de fala do NEXEL/LeafTalk (mesmas texturas e
 geometria, um balão por mensagem empilhado acima da cabeça, quase transparente agachado) e, enquanto ele
-digita, o balão animado "...". Sem o bridge, só o TTS fica indisponível.
+digita, o balão animado "...". Sem o bridge, só o TTS fica indisponível. No Linux o bridge cria o cabo
+`SMPutilities_TTS_Cable` e o microfone **SMPutilities TTS Microphone** (escolha esse no voice chat); no
+Windows não dá para criar um microfone virtual sem driver, então instale o VB-Cable e escolha "CABLE Input"
+como saída da voz no bridge (e "CABLE Output" como microfone no voice chat).
 
 ### Mundo
 * `/su portal limit <nether|end|aether|id> <n|unlimited>`, `/su portal count|list|remove|clear`. Portais do
