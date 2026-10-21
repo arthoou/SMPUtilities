@@ -4,6 +4,8 @@ Um único mod de gerenciamento para servidores SMP e de roleplay: painel da staf
 inventários (visualização, backups e perfis), nicknames de RP, TTS com balões de fala, limitador de portais,
 controle de dimensões, comandos de qualidade de vida, brincadeiras da staff e sincronização de mods.
 
+Made by [Arthou](https://discord.com/users/990003604725321808). Todos os direitos reservados (veja [LICENSE](LICENSE)).
+
 *English summary at the end.*
 
 ## Situação das versões
@@ -264,6 +266,15 @@ tools/smoke.sh 1.21.1-fabric                           # depois do build: sobe o
 Requer JDK 21 (e JDK 17 para rodar servidores de 1.18.2 a 1.20.4). Traduções: edite `tools/lang/*.tsv`
 e rode `python3 tools/genlang.py tools/lang mod/src/main/resources/assets/smputilities/lang`.
 
+## Licença
+
+SMPutilities é software proprietário: Copyright (c) 2026 arthou, todos os direitos reservados ([LICENSE](LICENSE)).
+Nenhuma permissão é concedida para usar, copiar, modificar, redistribuir ou criar trabalhos derivados sem
+autorização prévia e por escrito. Componentes de terceiros mantêm as suas licenças, listadas em
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) (HiddenNames, MIT; JLayer, LGPL). O TrollBoss (GPL-3.0) serviu só
+de referência de comportamento: nenhum código dele foi copiado, para não obrigar o mod a ser GPL. Os dois arquivos
+vão dentro de cada jar.
+
 ---
 
 ### English summary
@@ -285,3 +296,5 @@ One shared code base builds 35 jars: Fabric and Forge for 1.18.2, 1.19.2, 1.19.4
 live in `mod/src/main/java/.../mc` and a small source preprocessor (`//#if MC>=1.21.5`); loader glue lives
 in `mod/src/<loader>`. CI compiles every target and boots a dedicated server for each (smoke test); it has
 not been played in game yet.
+
+All rights reserved (c) 2026 arthou; see `LICENSE` and `THIRD_PARTY_NOTICES.md`.
