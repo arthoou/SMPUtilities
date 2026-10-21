@@ -33,9 +33,12 @@ public enum Perm {
     STAFF_LOGS("smputilities.staff.logs", 3),
     STAFF_ANNOUNCE("smputilities.staff.announce", 3),
     STAFF_TPALL("smputilities.staff.tpall", 3),
+    STAFF_REPORTS("smputilities.staff.reports", 2),
+    STAFF_CHAT("smputilities.staff.chat", 2),
 
     ADMIN_SETTINGS("smputilities.admin.settings", 4),
     ADMIN_RELOAD("smputilities.admin.reload", 4),
+    ADMIN_RESTART("smputilities.admin.restart", 4),
 
     CHAT_MANAGE("smputilities.chat.manage", 3),
     CHAT_BYPASS_LOCK("smputilities.chat.bypass.lock", 2),
@@ -74,6 +77,12 @@ public enum Perm {
     HAT("smputilities.qol.hat", 0),
     SIT("smputilities.qol.sit", 0),
     IGNORE("smputilities.qol.ignore", 0),
+    PLAYTIME("smputilities.qol.playtime", 0),
+    SEEN("smputilities.qol.seen", 0),
+    RULES("smputilities.qol.rules", 0),
+    REPORT("smputilities.report", 0),
+    AFK("smputilities.afk", 0),
+    AFK_BYPASS_KICK("smputilities.afk.bypass.kick", 2),
 
     MODSYNC_MANAGE("smputilities.modsync.manage", 4);
 

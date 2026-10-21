@@ -10,6 +10,7 @@ import com.arthou.smputilities.server.Msg;
 import com.arthou.smputilities.server.Names;
 import com.arthou.smputilities.server.Perms;
 import com.arthou.smputilities.server.SuServer;
+import com.arthou.smputilities.smp.AfkService;
 import com.arthou.smputilities.util.CommandTrees;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.FloatArgumentType;
@@ -159,6 +160,12 @@ public final class ChatCommands {
 
         Mc.reply(source, toSender);
         Mc.send(target, toTarget);
+        if (sender != null) {
+            AfkService.activity(sender);
+            if (AfkService.isAfk(target)) {
+                Msg.info(sender, "afk.notice", targetName);
+            }
+        }
         Mc.playSound(target, "minecraft:entity.experience_orb.pickup", SoundSource.PLAYERS, 0.5F, 1.2F);
         SuServer context = SuServer.get();
         if (sender != null) {

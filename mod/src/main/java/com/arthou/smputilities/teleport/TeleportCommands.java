@@ -33,6 +33,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.levelgen.Heightmap;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -60,6 +61,12 @@ public final class TeleportCommands {
                 .then(Commands.argument("target", StringArgumentType.string()).suggests(Names.onlineSuggestions())
                     .executes(context -> request(context, TpaRequests.Kind.HERE))));
         }
+        dispatcher.register(Commands.literal("tpacancel")
+            .requires(source -> enabled() && Perms.has(source, Perm.TPA))
+            .executes(TeleportCommands::cancel));
+        dispatcher.register(Commands.literal("tpatoggle")
+            .requires(source -> enabled() && Perms.has(source, Perm.TPA))
+            .executes(TeleportCommands::toggle));
         dispatcher.register(Commands.literal("tpaccept")
             .requires(source -> enabled() && Perms.has(source, Perm.TPA))
             .executes(context -> accept(context, null))
@@ -148,6 +155,9 @@ public final class TeleportCommands {
         if (ChatService.isIgnoring(target, requester)) {
             return Msg.error(context.getSource(), "tpa.ignored");
         }
+        if (SuServer.get().players().get(target.getUUID()).tpaDisabled && !Perms.has(requester, Perm.STAFF_TELEPORT)) {
+            return Msg.error(context.getSource(), "tpa.target_disabled");
+        }
         long timeout = SuServer.config().teleport.requestTimeoutSeconds * 1000L;
         long now = System.currentTimeMillis();
         if (REQUESTS.hasPending(requester.getUUID(), target.getUUID(), now, timeout)) {
@@ -161,6 +171,30 @@ public final class TeleportCommands {
         Mc.send(target, decisionRow(target, Names.realName(requester)));
         Mc.playSound(target, "minecraft:block.note_block.hat", SoundSource.PLAYERS, 3.0F, 1.0F);
         return 1;
+    }
+
+    private static int cancel(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer requester = context.getSource().getPlayerOrException();
+        List<TpaRequests.Request> cancelled = REQUESTS.cancel(requester.getUUID(), System.currentTimeMillis(),
+            SuServer.config().teleport.requestTimeoutSeconds * 1000L);
+        if (cancelled.isEmpty()) {
+            return Msg.error(context.getSource(), "tpa.nothing_to_cancel");
+        }
+        for (TpaRequests.Request request : cancelled) {
+            ServerPlayer target = Mc.server(requester).getPlayerList().getPlayer(request.target());
+            if (target != null) {
+                String requesterShown = Names.seesRealNames(target) ? Names.realName(requester) : Names.plainDisplay(requester);
+                Msg.info(target, "tpa.cancelled_by", requesterShown);
+            }
+        }
+        return Msg.ok(context.getSource(), "tpa.cancelled", cancelled.size());
+    }
+
+    private static int toggle(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = context.getSource().getPlayerOrException();
+        boolean[] disabled = new boolean[1];
+        SuServer.get().players().update(player.getUUID(), record -> disabled[0] = record.tpaDisabled = !record.tpaDisabled);
+        return Msg.ok(context.getSource(), disabled[0] ? "tpa.toggle_off" : "tpa.toggle_on");
     }
 
     private static Component decisionRow(ServerPlayer viewer, String requesterName) {

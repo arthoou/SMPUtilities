@@ -30,6 +30,8 @@ import com.arthou.smputilities.server.Msg;
 import com.arthou.smputilities.server.Names;
 import com.arthou.smputilities.server.Perms;
 import com.arthou.smputilities.server.SuServer;
+import com.arthou.smputilities.smp.ReportService;
+import com.arthou.smputilities.smp.RestartService;
 import com.arthou.smputilities.troll.TrollService;
 import com.arthou.smputilities.tts.TtsPresets;
 import com.arthou.smputilities.tts.TtsService;
@@ -190,6 +192,8 @@ public final class StaffCommands {
                     thread.start();
                     return Msg.ok(context.getSource(), "modsync.rescanning");
                 })))
+            .then(ReportService.branch())
+            .then(RestartService.branch())
             .then(Commands.literal("spectate").requires(perm(Perm.STAFF_SPECTATE))
                 .then(Commands.literal("stop").executes(context -> {
                     StaffService.stopSpectating(context.getSource().getPlayerOrException());

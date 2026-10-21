@@ -33,6 +33,12 @@ public final class SuConfig {
     public Dimensions dimensions = new Dimensions();
     public Teleport teleport = new Teleport();
     public Qol qol = new Qol();
+    public Afk afk = new Afk();
+    public Reports reports = new Reports();
+    public StaffChat staffChat = new StaffChat();
+    public Announcements announcements = new Announcements();
+    public Restart restart = new Restart();
+    public Welcome welcome = new Welcome();
     public Permissions permissions = new Permissions();
 
     /** Master switches. A disabled system registers no listeners or commands. */
@@ -51,6 +57,12 @@ public final class SuConfig {
         public boolean teleport = true;
         public boolean qol = true;
         public boolean voiceChat = true;
+        public boolean afk = true;
+        public boolean reports = true;
+        public boolean staffChat = true;
+        public boolean announcements = true;
+        public boolean restart = true;
+        public boolean welcome = true;
     }
 
     public static final class Chat {
@@ -275,6 +287,68 @@ public final class SuConfig {
         public boolean sit = true;
         public boolean msg = true;
         public boolean ignore = true;
+        /** Tells the player where they died (only them). */
+        public boolean deathCoordinates = true;
+        public boolean playtime = true;
+        public boolean seen = true;
+    }
+
+    public static final class Afk {
+        /** Minutes without looking around, walking or chatting before a player is AFK (0 = only /afk). */
+        public int autoMinutes = 5;
+        /** Minutes idle before an AFK player is kicked (0 = never); smputilities.afk.bypass.kick is exempt. */
+        public int kickMinutes = 0;
+        /** Tell everyone when someone goes AFK or comes back. */
+        public boolean broadcast = true;
+        public boolean showInTabList = true;
+        public String tabPrefix = "&7[AFK] ";
+        /** AFK players do not hold back the night: the sleep percentage counts only the others. */
+        public boolean ignoreForSleep = true;
+    }
+
+    public static final class Reports {
+        /** Seconds between two reports by the same player. */
+        public int cooldownSeconds = 60;
+        public int maxReasonLength = 200;
+        /** Closed reports kept in reports.json (open ones are always kept). */
+        public int keepClosed = 200;
+        public String notifySound = "minecraft:block.note_block.pling";
+    }
+
+    public static final class StaffChat {
+        /** Placeholders: {name} {realname} {message}. */
+        public String format = "&8[&cStaff&8] &f{name}&7: &f{message}";
+    }
+
+    public static final class Announcements {
+        /** Lines sent to everyone in turn ("&"-colors, {online}); links become clickable. Empty = off. */
+        public List<String> messages = new ArrayList<>();
+        public int intervalMinutes = 10;
+        public boolean random = false;
+        public String prefix = "&6[Info] &r";
+        /** Skip announcements when fewer players are online. */
+        public int minPlayers = 1;
+    }
+
+    public static final class Restart {
+        /** Daily restart times in the server's time zone, e.g. ["06:00"]. Empty = only /su restart. */
+        public List<String> dailyTimes = new ArrayList<>();
+        /** Seconds left at which everyone is warned. */
+        public List<Integer> warningSeconds = new ArrayList<>(List.of(900, 600, 300, 120, 60, 30, 10, 5, 4, 3, 2, 1));
+        public String sound = "minecraft:block.note_block.bell";
+        /** Shown to players when the server stops; empty = the built-in translated text. */
+        public String kickMessage = "";
+    }
+
+    public static final class Welcome {
+        /** Announce a player's very first join to everyone. */
+        public boolean firstJoinBroadcast = true;
+        /** {name} {count}; empty = the built-in translated text. */
+        public String firstJoinMessage = "";
+        /** Lines sent to each player when they join ({name} {online} {max}); links become clickable. */
+        public List<String> motd = new ArrayList<>();
+        /** Lines shown by /rules; links become clickable. */
+        public List<String> rules = new ArrayList<>();
     }
 
     public static final class Permissions {

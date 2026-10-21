@@ -19,6 +19,13 @@ import com.arthou.smputilities.profile.ProfileService;
 import com.arthou.smputilities.qol.QolCommands;
 import com.arthou.smputilities.server.PermCache;
 import com.arthou.smputilities.server.SuServer;
+import com.arthou.smputilities.smp.AfkService;
+import com.arthou.smputilities.smp.Announcer;
+import com.arthou.smputilities.smp.InfoCommands;
+import com.arthou.smputilities.smp.ReportService;
+import com.arthou.smputilities.smp.RestartService;
+import com.arthou.smputilities.smp.StaffChat;
+import com.arthou.smputilities.smp.WelcomeService;
 import com.arthou.smputilities.staff.StaffCommands;
 import com.arthou.smputilities.staff.StaffService;
 import com.arthou.smputilities.teleport.TeleportCommands;
@@ -56,6 +63,11 @@ public final class CommonEvents {
         TeleportCommands.register(dispatcher);
         QolCommands.register(dispatcher);
         StaffCommands.register(dispatcher);
+        AfkService.register(dispatcher);
+        ReportService.register(dispatcher);
+        StaffChat.register(dispatcher);
+        WelcomeService.register(dispatcher);
+        InfoCommands.register(dispatcher);
     }
 
     public static void serverStarting(MinecraftServer server) {
@@ -64,6 +76,8 @@ public final class CommonEvents {
         ProfileService.onServerStart(context);
         VanishService.onServerStart(context);
         StaffService.onServerStart();
+        Announcer.onServerStart();
+        RestartService.onServerStart();
         LegacyImport.run(server, context);
         ModSyncServer.onServerStart();
     }
@@ -91,6 +105,9 @@ public final class CommonEvents {
             PermCache.clear();
             VanishService.tickIndicator(server);
             BackupService.tick(server);
+            SuLog.guard("afk", server, AfkService::tick);
+            SuLog.guard("announcements", server, Announcer::tick);
+            SuLog.guard("restart", server, RestartService::tick);
         }
         if (ticks % 600 == 0) {
             context.players().flush();
@@ -110,22 +127,27 @@ public final class CommonEvents {
         }
         long now = System.currentTimeMillis();
         String name = Mc.name(player);
+        boolean[] firstJoin = new boolean[1];
         context.players().update(player.getUUID(), record -> {
             record.lastName = name;
             if (record.firstJoin == 0) {
                 record.firstJoin = now;
+                firstJoin[0] = true;
             }
             record.lastLogin = now;
             record.lastSeen = now;
             record.joinCount++;
         });
         PresenceFilter.install(player);
+        AfkService.onLogin(player);
         SuLog.guard("punishment login check", player, PunishmentService::onLogin);
         SuLog.guard("profile check", player, ProfileService::onLogin);
         SuLog.guard("offline edit hand-over", player, TargetInventoryMenu::onTargetLogin);
         SuLog.guard("vanish", player, VanishService::onLogin);
         Platform.get().refreshNames(player);
         SuLog.guard("join message", player, value -> ChatService.broadcastPresence(value, true, false));
+        SuLog.guard("welcome", player, value -> WelcomeService.onLogin(value, firstJoin[0]));
+        SuLog.guard("pending reports", player, ReportService::onLogin);
         SuLog.guard("join backup", player, BackupService::onJoin);
         SuLog.guard("client sync", player, value -> {
             SuNetwork.syncState(value);
@@ -148,6 +170,7 @@ public final class CommonEvents {
         SuLog.guard("quit message", player, value -> ChatService.broadcastPresence(value, false, false));
         Teleports.forget(player);
         TeleportCommands.forget(player);
+        AfkService.onLogout(player);
         ChatService.forget(player);
         DimensionService.forget(player);
         VanishService.onLogout(player);
@@ -177,6 +200,7 @@ public final class CommonEvents {
             return;
         }
         SuLog.guard("death backup", player, value -> BackupService.onDeath(value, cause));
+        SuLog.guard("death location", player, InfoCommands::deathLocation);
         if (SuServer.config().teleport.backOnDeath) {
             context.players().update(player.getUUID(), record -> record.back = Teleports.locationOf(player));
         }
@@ -190,6 +214,10 @@ public final class CommonEvents {
 
     /** @return true when the chat message must not go through vanilla */
     public static boolean chat(ServerPlayer player, String rawText) {
+        AfkService.activity(player);
+        if (StaffChat.handleChat(player, rawText)) {
+            return true;
+        }
         return ChatService.onChat(player, rawText);
     }
 
@@ -203,7 +231,7 @@ public final class CommonEvents {
 
     /** Tab list entry; null keeps the vanilla one. */
     public static Component tabListName(ServerPlayer player) {
-        return NicknameService.tabListName(player);
+        return AfkService.decorateTab(player, NicknameService.tabListName(player));
     }
 
     /** @return true when the travel must be cancelled */

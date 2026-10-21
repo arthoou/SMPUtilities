@@ -6,6 +6,7 @@ import com.arthou.smputilities.core.config.SuConfig;
 import com.arthou.smputilities.core.player.PlayerStore;
 import com.arthou.smputilities.core.portal.PortalRegistry;
 import com.arthou.smputilities.core.punish.PunishmentStore;
+import com.arthou.smputilities.core.report.ReportStore;
 import com.arthou.smputilities.core.teleport.TeleportStore;
 import com.arthou.smputilities.core.util.SuLog;
 import net.minecraft.server.MinecraftServer;
@@ -33,6 +34,7 @@ public final class SuServer {
     private final PunishmentStore punishments;
     private final TeleportStore teleports;
     private final PortalRegistry portals;
+    private final ReportStore reports;
     private final AuditLog audit;
 
     private SuServer(MinecraftServer server) {
@@ -42,6 +44,7 @@ public final class SuServer {
         this.punishments = new PunishmentStore(dataDir.resolve("punishments.json"));
         this.teleports = new TeleportStore(dataDir.resolve("teleport.json"));
         this.portals = new PortalRegistry(dataDir.resolve("portals.json"));
+        this.reports = new ReportStore(dataDir.resolve("reports.json"));
         this.audit = new AuditLog(dataDir.resolve("logs"));
     }
 
@@ -52,6 +55,7 @@ public final class SuServer {
         created.punishments.load();
         created.teleports.load();
         created.portals.load();
+        created.reports.load();
         created.audit.prune(config().staff.auditRetentionDays);
         instance = created;
         SuLog.info("SMPutilities data folder: " + created.dataDir);
@@ -65,6 +69,7 @@ public final class SuServer {
             current.punishments.save();
             current.teleports.save();
             current.portals.save();
+            current.reports.save();
             current.audit.close();
         }
         instance = null;
@@ -118,6 +123,10 @@ public final class SuServer {
 
     public PortalRegistry portals() {
         return portals;
+    }
+
+    public ReportStore reports() {
+        return reports;
     }
 
     public AuditLog audit() {

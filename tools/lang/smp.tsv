@@ -1,0 +1,37 @@
+afk.now	%s is now AFK.	%s está AFK agora.
+afk.now_reason	%s is now AFK: %s	%s está AFK: %s
+afk.back	%s is no longer AFK.	%s não está mais AFK.
+afk.notice	%s is AFK and may not answer right away.	%s está AFK e pode demorar para responder.
+afk.kicked	You were AFK for more than %s minutes.	Você ficou AFK por mais de %s minutos.
+report.self	You can't report yourself.	Você não pode denunciar a si mesmo.
+report.cooldown	Wait %s before sending another report.	Aguarde %s antes de enviar outra denúncia.
+report.sent	Report #%s sent to the staff. Thank you!	Denúncia #%s enviada à staff. Obrigado!
+report.notice	[Report #%s] %s → %s: %s	[Denúncia #%s] %s → %s: %s
+report.tp_button	Teleport	Teleportar
+report.close_button	Close	Fechar
+report.none	There are no open reports.	Não há denúncias abertas.
+report.header	Open reports: %s	Denúncias abertas: %s
+report.entry	%s → %s (%s ago): %s	%s → %s (há %s): %s
+report.not_found	No open report #%s.	Nenhuma denúncia aberta #%s.
+report.closed	Report #%s closed.	Denúncia #%s fechada.
+report.closed_notice	The staff reviewed your report #%s.	A staff analisou sua denúncia #%s.
+report.pending	There are %s open reports. Click to see them.	Há %s denúncias abertas. Clique para ver.
+staffchat.on	Staff chat on: your chat lines now go to the staff only. /sc to turn it off.	Chat da staff ligado: suas mensagens agora vão só para a staff. /sc para desligar.
+staffchat.off	Staff chat off: your chat lines are public again.	Chat da staff desligado: suas mensagens voltaram a ser públicas.
+restart.none	No restart is scheduled.	Nenhum reinício agendado.
+restart.status	The server restarts in %s (reason: %s).	O servidor reinicia em %s (motivo: %s).
+restart.bad_time	Invalid time: %s (examples: 30s, 5m, 1h, now).	Tempo inválido: %s (exemplos: 30s, 5m, 1h, now).
+restart.warning	The server restarts in %s.	O servidor vai reiniciar em %s.
+restart.warning_reason	The server restarts in %s: %s	O servidor vai reiniciar em %s: %s
+restart.actionbar	Restart in %s	Reinício em %s
+restart.cancelled	The scheduled restart was cancelled.	O reinício agendado foi cancelado.
+restart.kick	The server is restarting. Come back in a minute!	O servidor está reiniciando. Volte em um minuto!
+welcome.first_join	&eWelcome, &f%s&e! Player #%s to join the server.	&eBem-vindo(a), &f%s&e! Jogador nº %s a entrar no servidor.
+rules.none	No rules were configured. Ask the staff.	Nenhuma regra foi configurada. Pergunte à staff.
+playtime.self	You have played for %s.	Você já jogou por %s.
+playtime.other	%s has played for %s.	%s já jogou por %s.
+seen.online	%s is online (for %s).	%s está online (há %s).
+seen.offline	%s was last seen %s ago.	%s foi visto pela última vez há %s.
+seen.never	%s has never joined.	%s nunca entrou no servidor.
+death.location	You died at %s %s %s (%s).	Você morreu em %s %s %s (%s).
+death.back_hover	Go back to where you died	Voltar para onde você morreu

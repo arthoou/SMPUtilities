@@ -26,9 +26,10 @@ public final class SmokeTest {
         "net.minecraft.server.level.ChunkMap$TrackedEntity",
         "net.minecraft.server.network.ServerGamePacketListenerImpl",
         "net.minecraft.server.network.ServerCommonPacketListenerImpl",
-        "net.minecraft.network.Connection");
+        "net.minecraft.network.Connection",
+        "net.minecraft.server.players.SleepStatus");
     /** Run as the console; command errors are logged by the game, which the CI step looks for. */
-    private static final List<String> COMMANDS = List.of("su", "su reload", "help");
+    private static final List<String> COMMANDS = List.of("su", "su reload", "help", "su reports", "su restart", "rules");
     private static int ticks;
 
     private SmokeTest() {

@@ -44,6 +44,7 @@ jogo nessa versão. Isso não substitui testar em jogo — veja
 | `<mundo>/smputilities/backups/<uuid>.dat` | Backups de inventário |
 | `<mundo>/smputilities/profiles/<uuid>.dat` | Perfis de inventário |
 | `<mundo>/smputilities/punishments.json` | Histórico de punições |
+| `<mundo>/smputilities/reports.json` | Denúncias (`/report`) |
 | `<mundo>/smputilities/logs/audit-AAAA-MM.jsonl` | Registro administrativo (quem, o quê, em quem, quando) |
 
 Tudo é indexado por UUID; trocar de nome ou de nickname nunca perde dados.
@@ -118,11 +119,37 @@ com o mod veem um balão de fala animado (estilo do Bubbles4All). Sem o bridge, 
   opcionalmente) sem descarregar nada nem tocar em dados/construções. Exceção para quem tem permissão.
 
 ### Qualidade de vida (do TPA)
-`/tpa`, `/tpahere`, `/tpaccept`, `/tpdeny` (com botões clicáveis), `/home`, `/sethome`, `/delhome`, `/homes`,
+`/tpa`, `/tpahere`, `/tpaccept`, `/tpdeny` (com botões clicáveis), `/tpacancel` (desfaz os pedidos que você
+mandou), `/tpatoggle` (recusa pedidos de todos; a staff ainda pode), `/home`, `/sethome`, `/delhome`, `/homes`,
 `/setdefaulthome`, `/spawn`, `/setspawn`, `/back`, `/warp`, `/warps`, `/setwarp`, `/delwarp`, `/rtp`,
 `/tpall`, `/tplogout`, `/hat`, `/sit`. Aquecimento com cancelamento ao mover/levar dano, cooldowns por
 comando, limite de homes (config ou permissão numérica `smputilities.teleport.home.limit`), comandos
 bloqueáveis por dimensão.
+
+### SMP: AFK, denúncias, chat da staff, anúncios e reinícios
+Tudo funciona com clientes sem o mod e cada parte pode ser desligada em `features`.
+* **AFK — `/afk [motivo]`:** também automático depois de `afk.autoMinutes` (5) sem olhar em volta, andar ou
+  falar (ser levado por água ou carrinho não conta). Mostra `[AFK]` na TAB, avisa todos (exceto para quem
+  está em vanish), avisa quem manda `/msg` para alguém AFK e, com `afk.ignoreForSleep`, quem está AFK fora
+  da cama não impede de pular a noite (a porcentagem de jogadores dormindo ignora essas pessoas). Kick
+  opcional após `afk.kickMinutes` (desligado por padrão; `smputilities.afk.bypass.kick` fica de fora).
+* **Denúncias — `/report <jogador> <motivo>`:** a staff online recebe o aviso com botões para teleportar até
+  onde a denúncia foi feita e para fechar; quem entra depois vê quantas estão abertas. `/su reports`,
+  `/su reports close <id>`, `/su reports tp <id>`. Guardadas em `<mundo>/smputilities/reports.json`, com
+  intervalo mínimo entre denúncias e registro na auditoria; quem denunciou é avisado quando a staff fecha.
+* **Chat da staff — `/sc <mensagem>`** (ou `/staffchat`); `/sc` sozinho liga/desliga o modo em que as
+  mensagens normais vão só para a staff.
+* **Anúncios automáticos:** `announcements.messages` (lista com `&`-cores e `{online}`) a cada
+  `announcements.intervalMinutes`, em ordem ou aleatórios; links `https://` viram clicáveis.
+* **Reinício agendado — `/su restart <tempo> [motivo]`**, `/su restart cancel`, `/su restart` (status), e
+  horários diários em `restart.dailyTimes` (ex.: `["06:00"]`). Avisa no chat e com som nos tempos de
+  `restart.warningSeconds` (15 min, 10, 5, 2, 1 min, 30 s, 10…1 s, também na action bar), depois desconecta
+  todos com a mensagem e desliga o servidor salvando o mundo. Quem liga de volta é a hospedagem ou o script
+  de inicialização, como no `/stop`.
+* **Boas-vindas:** anúncio da primeira entrada de cada jogador ("jogador nº N"), MOTD por jogador ao entrar
+  (`welcome.motd`, com `{name}`, `{online}`, `{max}`) e `/rules` (`welcome.rules`). Links ficam clicáveis.
+* **Informações:** `/playtime [jogador]`, `/seen <jogador>` (respeita o vanish) e, ao morrer, só o jogador
+  vê as coordenadas e a dimensão, com um atalho `[/back]`.
 
 ### Brincadeiras da staff — `/su troll <ação> <jogador>`
 Explosão e raio só visuais, sons atrás do jogador, susto (guardião ancião + escuridão), náusea, escuridão,
@@ -230,7 +257,10 @@ SMPutilities is one mod for SMP/roleplay servers: staff panel GUI with eight cat
 chat with an optional QSMP format, mentions, mutes, spam protection, bans synced with the vanilla ban list,
 server-side vanish, live and offline inventory editing, automatic and manual backups with safe restore,
 Inv Profile's Quick Change plus crash-safe named profiles, RP nicknames, TTS with speech bubbles, portal
-limits, dimension access control, TPA-style QoL commands, harmless staff pranks, opt-in mod sync with
+limits, dimension access control, TPA-style QoL commands (with /tpacancel and /tpatoggle), AFK detection
+(tab tag, AFK players ignored by the sleep percentage, optional kick), /report with staff alerts, staff chat,
+automatic announcements, scheduled restarts with countdown, first-join welcome, MOTD and /rules,
+/playtime, /seen, death coordinates, harmless staff pranks, opt-in mod sync with
 SHA-512 verification, permission nodes for LuckPerms and an audit log. It imports data from the
 standalone mods it replaces.
 
