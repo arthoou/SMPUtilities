@@ -281,7 +281,7 @@ public final class VoiceBridge {
             BufferedImage icon = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g = icon.createGraphics();
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g.setColor(Theme.AMBER);
+            g.setColor(Theme.ACCENT);
             g.fillRoundRect(0, 0, size, size, 5, 5);
             g.setColor(Theme.BG);
             g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 11));

@@ -74,7 +74,6 @@ public final class Theme {
         return a << 24 | (color & 0xFFFFFF);
     }
 
-    /** Text cut to {@code width} with an ellipsis. */
     /**
      * Cuts the text to the width with an ellipsis, measured with its style:
      * bold glyphs are a pixel wider, so a cut measured on the plain text

@@ -16,15 +16,18 @@ import java.util.List;
  */
 final class Audio {
     /** Sink name we create. Its monitor is what the game selects as microphone. */
-    static final String CABLE_SINK = "DuTTS_Cable";
+    static final String CABLE_SINK = "SMPutilities_TTS_Cable";
     static final String CABLE_MONITOR = CABLE_SINK + ".monitor";
     /**
      * A real input device fed by the cable's monitor. Many apps hide monitor
      * sources from their microphone list (or show them as "Monitor of ..."),
      * so this is the name the voice chat should pick.
      */
-    static final String MIC_SOURCE = "DuTTS_Mic";
-    static final String MIC_DESCRIPTION = "DuTTS Microphone";
+    static final String MIC_SOURCE = "SMPutilities_TTS_Mic";
+    static final String MIC_DESCRIPTION = "SMPutilities TTS Microphone";
+    /** What the cable and microphone were called before; removing the cable also removes these. */
+    private static final String LEGACY_CABLE_SINK = "DuTTS_Cable";
+    private static final String LEGACY_MIC_SOURCE = "DuTTS_Mic";
 
     private Audio() {
     }
@@ -116,7 +119,7 @@ final class Audio {
                 List<String> out = run(List.of(
                     "pactl", "load-module", "module-null-sink",
                     "sink_name=" + CABLE_SINK,
-                    "sink_properties=device.description=DuTTS_Virtual_Cable"));
+                    "sink_properties=device.description=SMPutilities_TTS_Cable"));
                 if (!cableExists()) {
                     return String.join(" ", out);
                 }
@@ -168,12 +171,13 @@ final class Audio {
     static void removeCable() {
         try {
             for (String line : run(List.of("pactl", "list", "short", "modules"))) {
-                if (line.contains("module-remap-source") && line.contains("source_name=" + MIC_SOURCE)) {
+                if (line.contains("module-remap-source")
+                    && (line.contains("source_name=" + MIC_SOURCE) || line.contains("source_name=" + LEGACY_MIC_SOURCE))) {
                     run(List.of("pactl", "unload-module", line.split("\t")[0]));
                 }
             }
             for (String line : run(List.of("pactl", "list", "short", "modules"))) {
-                if (line.contains("module-null-sink") && line.contains(CABLE_SINK)) {
+                if (line.contains("module-null-sink") && (line.contains(CABLE_SINK) || line.contains(LEGACY_CABLE_SINK))) {
                     String id = line.split("\t")[0];
                     run(List.of("pactl", "unload-module", id));
                 }
@@ -292,7 +296,7 @@ final class Audio {
 
     private static String prettify(String name) {
         if (name.equals(CABLE_SINK)) {
-            return "DuTTS Virtual Cable  (use this one)";
+            return "SMPutilities TTS Cable  (use this one)";
         }
         String pretty = name
             .replaceFirst("^alsa_output\\.", "")

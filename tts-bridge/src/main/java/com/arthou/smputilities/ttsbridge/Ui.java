@@ -50,7 +50,7 @@ final class Ui {
             setBorderPainted(false);
             setFocusPainted(false);
             setFont(Theme.ui(Font.BOLD, 13));
-            setForeground(primary ? new Color(0x1A, 0x14, 0x00) : Theme.AMBER);
+            setForeground(primary ? new Color(0x1A, 0x14, 0x00) : Theme.ACCENT);
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             setBorder(BorderFactory.createEmptyBorder(9, 18, 9, 18));
             addMouseListener(new MouseAdapter() {
@@ -74,14 +74,14 @@ final class Ui {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             int r = getHeight();
             if (primary) {
-                g2.setColor(hover ? Theme.AMBER_SOFT : Theme.AMBER);
+                g2.setColor(hover ? Theme.ACCENT_SOFT : Theme.ACCENT);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), r, r);
             } else {
                 if (hover) {
-                    g2.setColor(Theme.AMBER_GHOST);
+                    g2.setColor(Theme.ACCENT_GHOST);
                     g2.fillRoundRect(0, 0, getWidth(), getHeight(), r, r);
                 }
-                g2.setColor(hover ? Theme.AMBER : Theme.AMBER_DEEP);
+                g2.setColor(hover ? Theme.ACCENT : Theme.ACCENT_DEEP);
                 g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, r, r);
             }
             g2.dispose();
@@ -119,11 +119,11 @@ final class Ui {
         JPanel row = new JPanel(new BorderLayout(10, 0));
         row.setOpaque(false);
         JPanel rule = new JPanel();
-        rule.setBackground(Theme.AMBER);
+        rule.setBackground(Theme.ACCENT);
         rule.setPreferredSize(new Dimension(3, 14));
         JLabel label = new JLabel(text.toUpperCase());
         label.setFont(Theme.ui(Font.BOLD, 11));
-        label.setForeground(Theme.AMBER);
+        label.setForeground(Theme.ACCENT);
         row.add(rule, BorderLayout.WEST);
         row.add(label, BorderLayout.CENTER);
         row.setAlignmentX(Component.LEFT_ALIGNMENT);
