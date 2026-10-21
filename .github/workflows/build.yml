@@ -52,7 +52,10 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          # 17 runs the servers of 1.18.2 to 1.20.4 in the smoke test; 21 (last) is the default.
+          java-version: |
+            17
+            21
       - uses: gradle/actions/setup-gradle@v4
       - name: Build
         run: |
@@ -68,6 +71,8 @@ jobs:
           name: SMPutilities-${{ matrix.target }}
           path: dist/*.jar
           if-no-files-found: error
+      - name: Smoke test (dedicated server)
+        run: tools/smoke.sh "${{ matrix.target }}"
 
   bundle:
     name: all jars

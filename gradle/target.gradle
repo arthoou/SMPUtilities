@@ -130,6 +130,13 @@ dependencies {
     compileOnly "de.maxhenkel.voicechat:voicechat-api:${rootProject.voicechat_api_version}"
 }
 
+// Game runs (runServer for the CI smoke test) use the Java the target was made for.
+tasks.withType(JavaExec).configureEach {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(javaVersion)
+    }
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release = javaVersion
@@ -195,7 +202,7 @@ tasks.named('build') {
 // "class | regex") to build/api.txt, for comparing signatures across versions.
 tasks.register('apiProbe') {
     def classpath = sourceSets.main.compileClasspath
-    def spec = rootProject.file('tools/probe/api.txt')
+    def spec = rootProject.file(project.findProperty('su.probeSpec') ?: 'tools/probe/api.txt')
     def output = layout.buildDirectory.file('api.txt')
     outputs.upToDateWhen { false }
     doLast {

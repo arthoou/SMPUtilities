@@ -42,10 +42,13 @@ public final class ModDownloader {
         }
     }
 
+    private static final int MAX_REDIRECTS = 5;
+
     private final AtomicBoolean cancelled = new AtomicBoolean();
+    // Redirects are followed by hand (see send) so credentials never travel to another host.
     private final HttpClient http = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(15))
-        .followRedirects(HttpClient.Redirect.NORMAL)
+        .followRedirects(HttpClient.Redirect.NEVER)
         .build();
 
     public void cancel() {
@@ -136,20 +139,17 @@ public final class ModDownloader {
         URI uri = entry.hosted()
             ? URI.create(manifest.hostBase() + "/modsync/" + entry.sha512().toLowerCase(Locale.ROOT))
             : URI.create(entry.url());
-        HttpRequest.Builder request = HttpRequest.newBuilder(uri)
-            .timeout(Duration.ofMinutes(5))
-            .header("User-Agent", "SMPutilities-ModSync")
-            .GET();
+        Map<String, String> secrets = new java.util.HashMap<>();
         if (entry.hosted()) {
-            request.header("X-SMPutilities-Token", manifest.token());
+            secrets.put("X-SMPutilities-Token", manifest.token());
         } else if (entry.credential() != null && !entry.credential().isEmpty()) {
             String credential = credentials.get(entry.credential());
             if (credential == null) {
                 throw new IOException("missing client credential '" + entry.credential() + "'");
             }
-            request.header("Authorization", credential);
+            secrets.put("Authorization", credential);
         }
-        HttpResponse<InputStream> response = http.send(request.build(), HttpResponse.BodyHandlers.ofInputStream());
+        HttpResponse<InputStream> response = send(uri, secrets);
         if (response.statusCode() != 200) {
             response.body().close();
             throw new IOException("HTTP " + response.statusCode());
@@ -181,6 +181,45 @@ public final class ModDownloader {
         if (!hash.equalsIgnoreCase(entry.sha512())) {
             throw new IOException("checksum mismatch");
         }
+    }
+
+    /**
+     * GET with redirects followed by hand: every hop after the first must use
+     * https, and the token or credential is only sent to the original host
+     * (a mirror redirect still works, the file is checked by its hash).
+     */
+    private HttpResponse<InputStream> send(URI start, Map<String, String> secrets) throws IOException, InterruptedException {
+        URI uri = start;
+        for (int hop = 0; hop <= MAX_REDIRECTS; hop++) {
+            HttpRequest.Builder request = HttpRequest.newBuilder(uri)
+                .timeout(Duration.ofMinutes(5))
+                .header("User-Agent", "SMPutilities-ModSync")
+                .GET();
+            if (sameOrigin(start, uri)) {
+                secrets.forEach(request::header);
+            }
+            HttpResponse<InputStream> response = http.send(request.build(), HttpResponse.BodyHandlers.ofInputStream());
+            int status = response.statusCode();
+            if (status != 301 && status != 302 && status != 303 && status != 307 && status != 308) {
+                return response;
+            }
+            String location = response.headers().firstValue("Location").orElse(null);
+            response.body().close();
+            if (location == null) {
+                throw new IOException("HTTP " + status + " without a location");
+            }
+            URI next = uri.resolve(location);
+            if (!"https".equalsIgnoreCase(next.getScheme()) && !sameOrigin(start, next)) {
+                throw new IOException("redirect to a non-https address refused");
+            }
+            uri = next;
+        }
+        throw new IOException("too many redirects");
+    }
+
+    static boolean sameOrigin(URI a, URI b) {
+        return a.getScheme() != null && a.getScheme().equalsIgnoreCase(b.getScheme())
+            && a.getHost() != null && a.getHost().equalsIgnoreCase(b.getHost()) && a.getPort() == b.getPort();
     }
 
     private static void deleteQuietly(Path file) {

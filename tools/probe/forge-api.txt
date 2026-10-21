@@ -1,0 +1,10 @@
+# Forge client hooks, for the Forge glue (class | member regex)
+net.minecraftforge.client.event.RenderGuiEvent$Post | .
+net.minecraftforge.client.event.RenderGuiOverlayEvent$Post | .
+net.minecraftforge.client.event.CustomizeGuiOverlayEvent$Chat | .
+net.minecraftforge.client.event.AddGuiOverlayLayersEvent | .
+net.minecraftforge.client.event.RegisterGuiOverlaysEvent | .
+net.minecraftforge.client.event.RenderLevelStageEvent | .
+net.minecraftforge.client.event.RenderNameTagEvent | .
+net.minecraftforge.client.gui.overlay.ForgeGui | render
+net.minecraft.client.gui.Gui | render
