@@ -32,6 +32,7 @@ final class PlayersTab extends PanelTab {
     private static String search = "";
     private static boolean offline;
     private static Section section = Section.INFO;
+    private static Category category = Category.PUNISH;
     private TableView list;
     private TableView sub;
     private String lastSignature = "";
@@ -292,23 +293,90 @@ final class PlayersTab extends PanelTab {
 
     // ------------------------------------------------------------ actions
 
+    /** Groups of the Actions section, picked from a column on its left. */
+    enum Category { PUNISH, TOOLS, INVENTORY, IDENTITY, FUN }
+
     private void actions(Dto.PlayerDetail detail, int y) {
         UUID id = panel.selectedPlayer;
         boolean online = detail != null && detail.online();
+        String name = detail == null ? id.toString() : detail.name();
+        int categoryWidth = Math.min(96, (right() - splitX) / 4);
+        Category[] categories = Category.values();
+        for (int i = 0; i < categories.length; i++) {
+            Category value = categories[i];
+            panel.add(new SuButton(splitX, y + i * 20, categoryWidth, 18, tr("actions.cat." + value.name().toLowerCase(java.util.Locale.ROOT)), button -> {
+                category = value;
+                panel.refreshTab();
+            }).kind(category == value ? SuButton.Kind.PRIMARY : SuButton.Kind.SUBTLE));
+        }
+        List<SuButton> buttons = switch (category) {
+            case PUNISH -> punishButtons(detail, id, name, online);
+            case TOOLS -> toolButtons(detail, id, online);
+            case INVENTORY -> inventoryButtons(id);
+            case IDENTITY -> identityButtons(detail, id);
+            case FUN -> funButtons(id, online);
+        };
+        int x = splitX + categoryWidth + 8;
+        int columns = right() - x > 260 ? 3 : 2;
+        grid(x, y, right() - x, columns, 20, buttons);
+    }
+
+    private List<SuButton> punishButtons(Dto.PlayerDetail detail, UUID id, String name, boolean online) {
         boolean muted = detail != null && !detail.get("mute").isEmpty();
         boolean voiceMuted = detail != null && !detail.get("voiceMute").isEmpty();
         boolean banned = detail != null && !detail.get("ban").isEmpty();
-        String name = detail == null ? id.toString() : detail.name();
         List<SuButton> buttons = new ArrayList<>();
+        buttons.add(button(0, 0, 10, "action.warn", Perm.STAFF_WARN, b -> panel.form(tr("action.warn"), List.of(fieldDef("reason", "")),
+            tr("action.warn"), false, null, values -> panel.action("warn", id, values.get(0)))).kind(SuButton.Kind.WARN).icon("⚠"));
+        buttons.add(onlineOnly(button(0, 0, 10, "action.kick", Perm.STAFF_KICK, b -> panel.form(tr("action.kick"), List.of(fieldDef("reason", "")),
+            tr("action.kick"), true, tr("kick.note", name), values -> panel.action("kick", id, values.get(0)))).kind(SuButton.Kind.DANGER).icon("⏏"), online));
+        buttons.add(muted
+            ? button(0, 0, 10, "action.unmute", Perm.STAFF_MUTE, b -> panel.confirm(tr("action.unmute"), tr("confirm.unmute", name), false,
+                () -> panel.action("unmute", id))).icon("✓")
+            : button(0, 0, 10, "action.mute", Perm.STAFF_MUTE, b -> punishForm("mute", "action.mute", id, name)).kind(SuButton.Kind.WARN).icon("✕"));
+        buttons.add(banned
+            ? button(0, 0, 10, "action.unban", Perm.STAFF_BAN, b -> panel.confirm(tr("action.unban"), tr("confirm.unban", name), false,
+                () -> panel.action("unban", id))).icon("✓")
+            : button(0, 0, 10, "action.ban", Perm.STAFF_BAN, b -> punishForm("ban", "action.ban", id, name)).kind(SuButton.Kind.DANGER).icon("⛔"));
+        buttons.add(voiceMuted
+            ? button(0, 0, 10, "action.voice_unmute", Perm.STAFF_VOICE_MUTE, b -> panel.confirm(tr("action.voice_unmute"), tr("confirm.voice_unmute", name), false,
+                () -> panel.action("voice_unmute", id))).icon("✓")
+            : button(0, 0, 10, "action.voice_mute", Perm.STAFF_VOICE_MUTE, b -> punishForm("voice_mute", "action.voice_mute", id, name)).kind(SuButton.Kind.WARN).icon("♫"));
+        buttons.add(button(0, 0, 10, detail != null && Boolean.parseBoolean(detail.get("voiceDeafened")) ? "action.undeafen" : "action.deafen",
+            Perm.STAFF_VOICE_MUTE, b -> panel.action("voice_deafen", id)).icon("☊"));
+        return buttons;
+    }
 
+    private List<SuButton> toolButtons(Dto.PlayerDetail detail, UUID id, boolean online) {
+        List<SuButton> buttons = new ArrayList<>();
         buttons.add(button(0, 0, 10, "action.teleport", Perm.STAFF_TELEPORT, b -> panel.action("tp", id)).icon("➜"));
         buttons.add(onlineOnly(button(0, 0, 10, "action.bring", Perm.STAFF_TELEPORT, b -> panel.action("tphere", id)).icon("⇦"), online));
         buttons.add(onlineOnly(button(0, 0, 10, "action.spectate", Perm.STAFF_SPECTATE, b -> panel.action("spectate", id)).icon("◉"), online));
+        buttons.add(onlineOnly(button(0, 0, 10, detail != null && Boolean.parseBoolean(detail.get("vanished")) ? "action.unvanish" : "action.vanish",
+            Perm.STAFF_VANISH_OTHERS, b -> panel.action("vanish", id)).icon("◐"), online));
+        buttons.add(onlineOnly(button(0, 0, 10, "action.gamemode", Perm.STAFF_GAMEMODE, b -> panel.choice(tr("action.gamemode"), List.of(
+            new Dialog.Choice.Option("survival", Texts.translatable("gameMode.survival"), SuButton.Kind.GHOST),
+            new Dialog.Choice.Option("creative", Texts.translatable("gameMode.creative"), SuButton.Kind.GHOST),
+            new Dialog.Choice.Option("adventure", Texts.translatable("gameMode.adventure"), SuButton.Kind.GHOST),
+            new Dialog.Choice.Option("spectator", Texts.translatable("gameMode.spectator"), SuButton.Kind.GHOST)),
+            mode -> panel.action("gamemode", id, mode))).icon("⚒"), online));
+        buttons.add(onlineOnly(button(0, 0, 10, "action.heal", Perm.STAFF_STATS_EDIT, b -> panel.action("heal", id)).icon("❤"), online));
+        buttons.add(onlineOnly(button(0, 0, 10, "action.feed", Perm.STAFF_STATS_EDIT, b -> panel.action("feed", id)).icon("☕"), online));
+        return buttons;
+    }
+
+    private List<SuButton> inventoryButtons(UUID id) {
+        List<SuButton> buttons = new ArrayList<>();
         buttons.add(button(0, 0, 10, "action.inventory", Perm.STAFF_INVENTORY, b -> panel.action("inventory", id)).icon("▤"));
         buttons.add(button(0, 0, 10, "action.enderchest", Perm.STAFF_INVENTORY, b -> panel.action("enderchest", id)).icon("◆"));
         buttons.add(button(0, 0, 10, "action.backups", Perm.STAFF_INVENTORY, b -> panel.action("backups_open", id)).icon("⟲"));
-        buttons.add(onlineOnly(button(0, 0, 10, "action.vanish", detail != null && Boolean.parseBoolean(detail.get("vanished")) ? Perm.STAFF_VANISH_OTHERS : Perm.STAFF_VANISH_OTHERS,
-            b -> panel.action("vanish", id)).icon("◐"), online));
+        buttons.add(button(0, 0, 10, "action.backup_now", Perm.STAFF_INVENTORY, b -> panel.action("backup_create", id)).icon("✚"));
+        buttons.add(button(0, 0, 10, "action.profiles", Perm.STAFF_PROFILES, b -> panel.action("profiles_open", id)).icon("☰"));
+        return buttons;
+    }
+
+    private List<SuButton> identityButtons(Dto.PlayerDetail detail, UUID id) {
+        List<SuButton> buttons = new ArrayList<>();
         buttons.add(button(0, 0, 10, "action.nickname", Perm.NICKNAME_OTHERS, b -> panel.form(tr("action.nickname"),
             List.of(fieldDef("nickname", detail == null ? "" : detail.get("nick"))), tr("button.save"), false, tr("nickname.note"), values -> {
                 if (values.get(0).isBlank()) {
@@ -324,43 +392,17 @@ final class PlayersTab extends PanelTab {
             }
             panel.choice(tr("action.nameplate"), options, choice -> panel.action("nick_animation", id, choice));
         }).icon("✦"));
-        buttons.add(onlineOnly(button(0, 0, 10, "action.gamemode", Perm.STAFF_GAMEMODE, b -> panel.choice(tr("action.gamemode"), List.of(
-            new Dialog.Choice.Option("survival", Texts.translatable("gameMode.survival"), SuButton.Kind.GHOST),
-            new Dialog.Choice.Option("creative", Texts.translatable("gameMode.creative"), SuButton.Kind.GHOST),
-            new Dialog.Choice.Option("adventure", Texts.translatable("gameMode.adventure"), SuButton.Kind.GHOST),
-            new Dialog.Choice.Option("spectator", Texts.translatable("gameMode.spectator"), SuButton.Kind.GHOST)),
-            mode -> panel.action("gamemode", id, mode))).icon("⚒"), online));
-        buttons.add(onlineOnly(button(0, 0, 10, "action.heal", Perm.STAFF_STATS_EDIT, b -> panel.action("heal", id)).icon("❤"), online));
-        buttons.add(onlineOnly(button(0, 0, 10, "action.feed", Perm.STAFF_STATS_EDIT, b -> panel.action("feed", id)).icon("☕"), online));
-        buttons.add(button(0, 0, 10, "action.profiles", Perm.STAFF_PROFILES, b -> panel.action("profiles_open", id)).icon("☰"));
-
-        buttons.add(button(0, 0, 10, "action.warn", Perm.STAFF_WARN, b -> panel.form(tr("action.warn"), List.of(fieldDef("reason", "")),
-            tr("action.warn"), false, null, values -> panel.action("warn", id, values.get(0)))).kind(SuButton.Kind.WARN).icon("⚠"));
-        buttons.add(onlineOnly(button(0, 0, 10, "action.kick", Perm.STAFF_KICK, b -> panel.form(tr("action.kick"), List.of(fieldDef("reason", "")),
-            tr("action.kick"), true, tr("kick.note", name), values -> panel.action("kick", id, values.get(0)))).kind(SuButton.Kind.DANGER).icon("⏏"), online));
-        buttons.add(muted
-            ? button(0, 0, 10, "action.unmute", Perm.STAFF_MUTE, b -> panel.confirm(tr("action.unmute"), tr("confirm.unmute", name), false,
-                () -> panel.action("unmute", id))).icon("✓")
-            : button(0, 0, 10, "action.mute", Perm.STAFF_MUTE, b -> punishForm("mute", "action.mute", id, name)).kind(SuButton.Kind.WARN).icon("✕"));
-        buttons.add(voiceMuted
-            ? button(0, 0, 10, "action.voice_unmute", Perm.STAFF_VOICE_MUTE, b -> panel.confirm(tr("action.voice_unmute"), tr("confirm.voice_unmute", name), false,
-                () -> panel.action("voice_unmute", id))).icon("✓")
-            : button(0, 0, 10, "action.voice_mute", Perm.STAFF_VOICE_MUTE, b -> punishForm("voice_mute", "action.voice_mute", id, name)).kind(SuButton.Kind.WARN).icon("♫"));
-        buttons.add(button(0, 0, 10, detail != null && Boolean.parseBoolean(detail.get("voiceDeafened")) ? "action.undeafen" : "action.deafen",
-            Perm.STAFF_VOICE_MUTE, b -> panel.action("voice_deafen", id)).icon("☊"));
-        buttons.add(banned
-            ? button(0, 0, 10, "action.unban", Perm.STAFF_BAN, b -> panel.confirm(tr("action.unban"), tr("confirm.unban", name), false,
-                () -> panel.action("unban", id))).icon("✓")
-            : button(0, 0, 10, "action.ban", Perm.STAFF_BAN, b -> punishForm("ban", "action.ban", id, name)).kind(SuButton.Kind.DANGER).icon("⛔"));
-
-        buttons.add(button(0, 0, 10, "action.backup_now", Perm.STAFF_INVENTORY, b -> panel.action("backup_create", id)).icon("✚"));
         buttons.add(button(0, 0, 10, detail != null && Boolean.parseBoolean(detail.get("silentJoin")) ? "action.silent_join_off" : "action.silent_join",
             Perm.CHAT_MANAGE, b -> panel.action("silent_join", id)).icon("⇥"));
         buttons.add(button(0, 0, 10, detail != null && Boolean.parseBoolean(detail.get("silentQuit")) ? "action.silent_quit_off" : "action.silent_quit",
             Perm.CHAT_MANAGE, b -> panel.action("silent_quit", id)).icon("⇤"));
+        return buttons;
+    }
+
+    private List<SuButton> funButtons(UUID id, boolean online) {
+        List<SuButton> buttons = new ArrayList<>();
         buttons.add(onlineOnly(button(0, 0, 10, "action.troll", Perm.STAFF_TROLL, b -> trollMenu(id)).icon("☻"), online));
-        int columns = right() - splitX > 300 ? 3 : 2;
-        grid(splitX, y, right() - splitX, columns, 20, buttons);
+        return buttons;
     }
 
     private SuButton onlineOnly(SuButton button, boolean online) {

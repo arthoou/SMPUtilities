@@ -75,6 +75,11 @@ public final class Theme {
     }
 
     /** Text cut to {@code width} with an ellipsis. */
+    /**
+     * Cuts the text to the width with an ellipsis, measured with its style:
+     * bold glyphs are a pixel wider, so a cut measured on the plain text
+     * spilled out of its button.
+     */
     public static FormattedCharSequence clip(Font font, Component text, int width) {
         if (width <= 0) {
             return FormattedCharSequence.EMPTY;
@@ -82,8 +87,14 @@ public final class Theme {
         if (font.width(text) <= width) {
             return text.getVisualOrderText();
         }
-        String plain = font.plainSubstrByWidth(text.getString(), Math.max(0, width - font.width("…"))) + "…";
-        return Texts.literal(plain).withStyle(text.getStyle()).getVisualOrderText();
+        String cut = font.plainSubstrByWidth(text.getString(), Math.max(0, width - font.width("…")));
+        Component clipped = Texts.literal(cut + "…").withStyle(text.getStyle());
+        while (!cut.isEmpty() && font.width(clipped) > width) {
+            int end = cut.offsetByCodePoints(cut.length(), -1);
+            cut = cut.substring(0, end);
+            clipped = Texts.literal(cut + "…").withStyle(text.getStyle());
+        }
+        return font.width(clipped) <= width ? clipped.getVisualOrderText() : FormattedCharSequence.EMPTY;
     }
 
     public static String clip(Font font, String text, int width) {

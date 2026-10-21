@@ -182,6 +182,12 @@ panel.smputilities.action.cosmetic	Cosmetic armor	Armadura cosmética
 panel.smputilities.action.backups	Backups	Backups
 panel.smputilities.action.backup_now	Backup now	Fazer backup
 panel.smputilities.action.vanish	Vanish	Vanish
+panel.smputilities.action.unvanish	Unvanish	Aparecer
+panel.smputilities.actions.cat.punish	Punishments	Punições
+panel.smputilities.actions.cat.tools	Tools	Ferramentas
+panel.smputilities.actions.cat.inventory	Inventory	Inventário
+panel.smputilities.actions.cat.identity	Name & chat	Nome e chat
+panel.smputilities.actions.cat.fun	Pranks	Brincadeiras
 panel.smputilities.action.nickname	Nickname	Apelido
 panel.smputilities.action.gamemode	Game mode	Modo de jogo
 panel.smputilities.action.heal	Heal	Curar
