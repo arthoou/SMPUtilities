@@ -27,7 +27,7 @@ if (isForge || isNeoForge) {
     flags << 'FORGELIKE'
 }
 
-def preprocess = tasks.register('preprocessSources', su.build.PreprocessTask) {
+def preprocess = tasks.register('preprocessSources', su.gradle.PreprocessTask) {
     sourceRoots.from(rootProject.file('core/src/main/java'), new File(modRoot, 'src/main/java'), new File(modRoot, "src/${loader}/java"))
     swapFile = new File(modRoot, 'swaps.txt')
     minecraftVersion = mc
