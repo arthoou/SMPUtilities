@@ -9,9 +9,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.event.TickEvent;
+//#if MC>=1.20.5
+import com.arthou.smputilities.SmpUtilities;
+import net.minecraftforge.client.event.AddGuiOverlayLayersEvent;
+//#elif MC>=1.19
+//$$ import net.minecraftforge.client.event.RenderGuiEvent;
+//#endif
 //#if MC>=1.19
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.client.event.RenderGuiEvent;
 //#else
 //$$ import net.minecraftforge.client.ClientRegistry;
 //$$ import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -42,7 +47,12 @@ public final class ForgeClient {
     static void init() {
         //#if MC>=1.19
         ForgeBus.onMod(RegisterKeyMappingsEvent.class, event -> event.register(SuClient.PANEL_KEY));
-        ForgeBus.on(RenderGuiEvent.Post.class, event -> SuClient.renderHud(gfx(event)));
+        //#if MC>=1.20.5
+        ForgeBus.onMod(AddGuiOverlayLayersEvent.class, event -> event.getLayeredDraw().add(SmpUtilities.id("vanish_indicator"),
+            (graphics, delta) -> SuClient.renderHud(new Gfx(graphics))));
+        //#else
+        //$$ ForgeBus.on(RenderGuiEvent.Post.class, event -> SuClient.renderHud(gfx(event)));
+        //#endif
         ForgeBus.on(ClientPlayerNetworkEvent.LoggingOut.class, event -> SuClient.loggedOut());
         //#else
         //$$ ForgeBus.onMod(FMLClientSetupEvent.class, event -> ClientRegistry.registerKeyBinding(SuClient.PANEL_KEY));
@@ -87,14 +97,14 @@ public final class ForgeClient {
         //#endif
     }
 
-    //#if MC>=1.19
-    private static Gfx gfx(RenderGuiEvent.Post event) {
-        //#if MC>=1.20
-        return new Gfx(event.getGuiGraphics());
-        //#else
-        //$$ return new Gfx(event.getPoseStack(), null);
-        //#endif
-    }
+    //#if MC>=1.19 && MC<1.20.5
+    //$$ private static Gfx gfx(RenderGuiEvent.Post event) {
+    //#if MC>=1.20
+    //$$     return new Gfx(event.getGuiGraphics());
+    //#else
+    //$$     return new Gfx(event.getPoseStack(), null);
+    //#endif
+    //$$ }
     //#endif
 
     static Component nametag(Player player, Component name) {

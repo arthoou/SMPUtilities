@@ -14,6 +14,11 @@ on:
         required: false
         default: ''
 
+# A newer push to the same branch makes older runs pointless.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   core:
     name: core + tts-bridge (tests)
