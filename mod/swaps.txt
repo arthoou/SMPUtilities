@@ -1,0 +1,3 @@
+# Whole-word renames applied to active source lines when the condition holds,
+# for classes Mojang renamed. Format: condition | from => to
+MC>=1.21.11 | ResourceLocation => Identifier
