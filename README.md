@@ -56,7 +56,7 @@ Interface própria (fundo escuro translúcido, barra lateral, destaque verde, an
 categorias: **Dashboard** (jogadores, TPS, MSPT, memória, uptime, bans/mutes ativos, controles rápidos do
 chat), **Players** (busca por nome real ou nickname, online e offline; info, ações, notas/estatísticas e
 histórico do jogador), **Chat**, **Inventories** (visualizar/editar, backups com restauração, perfis),
-**Punishments** (bans, mutes, histórico, log da staff), **World** (dimensões e portais), **Utilities**
+**Punishments** (bans, mutes, denúncias, histórico, log da staff), **World** (dimensões e portais), **Utilities**
 (brincadeiras, anúncios, warps, mod sync) e **Settings** (toda a config, editável ao vivo).
 Ações críticas (banir, expulsar, restaurar, excluir) pedem confirmação. O cliente só pede; o servidor
 confere a permissão de cada pedido. Há também uma tecla configurável ("Abrir painel da staff", sem tecla
@@ -135,8 +135,10 @@ Tudo funciona com clientes sem o mod e cada parte pode ser desligada em `feature
   opcional após `afk.kickMinutes` (desligado por padrão; `smputilities.afk.bypass.kick` fica de fora).
 * **Denúncias — `/report <jogador> <motivo>`:** a staff online recebe o aviso com botões para teleportar até
   onde a denúncia foi feita e para fechar; quem entra depois vê quantas estão abertas. `/su reports`,
-  `/su reports close <id>`, `/su reports tp <id>`. Guardadas em `<mundo>/smputilities/reports.json`, com
-  intervalo mínimo entre denúncias e registro na auditoria; quem denunciou é avisado quando a staff fecha.
+  `/su reports close <id>`, `/su reports tp <id>`, ou no painel (Punições → Denúncias, com os mesmos
+  botões; a ficha de cada jogador mostra quantas denúncias abertas ele tem e se está AFK). Guardadas em
+  `<mundo>/smputilities/reports.json`, com intervalo mínimo entre denúncias e registro na auditoria; quem
+  denunciou é avisado quando a staff fecha.
 * **Chat da staff — `/sc <mensagem>`** (ou `/staffchat`); `/sc` sozinho liga/desliga o modo em que as
   mensagens normais vão só para a staff.
 * **Anúncios automáticos:** `announcements.messages` (lista com `&`-cores e `{online}`) a cada

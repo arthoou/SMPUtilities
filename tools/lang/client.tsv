@@ -308,3 +308,9 @@ panel.smputilities.field.subtitle	Subtitle	Subtítulo
 panel.smputilities.field.subtitle.hint	Optional	Opcional
 panel.smputilities.field.value	Value	Valor
 panel.smputilities.field.value.hint	New value	Novo valor
+panel.smputilities.punish.view.reports	Reports	Denúncias
+panel.smputilities.col.reporter	Reported by	Denunciado por
+panel.smputilities.action.report_tp	Teleport	Teleportar
+panel.smputilities.action.report_close	Close	Fechar
+panel.smputilities.info.afk	AFK	AFK
+panel.smputilities.info.reports	Open reports	Denúncias abertas
