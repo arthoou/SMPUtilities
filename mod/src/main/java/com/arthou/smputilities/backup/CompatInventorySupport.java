@@ -2,9 +2,10 @@ package com.arthou.smputilities.backup;
 
 import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.mc.Mc;
+import com.arthou.smputilities.mc.Nbt;
+import com.arthou.smputilities.mc.Stacks;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -43,8 +44,8 @@ public final class CompatInventorySupport {
         if (tag == null || tag.isEmpty()) {
             return;
         }
-        applyCosmeticArmor(Mc.server(player), player.getUUID(), tag.getCompound("CosmeticArmor"));
-        applyCurios(player, tag.getList("Curios", Tag.TAG_COMPOUND));
+        applyCosmeticArmor(Mc.server(player), player.getUUID(), Nbt.getCompound(tag, "CosmeticArmor"));
+        applyCurios(player, Nbt.getList(tag, "Curios"));
         player.inventoryMenu.broadcastChanges();
         player.containerMenu.broadcastChanges();
     }
@@ -53,7 +54,7 @@ public final class CompatInventorySupport {
         if (tag == null || tag.isEmpty()) {
             return;
         }
-        applyCurios(player, tag.getList("Curios", Tag.TAG_COMPOUND));
+        applyCurios(player, Nbt.getList(tag, "Curios"));
         player.inventoryMenu.broadcastChanges();
         player.containerMenu.broadcastChanges();
     }
@@ -62,13 +63,13 @@ public final class CompatInventorySupport {
         if (tag == null || tag.isEmpty()) {
             return;
         }
-        applyCosmeticArmor(Mc.server(player), player.getUUID(), tag.getCompound("CosmeticArmor"));
+        applyCosmeticArmor(Mc.server(player), player.getUUID(), Nbt.getCompound(tag, "CosmeticArmor"));
         player.inventoryMenu.broadcastChanges();
         player.containerMenu.broadcastChanges();
     }
 
     public static CompatPreviewData preview(MinecraftServer server, CompoundTag tag) {
-        ItemStack[] cosmetic = readCosmeticArmor(server, tag == null ? new CompoundTag() : tag.getCompound("CosmeticArmor"));
+        ItemStack[] cosmetic = readCosmeticArmor(server, tag == null ? new CompoundTag() : Nbt.getCompound(tag, "CosmeticArmor"));
         ItemStack[] curios = readCurios(server, tag == null ? new CompoundTag() : tag);
         return new CompatPreviewData(cosmetic, curios);
     }
@@ -80,8 +81,10 @@ public final class CompatInventorySupport {
             if (inventory == null) {
                 return Optional.empty();
             }
-            Method serializeMethod = inventory.getClass().getMethod("serializeNBT", net.minecraft.core.HolderLookup.Provider.class);
-            Object result = serializeMethod.invoke(inventory, server.registryAccess());
+            // serializeNBT(HolderLookup.Provider) from 1.20.5, serializeNBT() before.
+            Method serializeMethod = method(inventory.getClass(), "serializeNBT");
+            Object result = serializeMethod.getParameterCount() == 1
+                ? serializeMethod.invoke(inventory, server.registryAccess()) : serializeMethod.invoke(inventory);
             return result instanceof CompoundTag compound ? Optional.of(compound.copy()) : Optional.empty();
         } catch (ReflectiveOperationException ignored) {
             return Optional.empty();
@@ -98,8 +101,12 @@ public final class CompatInventorySupport {
             if (inventory == null) {
                 return;
             }
-            Method deserializeMethod = inventory.getClass().getMethod("deserializeNBT", net.minecraft.core.HolderLookup.Provider.class, CompoundTag.class);
-            deserializeMethod.invoke(inventory, server.registryAccess(), tag.copy());
+            Method deserializeMethod = method(inventory.getClass(), "deserializeNBT");
+            if (deserializeMethod.getParameterCount() == 2) {
+                deserializeMethod.invoke(inventory, server.registryAccess(), tag.copy());
+            } else {
+                deserializeMethod.invoke(inventory, tag.copy());
+            }
         } catch (ReflectiveOperationException ignored) {
         }
     }
@@ -146,35 +153,25 @@ public final class CompatInventorySupport {
         if (tag == null || tag.isEmpty()) {
             return stacks;
         }
-        ListTag items = tag.getList("Items", Tag.TAG_COMPOUND);
-        for (int i = 0; i < items.size(); i++) {
-            CompoundTag itemTag = items.getCompound(i);
-            int slot = itemTag.getInt("Slot");
+        for (CompoundTag itemTag : Nbt.compounds(Nbt.getList(tag, "Items"))) {
+            int slot = Nbt.getInt(itemTag, "Slot", -1);
             if (slot >= 0 && slot < stacks.length && itemTag.contains("id")) {
-                ItemStack.parse(server.registryAccess(), itemTag).ifPresent(stack -> stacks[slot] = stack.copy());
+                stacks[slot] = Stacks.load(itemTag, server.registryAccess());
             }
         }
         return stacks;
     }
 
     private static ItemStack[] readCurios(MinecraftServer server, CompoundTag tag) {
-        if (tag == null || !tag.contains("Curios", Tag.TAG_LIST)) {
+        if (tag == null || !Nbt.hasList(tag, "Curios")) {
             return empty(0);
         }
-        ListTag curios = tag.getList("Curios", Tag.TAG_COMPOUND);
         List<CurioEntry> entries = new ArrayList<>();
-        for (int i = 0; i < curios.size(); i++) {
-            CompoundTag entry = curios.getCompound(i);
-            String identifier = entry.getString("Identifier");
-            CompoundTag stacksTag = entry.getCompound("Stacks");
-            ListTag items = stacksTag.getList("Items", Tag.TAG_COMPOUND);
-            for (int j = 0; j < items.size(); j++) {
-                CompoundTag itemTag = items.getCompound(j);
-                int slot = itemTag.getInt("Slot");
-                ItemStack stack = ItemStack.EMPTY;
-                if (itemTag.contains("Stack", Tag.TAG_COMPOUND)) {
-                    stack = ItemStack.parse(server.registryAccess(), itemTag.getCompound("Stack")).orElse(ItemStack.EMPTY);
-                }
+        for (CompoundTag entry : Nbt.compounds(Nbt.getList(tag, "Curios"))) {
+            String identifier = Nbt.getString(entry, "Identifier");
+            for (CompoundTag itemTag : Nbt.compounds(Nbt.getList(Nbt.getCompound(entry, "Stacks"), "Items"))) {
+                int slot = Nbt.getInt(itemTag, "Slot", 0);
+                ItemStack stack = Nbt.hasCompound(itemTag, "Stack") ? Stacks.load(Nbt.getCompound(itemTag, "Stack"), server.registryAccess()) : ItemStack.EMPTY;
                 entries.add(new CurioEntry(identifier, slot, stack));
             }
         }
@@ -186,6 +183,16 @@ public final class CompatInventorySupport {
         return stacks;
     }
 
+    /** The public method called {@code name}, whatever its parameters (they differ between versions). */
+    private static Method method(Class<?> type, String name) throws NoSuchMethodException {
+        for (Method method : type.getMethods()) {
+            if (method.getName().equals(name)) {
+                return method;
+            }
+        }
+        throw new NoSuchMethodException(type.getName() + "." + name);
+    }
+
     private static ItemStack[] empty(int size) {
         ItemStack[] stacks = new ItemStack[size];
         for (int i = 0; i < size; i++) {
@@ -195,9 +202,7 @@ public final class CompatInventorySupport {
     }
 
     public static ItemStack namedBarrier(String name) {
-        ItemStack stack = new ItemStack(Items.BARRIER);
-        stack.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, Texts.literal(name));
-        return stack;
+        return Stacks.named(new ItemStack(Items.BARRIER), Texts.literal(name), List.of());
     }
 
     public record CompatPreviewData(ItemStack[] cosmeticArmor, ItemStack[] curios) {

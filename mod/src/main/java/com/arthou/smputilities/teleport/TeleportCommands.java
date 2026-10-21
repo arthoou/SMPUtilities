@@ -30,7 +30,6 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.levelgen.Heightmap;
 
@@ -160,7 +159,7 @@ public final class TeleportCommands {
         Msg.ok(requester, kind == TpaRequests.Kind.TO_TARGET ? "tpa.sent" : "tpa.sent_here", targetShown, SuServer.config().teleport.requestTimeoutSeconds);
         Msg.info(target, kind == TpaRequests.Kind.TO_TARGET ? "tpa.received" : "tpa.received_here", requesterShown);
         Mc.send(target, decisionRow(target, Names.realName(requester)));
-        target.playNotifySound(SoundEvents.NOTE_BLOCK_HAT.value(), SoundSource.PLAYERS, 3.0F, 1.0F);
+        Mc.playSound(target, "minecraft:block.note_block.hat", SoundSource.PLAYERS, 3.0F, 1.0F);
         return 1;
     }
 
@@ -358,9 +357,9 @@ public final class TeleportCommands {
         if (spawn != null) {
             return spawn;
         }
-        ServerLevel overworld = Mc.server(player).overworld();
-        BlockPos pos = overworld.getSharedSpawnPos();
-        return new Location(overworld.dimension().location().toString(), pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, overworld.getSharedSpawnAngle(), 0);
+        Mc.Spawn world = Mc.worldSpawn(Mc.server(player));
+        BlockPos pos = world.pos();
+        return new Location(world.dimension(), pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, world.yaw(), 0);
     }
 
     private static int setSpawn(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
@@ -441,7 +440,7 @@ public final class TeleportCommands {
     }
 
     private static Location findSafeSpot(ServerLevel level, int radius) {
-        BlockPos center = level.getSharedSpawnPos();
+        BlockPos center = Mc.worldSpawn(level.getServer()).pos();
         ThreadLocalRandom random = ThreadLocalRandom.current();
         for (int attempt = 0; attempt < 12; attempt++) {
             int x = center.getX() + random.nextInt(-radius, radius + 1);
@@ -451,7 +450,7 @@ public final class TeleportCommands {
             }
             int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
             BlockPos ground = new BlockPos(x, y - 1, z);
-            if (y <= level.getMinBuildHeight() + 1 || !level.getFluidState(ground).isEmpty() || !level.getBlockState(ground).isSolid()) {
+            if (y <= Mc.minY(level) + 1 || !level.getFluidState(ground).isEmpty() || !Mc.isSolid(level.getBlockState(ground))) {
                 continue;
             }
             return new Location(level.dimension().location().toString(), x + 0.5, y, z + 0.5, 0, 0);

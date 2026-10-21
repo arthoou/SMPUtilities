@@ -1,5 +1,6 @@
 package com.arthou.smputilities.profile;
 
+import com.arthou.smputilities.mc.Nbt;
 import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.backup.BackupService;
 import com.arthou.smputilities.backup.CompatInventorySupport;
@@ -319,7 +320,7 @@ public final class ProfileService {
                 persistent.putString(PERSISTENT_KEY, profiles.active);
                 return;
             }
-            String held = persistent.getString(PERSISTENT_KEY);
+            String held = Nbt.getString(persistent, PERSISTENT_KEY);
             if (!held.equals(profiles.active) && profiles.exists(held)) {
                 SuLog.warn("Profile of " + player.getGameProfile().getName() + " was '" + profiles.active + "' on disk but the player holds '"
                     + held + "'; using the player's data");

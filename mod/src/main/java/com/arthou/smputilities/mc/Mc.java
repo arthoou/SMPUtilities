@@ -331,6 +331,33 @@ public final class Mc {
         //#endif
     }
 
+    /** Average milliseconds per tick over the last 100 ticks. */
+    public static double millisPerTick(MinecraftServer server) {
+        //#if MC>=1.20.3
+        return server.getAverageTickTimeNanos() / 1_000_000.0;
+        //#else
+        //$$ return server.getAverageTickTime();
+        //#endif
+    }
+
+    /** The tick rate the server aims for (/tick rate from 1.20.3, otherwise 20). */
+    public static float targetTickRate(MinecraftServer server) {
+        //#if MC>=1.20.3
+        return server.tickRateManager().tickrate();
+        //#else
+        //$$ return 20.0F;
+        //#endif
+    }
+
+    /** Puts the player on a vehicle even when it would not normally accept riders. */
+    public static boolean ride(Entity rider, Entity vehicle) {
+        //#if MC>=1.21.9
+        return rider.startRiding(vehicle, true, true);
+        //#else
+        //$$ return rider.startRiding(vehicle, true);
+        //#endif
+    }
+
     public static boolean hasChunk(ServerLevel level, int chunkX, int chunkZ) {
         return level.getChunkSource().hasChunk(chunkX, chunkZ);
     }

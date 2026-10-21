@@ -1,11 +1,10 @@
 package com.arthou.smputilities.backup;
 
+import com.arthou.smputilities.mc.Nbt;
 import com.arthou.smputilities.core.util.AtomicFiles;
 import com.arthou.smputilities.core.util.SuLog;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtAccounter;
-import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.Tag;
 
 import java.io.ByteArrayOutputStream;
@@ -141,10 +140,10 @@ public final class BackupStore {
             return result;
         }
         try {
-            CompoundTag root = NbtIo.readCompressed(file, NbtAccounter.unlimitedHeap());
-            ListTag list = root.getList("snapshots", Tag.TAG_COMPOUND);
-            for (int i = 0; i < list.size(); i++) {
-                result.add(PlayerSnapshot.load(list.getCompound(i), "legacy" + i));
+            CompoundTag root = Nbt.readCompressed(file);
+            int index = 0;
+            for (CompoundTag entry : Nbt.compounds(Nbt.getList(root, "snapshots"))) {
+                result.add(PlayerSnapshot.load(entry, "legacy" + index++));
             }
         } catch (IOException | RuntimeException e) {
             SuLog.error("Could not read backups of " + player, e);
@@ -164,7 +163,7 @@ public final class BackupStore {
             root.put("snapshots", list);
             try {
                 ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                NbtIo.writeCompressed(root, bytes);
+                Nbt.writeCompressed(root, bytes);
                 AtomicFiles.writeBytes(file(player), bytes.toByteArray());
             } catch (IOException | RuntimeException e) {
                 SuLog.error("Could not save backups of " + player, e);

@@ -8,26 +8,16 @@ import com.arthou.smputilities.chat.ChatService;
 import com.arthou.smputilities.core.config.SuConfig;
 import com.arthou.smputilities.server.SuServer;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
-import net.minecraft.network.protocol.game.ClientboundSoundPacket;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
@@ -59,7 +49,7 @@ public final class TrollService {
         }
     }
 
-    private static final SoundEvent THIS_ACTION_SOUND = SoundEvent.createVariableRangeEvent(SmpUtilities.id("action.thisaction"));
+    private static final String THIS_ACTION_SOUND = SmpUtilities.MOD_ID + ":action.thisaction";
     private static final List<Spin> SPINS = new ArrayList<>();
 
     private record Spin(UUID player, int[] stepsLeft) {
@@ -91,49 +81,37 @@ public final class TrollService {
         Vec3 behind = target.position().subtract(target.getLookAngle().multiply(2.5, 0, 2.5));
         switch (action) {
             case EXPLOSION -> {
-                level.sendParticles(target, ParticleTypes.EXPLOSION_EMITTER, true, behind.x, behind.y + 1, behind.z, 1, 0, 0, 0, 0);
-                sound(target, SoundEvents.GENERIC_EXPLODE.value(), behind, 4.0F, 1.0F);
+                Mc.particle(target, ParticleTypes.EXPLOSION_EMITTER, behind.x, behind.y + 1, behind.z);
+                sound(target, "minecraft:entity.generic.explode", behind, 4.0F, 1.0F);
             }
             case LIGHTNING -> {
-                LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(level);
-                if (bolt != null) {
-                    bolt.setVisualOnly(true);
-                    bolt.moveTo(behind.x, behind.y, behind.z);
-                    level.addFreshEntity(bolt);
-                }
+                Mc.visualLightning(level, behind.x, behind.y, behind.z);
             }
             case SOUND -> {
-                SoundEvent sound = SoundEvents.CREEPER_PRIMED;
-                if (argument != null && !argument.isBlank()) {
-                    ResourceLocation id = Ids.parse(argument.trim());
-                    if (id != null) {
-                        SoundEvent found = BuiltInRegistries.SOUND_EVENT.get(id);
-                        sound = found != null ? found : SoundEvent.createVariableRangeEvent(id);
-                    }
-                }
+                String sound = argument != null && Ids.parse(argument.trim()) != null ? argument.trim() : "minecraft:entity.creeper.primed";
                 sound(target, sound, behind, 1.0F, 1.0F);
             }
             case JUMPSCARE -> {
-                level.sendParticles(target, ParticleTypes.ELDER_GUARDIAN, true, target.getX(), target.getY(), target.getZ(), 1, 0, 0, 0, 0);
-                sound(target, SoundEvents.ELDER_GUARDIAN_CURSE, target.position(), 1.0F, 1.0F);
-                effect(target, MobEffects.DARKNESS, 3, 0);
+                Mc.particle(target, ParticleTypes.ELDER_GUARDIAN, target.getX(), target.getY(), target.getZ());
+                sound(target, "minecraft:entity.elder_guardian.curse", target.position(), 1.0F, 1.0F);
+                effect(target, "minecraft:darkness", 3, 0);
             }
-            case NAUSEA -> effect(target, MobEffects.CONFUSION, Math.min(seconds, 10), 0);
-            case DARKNESS -> effect(target, MobEffects.DARKNESS, Math.min(seconds, 8), 0);
+            case NAUSEA -> effect(target, "minecraft:nausea", Math.min(seconds, 10), 0);
+            case DARKNESS -> effect(target, "minecraft:darkness", Math.min(seconds, 8), 0);
             case LEVITATE -> {
-                effect(target, MobEffects.LEVITATION, Math.min(seconds, 3), 0);
-                effect(target, MobEffects.SLOW_FALLING, Math.min(seconds, 3) + 8, 0);
+                effect(target, "minecraft:levitation", Math.min(seconds, 3), 0);
+                effect(target, "minecraft:slow_falling", Math.min(seconds, 3) + 8, 0);
             }
-            case SLOW -> effect(target, MobEffects.MOVEMENT_SLOWDOWN, seconds, 2);
-            case GLOW -> effect(target, MobEffects.GLOWING, seconds, 0);
-            case TINY_JUMP -> effect(target, MobEffects.JUMP, seconds, 4);
+            case SLOW -> effect(target, "minecraft:slowness", seconds, 2);
+            case GLOW -> effect(target, "minecraft:glowing", seconds, 0);
+            case TINY_JUMP -> effect(target, "minecraft:jump_boost", seconds, 4);
             case SPIN -> {
                 synchronized (SPINS) {
                     SPINS.add(new Spin(target.getUUID(), new int[] {16}));
                 }
             }
             case LAUNCH -> {
-                effect(target, MobEffects.SLOW_FALLING, 12, 0);
+                effect(target, "minecraft:slow_falling", 12, 0);
                 target.setDeltaMovement(target.getDeltaMovement().add(0, 1.1, 0));
                 target.hurtMarked = true;
             }
@@ -158,7 +136,7 @@ public final class TrollService {
                 if (color == null || !color.isColor()) {
                     color = ChatFormatting.RED;
                 }
-                title(target, Texts.literal(name + " -1").withStyle(color), Texts.empty(), SoundEvents.WITHER_SPAWN);
+                title(target, Texts.literal(name + " -1").withStyle(color), Texts.empty(), "minecraft:entity.wither.spawn");
             }
         }
     }
@@ -170,20 +148,23 @@ public final class TrollService {
         }
     }
 
-    private static void title(ServerPlayer player, Component title, Component subtitle, SoundEvent sound) {
+    private static void title(ServerPlayer player, Component title, Component subtitle, String soundId) {
         player.connection.send(new ClientboundSetTitlesAnimationPacket(10, 12 * 20, 20));
         player.connection.send(new ClientboundSetSubtitleTextPacket(subtitle));
         player.connection.send(new ClientboundSetTitleTextPacket(title));
-        player.playNotifySound(sound, SoundSource.MASTER, 1.0F, 1.0F);
+        Mc.playSound(player, soundId, SoundSource.MASTER, 1.0F, 1.0F);
     }
 
-    private static void effect(ServerPlayer player, Holder<MobEffect> effect, int seconds, int amplifier) {
-        player.addEffect(new MobEffectInstance(effect, seconds * 20, amplifier, false, false, true));
+    /** Effects by id, so renamed fields (JUMP became JUMP_BOOST) and missing ones (darkness before 1.19) need no code. */
+    private static void effect(ServerPlayer player, String effectId, int seconds, int amplifier) {
+        MobEffectInstance effect = Mc.effect(effectId, seconds * 20, amplifier);
+        if (effect != null) {
+            player.addEffect(effect);
+        }
     }
 
-    private static void sound(ServerPlayer player, SoundEvent sound, Vec3 at, float volume, float pitch) {
-        player.connection.send(new ClientboundSoundPacket(BuiltInRegistries.SOUND_EVENT.wrapAsHolder(sound), SoundSource.HOSTILE,
-            at.x, at.y, at.z, volume, pitch, player.getRandom().nextLong()));
+    private static void sound(ServerPlayer player, String soundId, Vec3 at, float volume, float pitch) {
+        Mc.playSound(player, soundId, SoundSource.HOSTILE, at.x, at.y, at.z, volume, pitch);
     }
 
     /** Spins 22.5° per tick until done. */

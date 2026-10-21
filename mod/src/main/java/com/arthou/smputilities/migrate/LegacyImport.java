@@ -1,5 +1,7 @@
 package com.arthou.smputilities.migrate;
 
+import com.arthou.smputilities.mc.Stacks;
+import com.arthou.smputilities.mc.Nbt;
 import com.arthou.smputilities.backup.BackupService;
 import com.arthou.smputilities.backup.PlayerSnapshot;
 import com.arthou.smputilities.backup.SnapshotType;
@@ -10,11 +12,9 @@ import com.arthou.smputilities.core.util.SuLog;
 import com.arthou.smputilities.profile.ProfileService;
 import com.arthou.smputilities.profile.ProfileStore;
 import com.arthou.smputilities.server.SuServer;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtAccounter;
-import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.ItemStack;
@@ -87,8 +87,8 @@ public final class LegacyImport {
             return Optional.empty();
         }
         try {
-            CompoundTag root = NbtIo.readCompressed(file, NbtAccounter.unlimitedHeap());
-            return Optional.of(root.getCompound("data"));
+            CompoundTag root = Nbt.readCompressed(file);
+            return Optional.of(Nbt.getCompound(root, "data"));
         } catch (IOException e) {
             SuLog.warn("Could not read legacy data " + file, e);
             return Optional.empty();
@@ -111,24 +111,24 @@ public final class LegacyImport {
         if (data.isEmpty()) {
             return true;
         }
-        HolderLookup.Provider registries = server.registryAccess();
-        CompoundTag profiles = data.get().getCompound("Profiles");
+        RegistryAccess registries = server.registryAccess();
+        CompoundTag profiles = Nbt.getCompound(data.get(), "Profiles");
         int count = 0;
         for (String key : profiles.getAllKeys()) {
             UUID id = uuid(key);
             if (id == null) {
                 continue;
             }
-            CompoundTag legacy = profiles.getCompound(key);
+            CompoundTag legacy = Nbt.getCompound(profiles, key);
             ListTag inventory = new ListTag();
-            copySlots(legacy.getList("Main", Tag.TAG_COMPOUND), 0, 36, inventory, registries);
-            copySlots(legacy.getList("Armor", Tag.TAG_COMPOUND), 100, 4, inventory, registries);
-            if (legacy.contains("Offhand", Tag.TAG_COMPOUND)) {
-                ItemStack stack = ItemStack.parseOptional(registries, legacy.getCompound("Offhand"));
+            copySlots(Nbt.getList(legacy, "Main"), 0, 36, inventory, registries);
+            copySlots(Nbt.getList(legacy, "Armor"), 100, 4, inventory, registries);
+            if (Nbt.hasCompound(legacy, "Offhand")) {
+                ItemStack stack = Stacks.load(Nbt.getCompound(legacy, "Offhand"), registries);
                 if (!stack.isEmpty()) {
-                    CompoundTag slot = new CompoundTag();
+                    CompoundTag slot = Stacks.save(stack, registries);
                     slot.putByte("Slot", (byte) 150);
-                    inventory.add(stack.save(registries, slot));
+                    inventory.add(slot);
                 }
             }
             ProfileStore.PlayerProfiles stored = ProfileService.of(id);
@@ -144,18 +144,17 @@ public final class LegacyImport {
         return true;
     }
 
-    private static void copySlots(ListTag list, int base, int size, ListTag out, HolderLookup.Provider registries) {
-        for (int i = 0; i < list.size(); i++) {
-            CompoundTag entry = list.getCompound(i);
-            int slot = entry.getInt("Slot");
-            if (slot < 0 || slot >= size || !entry.contains("Stack", Tag.TAG_COMPOUND)) {
+    private static void copySlots(ListTag list, int base, int size, ListTag out, RegistryAccess registries) {
+        for (CompoundTag entry : Nbt.compounds(list)) {
+            int slot = Nbt.getInt(entry, "Slot", 0);
+            if (slot < 0 || slot >= size || !Nbt.hasCompound(entry, "Stack")) {
                 continue;
             }
-            ItemStack stack = ItemStack.parseOptional(registries, entry.getCompound("Stack"));
+            ItemStack stack = Stacks.load(Nbt.getCompound(entry, "Stack"), registries);
             if (!stack.isEmpty()) {
-                CompoundTag tag = new CompoundTag();
+                CompoundTag tag = Stacks.save(stack, registries);
                 tag.putByte("Slot", (byte) (base + slot));
-                out.add(stack.save(registries, tag));
+                out.add(tag);
             }
         }
     }
@@ -167,20 +166,19 @@ public final class LegacyImport {
         if (data.isEmpty() || BackupService.store() == null) {
             return data.isEmpty();
         }
-        CompoundTag players = data.get().getCompound("players");
+        CompoundTag players = Nbt.getCompound(data.get(), "players");
         int count = 0;
         for (String key : players.getAllKeys()) {
             UUID id = uuid(key);
             if (id == null) {
                 continue;
             }
-            ListTag list = players.getList(key, Tag.TAG_COMPOUND);
+            ListTag list = Nbt.getList(players, key);
             List<PlayerSnapshot> snapshots = new ArrayList<>();
-            for (int i = 0; i < list.size(); i++) {
-                CompoundTag entry = list.getCompound(i);
-                snapshots.add(new PlayerSnapshot(BackupService.store().newId(id), entry.getLong("timestamp"),
-                    SnapshotType.parse(entry.getString("type")), entry.getString("detail"), "Inventory Rollback Plus",
-                    entry.getCompound("playerData"), entry.getCompound("compatData")));
+            for (CompoundTag entry : Nbt.compounds(list)) {
+                snapshots.add(new PlayerSnapshot(BackupService.store().newId(id), Nbt.getLong(entry, "timestamp", 0),
+                    SnapshotType.parse(Nbt.getString(entry, "type")), Nbt.getString(entry, "detail"), "Inventory Rollback Plus",
+                    Nbt.getCompound(entry, "playerData"), Nbt.getCompound(entry, "compatData")));
             }
             count += BackupService.store().importLegacy(id, snapshots);
         }
@@ -191,8 +189,8 @@ public final class LegacyImport {
     // ------------------------------------------------------------------- TPA
 
     private static Location location(CompoundTag tag) {
-        return new Location(tag.getString("dimension"), tag.getDouble("x"), tag.getDouble("y"), tag.getDouble("z"),
-            tag.getFloat("yaw"), tag.getFloat("pitch"));
+        return new Location(Nbt.getString(tag, "dimension"), Nbt.getDouble(tag, "x", 0), Nbt.getDouble(tag, "y", 0), Nbt.getDouble(tag, "z", 0),
+            Nbt.getFloat(tag, "yaw", 0), Nbt.getFloat(tag, "pitch", 0));
     }
 
     private static boolean importTpa(MinecraftServer server, SuServer context) {
@@ -201,34 +199,34 @@ public final class LegacyImport {
             return true;
         }
         CompoundTag data = found.get();
-        if (data.contains("spawn", Tag.TAG_COMPOUND) && context.teleports().spawn() == null) {
-            context.teleports().setSpawn(location(data.getCompound("spawn")));
+        if (Nbt.hasCompound(data, "spawn") && context.teleports().spawn() == null) {
+            context.teleports().setSpawn(location(Nbt.getCompound(data, "spawn")));
         }
-        CompoundTag warps = data.getCompound("warps");
+        CompoundTag warps = Nbt.getCompound(data, "warps");
         for (String name : warps.getAllKeys()) {
             if (!context.teleports().warps().containsKey(name)) {
-                context.teleports().setWarp(name, location(warps.getCompound(name)));
+                context.teleports().setWarp(name, location(Nbt.getCompound(warps, name)));
             }
         }
-        CompoundTag homes = data.getCompound("homes");
-        CompoundTag defaults = data.getCompound("defaultHomes");
+        CompoundTag homes = Nbt.getCompound(data, "homes");
+        CompoundTag defaults = Nbt.getCompound(data, "defaultHomes");
         for (String key : homes.getAllKeys()) {
             UUID id = uuid(key);
             if (id == null) {
                 continue;
             }
-            CompoundTag playerHomes = homes.getCompound(key);
+            CompoundTag playerHomes = Nbt.getCompound(homes, key);
             context.players().update(id, record -> {
                 for (String home : playerHomes.getAllKeys()) {
-                    record.homes.putIfAbsent(home, location(playerHomes.getCompound(home)));
+                    record.homes.putIfAbsent(home, location(Nbt.getCompound(playerHomes, home)));
                 }
                 if (record.defaultHome.isEmpty() && defaults.contains(key)) {
                     record.defaultHome = defaults.getString(key);
                 }
             });
         }
-        importLocations(context, data.getCompound("backLocations"), true);
-        importLocations(context, data.getCompound("logoutLocations"), false);
+        importLocations(context, Nbt.getCompound(data, "backLocations"), true);
+        importLocations(context, Nbt.getCompound(data, "logoutLocations"), false);
         SuLog.info("Imported TPA homes, warps and spawn");
         return true;
     }
@@ -237,7 +235,7 @@ public final class LegacyImport {
         for (String key : tag.getAllKeys()) {
             UUID id = uuid(key);
             if (id != null) {
-                Location location = location(tag.getCompound(key));
+                Location location = location(Nbt.getCompound(tag, key));
                 context.players().update(id, record -> {
                     if (back && record.back == null) {
                         record.back = location;
@@ -257,17 +255,17 @@ public final class LegacyImport {
             return true;
         }
         CompoundTag data = found.get();
-        for (UUID id : uuids(data.getList("SilentJoinPlayers", Tag.TAG_STRING))) {
+        for (UUID id : uuids(Nbt.getList(data, "SilentJoinPlayers"))) {
             context.players().update(id, record -> record.silentJoin = true);
         }
-        for (UUID id : uuids(data.getList("SilentQuitPlayers", Tag.TAG_STRING))) {
+        for (UUID id : uuids(Nbt.getList(data, "SilentQuitPlayers"))) {
             context.players().update(id, record -> record.silentQuit = true);
         }
-        for (UUID id : uuids(data.getList("SilentHearPlayers", Tag.TAG_STRING))) {
+        for (UUID id : uuids(Nbt.getList(data, "SilentHearPlayers"))) {
             context.players().update(id, record -> record.voiceDeafened = true);
         }
         long now = System.currentTimeMillis();
-        for (UUID id : uuids(data.getList("SilentVoiceChatPlayers", Tag.TAG_STRING))) {
+        for (UUID id : uuids(Nbt.getList(data, "SilentVoiceChatPlayers"))) {
             if (context.punishments().active(PunishmentType.VOICE_MUTE, id, now).isEmpty()) {
                 String name = context.players().get(id).lastName;
                 context.punishments().issue(PunishmentType.VOICE_MUTE, id, name, null, "DUSMP", "imported from DUSMP /silentvc", -1, now);
@@ -279,8 +277,8 @@ public final class LegacyImport {
 
     private static List<UUID> uuids(ListTag list) {
         List<UUID> result = new ArrayList<>();
-        for (int i = 0; i < list.size(); i++) {
-            UUID id = uuid(list.getString(i));
+        for (String value : Nbt.strings(list)) {
+            UUID id = uuid(value);
             if (id != null) {
                 result.add(id);
             }
@@ -295,8 +293,8 @@ public final class LegacyImport {
         if (found.isEmpty()) {
             return true;
         }
-        CompoundTag modes = found.get().getCompound("VoiceModes");
-        CompoundTag languages = found.get().getCompound("VoiceLanguages");
+        CompoundTag modes = Nbt.getCompound(found.get(), "VoiceModes");
+        CompoundTag languages = Nbt.getCompound(found.get(), "VoiceLanguages");
         for (String key : modes.getAllKeys()) {
             UUID id = uuid(key);
             if (id != null) {

@@ -1,5 +1,7 @@
 package com.arthou.smputilities.profile;
 
+import com.arthou.smputilities.mc.Stacks;
+import com.arthou.smputilities.mc.Nbt;
 import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.core.perm.Perm;
@@ -11,7 +13,6 @@ import com.arthou.smputilities.server.Perms;
 import com.arthou.smputilities.util.ButtonMenu;
 import com.arthou.smputilities.util.ConfirmMenu;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -67,7 +68,7 @@ public final class ProfileMenus {
                     profile != null && !profile.nick.isEmpty() ? Lang.tr(viewer, "profile.lore.nick", profile.nick) : "",
                     Lang.tr(viewer, self ? "profile.lore.click_self" : "profile.lore.click_staff"));
                 if (active) {
-                    icon.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+                    Stacks.glint(icon);
                 }
                 set(i, icon);
             }
@@ -154,10 +155,10 @@ public final class ProfileMenus {
                         set(i, contents.get(i).copy());
                     }
                 }
-                set(47, named(Items.EXPERIENCE_BOTTLE, Lang.tr(viewer, "profile.preview_xp", data.getInt("XpLevel"))));
+                set(47, named(Items.EXPERIENCE_BOTTLE, Lang.tr(viewer, "profile.preview_xp", Nbt.getInt(data, "XpLevel", 0))));
                 set(48, named(Items.GOLDEN_APPLE, Lang.tr(viewer, "profile.preview_health",
-                    String.format(java.util.Locale.ROOT, "%.1f", data.contains("Health") ? data.getFloat("Health") : 20.0F),
-                    data.contains("foodLevel") ? data.getInt("foodLevel") : 20)));
+                    String.format(java.util.Locale.ROOT, "%.1f", data.contains("Health") ? Nbt.getFloat(data, "Health", 0) : 20.0F),
+                    data.contains("foodLevel") ? Nbt.getInt(data, "foodLevel", 0) : 20)));
             }
             set(49, named(ender ? Items.CHEST : Items.ENDER_CHEST, Lang.tr(viewer, ender ? "backup.button.show_inventory" : "backup.button.show_ender")));
             set(53, named(Items.BARRIER, Lang.tr(viewer, "gui.back")));

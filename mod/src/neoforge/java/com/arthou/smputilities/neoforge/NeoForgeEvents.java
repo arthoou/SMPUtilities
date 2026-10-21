@@ -22,8 +22,12 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+//#if MC>=1.21.5
+import net.minecraft.util.TriState;
+//#elif MC>=1.20.6
+//$$ import net.neoforged.neoforge.common.util.TriState;
+//#endif
 //#if MC>=1.20.6
-import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 //#else

@@ -70,7 +70,7 @@ public final class Teleports {
         if (player.isPassenger()) {
             player.stopRiding();
         }
-        player.teleportTo(level, location.x(), location.y(), location.z(), location.yaw(), location.pitch());
+        Mc.teleport(player, level, location.x(), location.y(), location.z(), location.yaw(), location.pitch());
         if (saveBack && SuServer.get() != null) {
             SuServer.get().players().update(player.getUUID(), record -> record.back = before);
         }

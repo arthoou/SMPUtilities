@@ -1,9 +1,9 @@
 package com.arthou.smputilities.util;
 
+import com.arthou.smputilities.mc.Stacks;
 import com.arthou.smputilities.mc.Texts;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -19,8 +19,6 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.ItemLore;
-import net.minecraft.world.item.component.ResolvableProfile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,26 +102,17 @@ public abstract class ButtonMenu extends AbstractContainerMenu {
     }
 
     public static ItemStack named(ItemStack stack, Component name, String... lore) {
-        ItemStack copy = stack.copy();
-        copy.set(DataComponents.CUSTOM_NAME, name.copy().withStyle(Style.EMPTY.withItalic(false)));
-        if (lore.length > 0) {
-            List<Component> lines = new ArrayList<>();
-            for (String line : lore) {
-                if (line == null || line.isEmpty()) {
-                    continue;
-                }
-                MutableComponent text = Texts.literal(line).withStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GRAY));
-                lines.add(text);
+        List<Component> lines = new ArrayList<>();
+        for (String line : lore) {
+            if (line != null && !line.isEmpty()) {
+                lines.add(Texts.literal(line).withStyle(Style.EMPTY.withItalic(false).withColor(ChatFormatting.GRAY)));
             }
-            copy.set(DataComponents.LORE, new ItemLore(lines));
         }
-        return copy;
+        return Stacks.named(stack, name.copy().withStyle(Style.EMPTY.withItalic(false)), lines);
     }
 
     public static ItemStack head(GameProfile profile, String name, String... lore) {
-        ItemStack stack = new ItemStack(Items.PLAYER_HEAD);
-        stack.set(DataComponents.PROFILE, new ResolvableProfile(profile));
-        return named(stack, Texts.literal(name).withStyle(ChatFormatting.YELLOW), lore);
+        return named(Stacks.head(profile), Texts.literal(name).withStyle(ChatFormatting.YELLOW), lore);
     }
 
     public static MenuType<?> menuType(int rows) {

@@ -14,7 +14,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.players.GameProfileCache;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -120,14 +119,7 @@ public final class Names {
                 }
             }
         }
-        GameProfileCache cache = server.getProfileCache();
-        if (cache != null) {
-            Optional<GameProfile> profile = cache.get(value);
-            if (profile.isPresent()) {
-                return Optional.of(new Target(profile.get().getId(), profile.get().getName(), null));
-            }
-        }
-        return Optional.empty();
+        return Mc.accountByName(server, value).map(account -> new Target(account.id(), account.name(), null));
     }
 
     public static Optional<String> offlineName(MinecraftServer server, UUID id) {
@@ -138,11 +130,7 @@ public final class Names {
                 return Optional.of(record.get().lastName);
             }
         }
-        GameProfileCache cache = server.getProfileCache();
-        if (cache != null) {
-            return cache.get(id).map(GameProfile::getName);
-        }
-        return Optional.empty();
+        return Mc.accountById(server, id).map(Mc.Account::name);
     }
 
     private static boolean visible(ServerPlayer viewer, ServerPlayer target) {

@@ -12,7 +12,6 @@ import com.arthou.smputilities.server.Perms;
 import com.arthou.smputilities.server.SuServer;
 import com.arthou.smputilities.teleport.Teleports;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,7 +22,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EndPortalFrameBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.status.ChunkStatus;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,7 +57,7 @@ public final class PortalService {
         }
         SuConfig.Portals config = SuServer.config().portals;
         String block = state.isAir() || state.is(Blocks.FIRE) || state.is(Blocks.SOUL_FIRE) ? "minecraft:nether_portal"
-            : BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
+            : Mc.blockId(state.getBlock());
         String key = config.customPortalBlocks.getOrDefault(block, "nether");
         ServerPlayer igniter = nearestPlayer(serverLevel, pos);
         if (!registry().canCreate(config.limits, key) && (igniter == null || !Perms.has(igniter, Perm.PORTAL_BYPASS))) {
@@ -135,7 +133,7 @@ public final class PortalService {
     }
 
     private static boolean isCustomPortalBlock(Block block) {
-        return SuServer.config().portals.customPortalBlocks.containsKey(BuiltInRegistries.BLOCK.getKey(block).toString());
+        return SuServer.config().portals.customPortalBlocks.containsKey(Mc.blockId(block));
     }
 
     public static void tick(MinecraftServer server) {
@@ -169,10 +167,10 @@ public final class PortalService {
             return;
         }
         BlockPos center = new BlockPos(record.x, record.y, record.z);
-        if (level.getChunkSource().getChunk(center.getX() >> 4, center.getZ() >> 4, ChunkStatus.FULL, false) == null) {
+        Block expected = Mc.block(record.block.isEmpty() ? "minecraft:nether_portal" : record.block);
+        if (expected == null || !Mc.hasChunk(level, center.getX() >> 4, center.getZ() >> 4)) {
             return;
         }
-        Block expected = BuiltInRegistries.BLOCK.get(Ids.parse(record.block.isEmpty() ? "minecraft:nether_portal" : record.block));
         for (BlockPos pos : BlockPos.betweenClosed(center.offset(-3, -3, -3), center.offset(3, 3, 3))) {
             if (level.getBlockState(pos).is(expected)) {
                 return;
