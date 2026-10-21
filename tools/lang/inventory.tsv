@@ -1,0 +1,10 @@
+inventory.title	Inventory · %s	Inventário · %s
+inventory.title_edit	Inventory · %s ✎	Inventário · %s ✎
+inventory.ender_title	Ender Chest · %s	Baú do Fim · %s
+inventory.ender_title_edit	Ender Chest · %s ✎	Baú do Fim · %s ✎
+inventory.curios_title	Curios · %s	Curios · %s
+inventory.cosmetic_title	Cosmetic Armor · %s	Armadura Cosmética · %s
+inventory.no_data	No saved data found for %s.	Nenhum dado salvo encontrado para %s.
+inventory.no_curios	This player has no Curios slots (or Curios is not installed).	Este jogador não tem slots de Curios (ou o Curios não está instalado).
+inventory.no_cosmetic	This player has no Cosmetic Armor slots (or the mod is not installed).	Este jogador não tem slots de Armadura Cosmética (ou o mod não está instalado).
+inventory.online_only	%s must be online for this.	%s precisa estar online para isso.

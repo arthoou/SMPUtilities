@@ -1,0 +1,41 @@
+invprofile.title	InvProfile	InvProfile
+invprofile.button.quick_change	Quick Change	Troca Rápida
+invprofile.cursor_not_empty	Empty your cursor before using Quick Change.	Esvazie o cursor antes de usar a Troca Rápida.
+invprofile.quick_change_done	Quick Change complete.	Troca Rápida concluída.
+profile.title.own	Your profiles	Seus perfis
+profile.title.other	Profiles · %s	Perfis · %s
+profile.title.preview	Profile · %s	Perfil · %s
+profile.lore.active	Active profile	Perfil ativo
+profile.lore.inactive	Stored profile	Perfil guardado
+profile.lore.updated	Saved: %s	Salvo: %s
+profile.lore.nick	Nickname: %s	Apelido: %s
+profile.lore.click_self	Click: switch · Right-click: preview · Shift-click: delete	Clique: trocar · Botão direito: ver · Shift+clique: excluir
+profile.lore.click_staff	Click: preview · Shift-click: delete	Clique: ver · Shift+clique: excluir
+profile.info	Inventory profiles	Perfis de inventário
+profile.info_lore	Create one with /su profile create <name>	Crie um com /su profile create <nome>
+profile.quick_lore	Swap your inventory with the single Inv Profile slot	Troca seu inventário com o slot único do Inv Profile
+profile.preview_active	This profile is active: its items are in the player's inventory.	Este perfil está ativo: os itens estão no inventário do jogador.
+profile.preview_xp	Level %s	Nível %s
+profile.preview_health	Health %s · Hunger %s	Vida %s · Fome %s
+profile.confirm.delete	Delete profile %s and everything stored in it?	Excluir o perfil %s e tudo guardado nele?
+profile.created	Profile %s created. Switch with /su profile switch %s.	Perfil %s criado. Troque com /su profile switch %s.
+profile.switched	Switched to profile %s.	Perfil trocado para %s.
+profile.switched_other	Switched %s to profile %s.	%s foi trocado para o perfil %s.
+profile.deleted	Profile %s deleted.	Perfil %s excluído.
+profile.nick_set	Nickname of profile %s set.	Apelido do perfil %s definido.
+profile.list	Profiles (active: %s): %s	Perfis (ativo: %s): %s
+profile.repaired	Your active profile was restored to %s after an interrupted switch.	Seu perfil ativo foi restaurado para %s após uma troca interrompida.
+profile.invalid_name	Profile names use 1-24 letters, digits, - or _.	Nomes de perfil usam 1-24 letras, números, - ou _.
+profile.exists	That profile already exists.	Esse perfil já existe.
+profile.limit	You reached your profile limit.	Você atingiu seu limite de perfis.
+profile.save_failed	The profile could not be saved; nothing was changed.	Não foi possível salvar o perfil; nada foi alterado.
+profile.unreadable	Profile data could not be read. Ask staff to check the server log.	Não foi possível ler os dados de perfil. Peça à staff para verificar o log do servidor.
+profile.dead	You can't switch profiles while dead.	Você não pode trocar de perfil enquanto está morto.
+profile.cursor_not_empty	Empty your cursor before switching profiles.	Esvazie o cursor antes de trocar de perfil.
+profile.not_found	Profile not found: %s	Perfil não encontrado: %s
+profile.already_active	That profile is already active.	Esse perfil já está ativo.
+profile.cooldown	Wait a moment before switching again.	Aguarde um momento antes de trocar novamente.
+profile.switch_failed	The switch failed and was undone. Nothing was lost.	A troca falhou e foi desfeita. Nada foi perdido.
+profile.cannot_delete_active	You can't delete the active profile.	Você não pode excluir o perfil ativo.
+profile.cannot_delete_default	The default profile can't be deleted.	O perfil padrão não pode ser excluído.
+gui.close	Close	Fechar

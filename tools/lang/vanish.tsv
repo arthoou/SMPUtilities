@@ -1,0 +1,6 @@
+vanish.enabled	You are now vanished. Players without permission cannot see you.	Você está invisível. Jogadores sem permissão não podem te ver.
+vanish.disabled	You are visible again.	Você está visível novamente.
+vanish.still_on	Vanish is still on.	O vanish continua ativado.
+vanish.indicator	◆ VANISHED ◆	◆ INVISÍVEL ◆
+vanish.other_on	%s is now vanished.	%s agora está invisível.
+vanish.other_off	%s is visible again.	%s está visível novamente.

@@ -1,0 +1,20 @@
+hat.empty_hand	Hold the item you want to wear.	Segure o item que você quer usar.
+hat.binding	Your helmet has Curse of Binding.	Seu capacete tem Maldição do Vínculo.
+hat.done	Nice hat!	Belo chapéu!
+sit.not_here	You can't sit here.	Você não pode sentar aqui.
+sit.done	Sneak to stand up.	Agache para levantar.
+dimension.blocked_now	Access to %s is now blocked. Data and builds are kept.	O acesso a %s agora está bloqueado. Dados e construções são mantidos.
+dimension.unblocked_now	Access to %s is open again.	O acesso a %s está liberado novamente.
+dimension.unknown	Unknown dimension: %s	Dimensão desconhecida: %s
+dimension.list	Dimensions: %s	Dimensões: %s
+dimension.state_on	open	liberada
+dimension.state_off	blocked	bloqueada
+portal.limit_set	Portal limit for %s set to %s.	Limite de portais para %s definido como %s.
+portal.unlimited	unlimited	ilimitado
+portal.count	%s: %s portals (limit %s).	%s: %s portais (limite %s).
+portal.list_empty	No portals registered for %s.	Nenhum portal registrado para %s.
+portal.list_line	#%s %s at %s %s %s %s (by %s)	#%s %s em %s %s %s %s (por %s)
+portal.removed	Portal #%s removed from the registry.	Portal #%s removido do registro.
+portal.cleared	%s portals of %s removed from the registry.	%s portais de %s removidos do registro.
+portal.not_found	Portal #%s not found.	Portal #%s não encontrado.
+portal.registered	Portal registered for %s (%s/%s).	Portal registrado para %s (%s/%s).

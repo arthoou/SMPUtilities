@@ -1,0 +1,10 @@
+{
+  "action.thisaction": {
+    "sounds": [
+      {
+        "name": "smputilities:action/thisaction",
+        "stream": false
+      }
+    ]
+  }
+}

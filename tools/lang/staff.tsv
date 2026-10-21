@@ -1,0 +1,30 @@
+staff.reloaded	SMPutilities configuration reloaded.	Configuração do SMPutilities recarregada.
+staff.client_missing	The staff panel needs the SMPutilities mod on your client. All features are also available through /su commands.	O painel da staff precisa do mod SMPutilities no seu cliente. Todos os recursos também estão disponíveis pelos comandos /su.
+staff.action_failed	That action failed. See the server log for details.	Essa ação falhou. Veja o log do servidor para detalhes.
+staff.unknown_action	Unknown action: %s	Ação desconhecida: %s
+staff.pulled	%s was brought to you.	%s foi trazido até você.
+staff.spectating	Spectating %s. Use /su spectate stop to return.	Observando %s. Use /su spectate stop para voltar.
+staff.gamemode_set	Game mode of %s set to %s.	Modo de jogo de %s definido como %s.
+staff.healed	%s was healed.	%s foi curado.
+staff.fed	%s was fed.	%s foi alimentado.
+staff.stat_set	Statistic %s set to %s.	Estatística %s definida como %s.
+settings.changed	Setting %s set to %s.	Configuração %s definida como %s.
+settings.unknown_setting	Unknown setting: %s	Configuração desconhecida: %s
+settings.invalid_value	Invalid value: %s	Valor inválido: %s
+socialspy.on	Social spy on: you will see private messages.	Social spy ativado: você verá mensagens privadas.
+socialspy.off	Social spy off.	Social spy desativado.
+silentjoin.on	Join messages of %s are now hidden.	As mensagens de entrada de %s agora estão ocultas.
+silentjoin.off	Join messages of %s are shown again.	As mensagens de entrada de %s voltaram a aparecer.
+silentquit.on	Quit messages of %s are now hidden.	As mensagens de saída de %s agora estão ocultas.
+silentquit.off	Quit messages of %s are shown again.	As mensagens de saída de %s voltaram a aparecer.
+profile.delete_confirm	This deletes profile %1$s and its items. Type /su profile delete %1$s confirm to continue.	Isso exclui o perfil %1$s e seus itens. Digite /su profile delete %1$s confirm para continuar.
+troll.done	Prank %s applied to %s.	Brincadeira %s aplicada em %s.
+troll.unknown	Unknown prank.	Brincadeira desconhecida.
+modsync.rescanning	Mod sync files are being rescanned.	Os arquivos de sincronização de mods estão sendo reescaneados.
+help.header	SMPutilities · /su help	SMPutilities · /su help
+help.staff	/su staff [player] - staff panel · /vanish · /su realnames · /su whois <player>	/su staff [jogador] - painel da staff · /vanish · /su realnames · /su whois <jogador>
+help.moderation	/su ban|mute|voicemute <player> [duration] [reason] · /su unban|unmute|voiceunmute <player> · /su kick · /su warn · /su history	/su ban|mute|voicemute <jogador> [duração] [motivo] · /su unban|unmute|voiceunmute <jogador> · /su kick · /su warn · /su history
+help.inventory	/su inventory <player> · /su enderchest <player> · /su inventory backup|backups|list|restore <player> [backup] · /su profile view <player>	/su inventory <jogador> · /su enderchest <jogador> · /su inventory backup|backups|list|restore <jogador> [backup] · /su profile view <jogador>
+help.chat	/su chat lock|unlock|clear · /su chat format|joinmessages|quitmessages|privatemessages on|off · /su say <message>	/su chat lock|unlock|clear · /su chat format|joinmessages|quitmessages|privatemessages on|off · /su say <mensagem>
+help.world	/su portal limit <dimension> <n|unlimited> · /su portal list|count|remove · /su dimension <dimension> on|off · /su dimension list	/su portal limit <dimensão> <n|unlimited> · /su portal list|count|remove · /su dimension <dimensão> on|off · /su dimension list
+help.player	/su nick <name> · /su profile · /su mentions · /su tts · /tpa · /home · /spawn · /back · /msg · /ignore · /hat · /sit	/su nick <nome> · /su profile · /su mentions · /su tts · /tpa · /home · /spawn · /back · /msg · /ignore · /hat · /sit

@@ -1,0 +1,15 @@
+nick.invalid	That nickname is not valid.	Esse apelido não é válido.
+nick.no_colors	You may not use colors in your nickname.	Você não pode usar cores no seu apelido.
+nick.too_short	That nickname is too short.	Esse apelido é curto demais.
+nick.too_long	That nickname is too long.	Esse apelido é longo demais.
+nick.invalid_chars	That nickname contains characters that are not allowed.	Esse apelido contém caracteres não permitidos.
+nick.taken	Someone already uses that nickname.	Alguém já usa esse apelido.
+nick.set	Nickname set to %s.	Apelido definido como %s.
+nick.set_other	Nickname of %s set to %s.	Apelido de %s definido como %s.
+nick.cleared	Nickname removed.	Apelido removido.
+nick.cleared_other	Nickname of %s removed.	Apelido de %s removido.
+nick.current	Your nickname: %s	Seu apelido: %s
+nick.none	You have no nickname. Use /su nick <name>.	Você não tem apelido. Use /su nick <nome>.
+nick.whois	%s is %s.	%s é %s.
+realnames.on	Real names are now shown to you.	Os nomes reais agora são mostrados para você.
+realnames.off	Real names are hidden again.	Os nomes reais estão ocultos novamente.
