@@ -2,7 +2,6 @@ package com.arthou.smputilities.client;
 
 import com.arthou.smputilities.core.util.Json;
 import com.arthou.smputilities.core.util.SuLog;
-import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -41,7 +40,7 @@ public final class ClientConfig {
     private static ClientConfig instance;
 
     public static Path file() {
-        return FMLPaths.CONFIGDIR.get().resolve("smputilities").resolve("client.json");
+        return com.arthou.smputilities.platform.Platform.get().configDir().resolve("smputilities").resolve("client.json");
     }
 
     public static synchronized ClientConfig get() {

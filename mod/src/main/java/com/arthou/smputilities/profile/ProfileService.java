@@ -1,5 +1,6 @@
 package com.arthou.smputilities.profile;
 
+import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.backup.BackupService;
 import com.arthou.smputilities.backup.CompatInventorySupport;
 import com.arthou.smputilities.backup.SnapshotType;
@@ -7,6 +8,7 @@ import com.arthou.smputilities.core.config.SuConfig;
 import com.arthou.smputilities.core.util.SuLog;
 import com.arthou.smputilities.inventory.PlayerState;
 import com.arthou.smputilities.nick.NicknameService;
+import com.arthou.smputilities.platform.Platform;
 import com.arthou.smputilities.server.Msg;
 import com.arthou.smputilities.server.Perms;
 import com.arthou.smputilities.server.SuServer;
@@ -217,7 +219,7 @@ public final class ProfileService {
             if (SuServer.config().profiles.storeCompatSlots && !incoming.compat.isEmpty()) {
                 CompatInventorySupport.apply(player, incoming.compat);
             }
-            player.getPersistentData().putString(PERSISTENT_KEY, name);
+            Platform.get().persistentData(player).putString(PERSISTENT_KEY, name);
         } catch (RuntimeException e) {
             SuLog.error("Profile switch of " + player.getGameProfile().getName() + " failed, rolling back", e);
             PlayerState.apply(player, outgoing, parts);
@@ -230,7 +232,7 @@ public final class ProfileService {
         }
 
         if (SuServer.config().profiles.switchNickname && !incoming.nick.isEmpty()) {
-            NicknameService.set(player.server, player.getUUID(), incoming.nick, true, actor);
+            NicknameService.set(Mc.server(player), player.getUUID(), incoming.nick, true, actor);
         }
         SuServer.get().log(actor == null ? player : actor, "profile.switch", player.getUUID(), player.getGameProfile().getName(), previousName + " -> " + name);
         return null;
@@ -312,7 +314,7 @@ public final class ProfileService {
         }
         try {
             ProfileStore.PlayerProfiles profiles = profiles(player.getUUID());
-            CompoundTag persistent = player.getPersistentData();
+            CompoundTag persistent = Platform.get().persistentData(player);
             if (!persistent.contains(PERSISTENT_KEY)) {
                 persistent.putString(PERSISTENT_KEY, profiles.active);
                 return;

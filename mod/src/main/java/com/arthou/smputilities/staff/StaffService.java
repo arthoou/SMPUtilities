@@ -1,5 +1,6 @@
 package com.arthou.smputilities.staff;
 
+import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.backup.BackupMenus;
 import com.arthou.smputilities.backup.BackupService;
 import com.arthou.smputilities.backup.PlayerSnapshot;
@@ -126,7 +127,7 @@ public final class StaffService {
                 continue;
             }
             rows.add(new Dto.PlayerRow(player.getUUID(), Names.realName(player), Names.nickname(player.getUUID()),
-                player.connection.latency(), player.level().dimension().location().toString(),
+                Mc.latency(player), player.level().dimension().location().toString(),
                 player.gameMode.getGameModeForPlayer().getName(), player.getHealth(), VanishService.isVanished(player.getUUID()),
                 context.punishments().active(PunishmentType.MUTE, player.getUUID(), now).isPresent(),
                 Perms.has(player, Perm.STAFF_PANEL)));
@@ -183,7 +184,7 @@ public final class StaffService {
             values.put("food", String.valueOf(online.getFoodData().getFoodLevel()));
             values.put("saturation", String.format(Locale.ROOT, "%.1f", online.getFoodData().getSaturationLevel()));
             values.put("gamemode", online.gameMode.getGameModeForPlayer().getName());
-            values.put("ping", String.valueOf(online.connection.latency()));
+            values.put("ping", String.valueOf(Mc.latency(online)));
             values.put("xpLevel", String.valueOf(online.experienceLevel));
             values.put("op", String.valueOf(Perms.opLevel(online)));
         } else if (record.logout != null) {
@@ -402,7 +403,7 @@ public final class StaffService {
 
     /** @return a feedback line (prefixed with ! for errors) or null for none */
     private static String perform(ServerPlayer actor, Payloads.Action action) {
-        MinecraftServer server = actor.server;
+        MinecraftServer server = Mc.server(actor);
         SuServer context = SuServer.get();
         String name = action.action();
 
@@ -916,8 +917,7 @@ public final class StaffService {
     public static void afterSettingChange(MinecraftServer server, String path) {
         if (path.startsWith("nicknames.") || path.equals("features.nicknames")) {
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-                player.refreshDisplayName();
-                player.refreshTabListName();
+                com.arthou.smputilities.platform.Platform.get().refreshNames(player);
             }
             SuNetwork.syncNicknamesToAll(server);
         }

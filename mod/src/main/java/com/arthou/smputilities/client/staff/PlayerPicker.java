@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.staff;
 
+import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.client.ClientState;
 import com.arthou.smputilities.client.gui.Heads;
 import com.arthou.smputilities.client.gui.SuButton;
@@ -36,7 +37,7 @@ final class PlayerPicker {
     /** @return x where the tab's own content starts */
     int build(int left, int top, int bottom, int width, Runnable onChange) {
         int fieldWidth = allowOffline ? width - 44 : width;
-        SuTextField field = panel.add(new SuTextField(left, top, fieldWidth, 18, Component.translatable("panel.smputilities.search")));
+        SuTextField field = panel.add(new SuTextField(left, top, fieldWidth, 18, Texts.translatable("panel.smputilities.search")));
         field.setValue(search);
         field.setResponder(value -> {
             search = value;
@@ -45,7 +46,7 @@ final class PlayerPicker {
             }
         });
         if (allowOffline) {
-            panel.add(new SuButton(left + width - 40, top, 40, 18, Component.translatable(offline() ? "panel.smputilities.list.online" : "panel.smputilities.list.offline"), button -> {
+            panel.add(new SuButton(left + width - 40, top, 40, 18, Texts.translatable(offline() ? "panel.smputilities.list.online" : "panel.smputilities.list.offline"), button -> {
                 offline = !offline;
                 if (offline) {
                     panel.request("table", "known|");
@@ -56,7 +57,7 @@ final class PlayerPicker {
         list = panel.add(new TableView(left, top + 24, width, bottom - top - 24, List.of()));
         list.rowHeight = 18;
         list.remember("picker." + offline());
-        list.emptyText = Component.translatable("panel.smputilities.list.empty_online");
+        list.emptyText = Texts.translatable("panel.smputilities.list.empty_online");
         list.selectedId = panel.selectedPlayer == null ? "" : panel.selectedPlayer.toString();
         Font font = Minecraft.getInstance().font;
         list.rowRenderer = (graphics, row, x, y, w, h, hovered, selected) -> {

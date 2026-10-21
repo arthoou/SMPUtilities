@@ -76,8 +76,7 @@ public final class NicknameService {
     public static void apply(MinecraftServer server, UUID target) {
         ServerPlayer player = server.getPlayerList().getPlayer(target);
         if (player != null) {
-            player.refreshDisplayName();
-            player.refreshTabListName();
+            com.arthou.smputilities.platform.Platform.get().refreshNames(player);
         }
         SuNetwork.syncNicknamesToAll(server);
     }

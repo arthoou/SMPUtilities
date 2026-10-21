@@ -1,5 +1,7 @@
 package com.arthou.smputilities.staff;
 
+import com.arthou.smputilities.mc.Texts;
+import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.backup.BackupMenus;
 import com.arthou.smputilities.backup.BackupService;
 import com.arthou.smputilities.backup.PlayerSnapshot;
@@ -82,9 +84,9 @@ public final class StaffCommands {
 
     private static Names.Target target(CommandContext<CommandSourceStack> context, String argument) throws CommandSyntaxException {
         String input = StringArgumentType.getString(context, argument);
-        Optional<Names.Target> found = Names.resolve(context.getSource().getServer(), input, context.getSource().getPlayer());
+        Optional<Names.Target> found = Names.resolve(context.getSource().getServer(), input, Mc.player(context.getSource()));
         if (found.isEmpty()) {
-            throw new SimpleError(Lang.tr(context.getSource().getPlayer(), "player.not_found", input));
+            throw new SimpleError(Lang.tr(Mc.player(context.getSource()), "player.not_found", input));
         }
         return found.get();
     }
@@ -92,7 +94,7 @@ public final class StaffCommands {
     private static ServerPlayer onlineTarget(CommandContext<CommandSourceStack> context, String argument) throws CommandSyntaxException {
         Names.Target found = target(context, argument);
         if (!found.isOnline()) {
-            throw new SimpleError(Lang.tr(context.getSource().getPlayer(), "player.not_found_online", found.name()));
+            throw new SimpleError(Lang.tr(Mc.player(context.getSource()), "player.not_found_online", found.name()));
         }
         return found.online();
     }
@@ -100,12 +102,12 @@ public final class StaffCommands {
     /** Lets helpers fail with a translated message through Brigadier's normal error path. */
     private static final class SimpleError extends CommandSyntaxException {
         SimpleError(String message) {
-            super(new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Component.literal(message)), Component.literal(message));
+            super(new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Texts.literal(message)), Texts.literal(message));
         }
     }
 
     private static String shown(CommandSourceStack source, Names.Target target) {
-        return Names.seesRealNames(source.getPlayer()) ? target.name() : Names.plainDisplay(target.id(), target.name());
+        return Names.seesRealNames(Mc.player(source)) ? target.name() : Names.plainDisplay(target.id(), target.name());
     }
 
     // ================================================================ tree
@@ -116,13 +118,13 @@ public final class StaffCommands {
             .then(Commands.literal("help").executes(StaffCommands::help))
             .then(staff())
             .then(Commands.literal("reload").requires(perm(Perm.ADMIN_RELOAD)).executes(context -> {
-                reload(context.getSource().getServer(), context.getSource().getPlayer());
+                reload(context.getSource().getServer(), Mc.player(context.getSource()));
                 return Msg.ok(context.getSource(), "staff.reloaded");
             }))
             .then(Commands.literal("say").requires(perm(Perm.STAFF_ANNOUNCE))
                 .then(Commands.argument("message", StringArgumentType.greedyString()).executes(context -> {
                     ChatService.serverAnnouncement(context.getSource().getServer(), StringArgumentType.getString(context, "message"));
-                    SuServer.get().log(context.getSource().getPlayer(), "say", null, "", StringArgumentType.getString(context, "message"));
+                    SuServer.get().log(Mc.player(context.getSource()), "say", null, "", StringArgumentType.getString(context, "message"));
                     return 1;
                 })))
             .then(chat())
@@ -153,7 +155,7 @@ public final class StaffCommands {
             .then(moderation("voicemute", Perm.STAFF_VOICE_MUTE))
             .then(Commands.literal("unban").requires(perm(Perm.STAFF_BAN)).then(player("player", true).executes(context -> {
                 Names.Target found = target(context, "player");
-                return PunishmentService.unban(context.getSource().getServer(), context.getSource().getPlayer(), found, "")
+                return PunishmentService.unban(context.getSource().getServer(), Mc.player(context.getSource()), found, "")
                     ? Msg.ok(context.getSource(), "punish.done.unban", shown(context.getSource(), found))
                     : Msg.error(context.getSource(), "punish.not_banned", shown(context.getSource(), found));
             })))
@@ -165,7 +167,7 @@ public final class StaffCommands {
             .then(Commands.literal("warn").requires(perm(Perm.STAFF_WARN)).then(player("player", true)
                 .then(Commands.argument("reason", StringArgumentType.greedyString()).executes(context -> {
                     Names.Target found = target(context, "player");
-                    PunishmentService.warn(context.getSource().getServer(), context.getSource().getPlayer(), found, StringArgumentType.getString(context, "reason"));
+                    PunishmentService.warn(context.getSource().getServer(), Mc.player(context.getSource()), found, StringArgumentType.getString(context, "reason"));
                     return Msg.ok(context.getSource(), "punish.done.warn", shown(context.getSource(), found));
                 }))))
             .then(Commands.literal("history").requires(perm(Perm.STAFF_HISTORY)).then(player("player", true).executes(StaffCommands::history)))
@@ -237,7 +239,7 @@ public final class StaffCommands {
 
     private static int help(CommandContext<CommandSourceStack> context) {
         CommandSourceStack source = context.getSource();
-        ServerPlayer player = source.getPlayer();
+        ServerPlayer player = Mc.player(source);
         List<String> lines = new ArrayList<>();
         lines.add("help.header");
         if (Perms.has(source, Perm.STAFF_PANEL)) {
@@ -257,7 +259,7 @@ public final class StaffCommands {
         }
         lines.add("help.player");
         for (String key : lines) {
-            source.sendSystemMessage(Component.literal(Lang.tr(player, key)).withStyle(key.equals("help.header") ? ChatFormatting.GREEN : ChatFormatting.GRAY));
+            Mc.reply(source, Texts.literal(Lang.tr(player, key)).withStyle(key.equals("help.header") ? ChatFormatting.GREEN : ChatFormatting.GRAY));
         }
         return 1;
     }
@@ -285,8 +287,7 @@ public final class StaffCommands {
         }
         StaffService.afterSettingChange(server, "features.reload");
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            player.refreshDisplayName();
-            player.refreshTabListName();
+            com.arthou.smputilities.platform.Platform.get().refreshNames(player);
         }
     }
 
@@ -297,7 +298,7 @@ public final class StaffCommands {
             .then(Commands.literal("lock").executes(context -> chatLock(context, true)))
             .then(Commands.literal("unlock").executes(context -> chatLock(context, false)))
             .then(Commands.literal("clear").executes(context -> {
-                clearChat(context.getSource().getServer(), context.getSource().getPlayer());
+                clearChat(context.getSource().getServer(), Mc.player(context.getSource()));
                 return 1;
             }))
             .then(toggle("format", "chat.customFormat"))
@@ -323,14 +324,14 @@ public final class StaffCommands {
         if (error[0] != null) {
             return Msg.error(context.getSource(), "settings." + error[0], path);
         }
-        SuServer.get().log(context.getSource().getPlayer(), "setting", null, path, value);
+        SuServer.get().log(Mc.player(context.getSource()), "setting", null, path, value);
         StaffService.afterSettingChange(context.getSource().getServer(), path);
         return Msg.ok(context.getSource(), "settings.changed", path, value);
     }
 
     private static int chatLock(CommandContext<CommandSourceStack> context, boolean lock) {
         SuServer.configManager().edit(config -> config.chat.globalChatEnabled = !lock);
-        SuServer.get().log(context.getSource().getPlayer(), lock ? "chat.lock" : "chat.unlock", null, "", "");
+        SuServer.get().log(Mc.player(context.getSource()), lock ? "chat.lock" : "chat.unlock", null, "", "");
         Msg.broadcast(lock ? "chat.lock.on" : "chat.lock.off", context.getSource().getTextName());
         return 1;
     }
@@ -341,7 +342,7 @@ public final class StaffCommands {
                 continue;
             }
             for (int i = 0; i < 100; i++) {
-                player.sendSystemMessage(Component.empty());
+                Mc.send(player, Texts.empty());
             }
         }
         Msg.broadcast("chat.cleared");
@@ -370,25 +371,25 @@ public final class StaffCommands {
             })
             .then(Commands.literal("clear").executes(context -> {
                 ServerPlayer player = context.getSource().getPlayerOrException();
-                NicknameService.clear(player.server, player.getUUID(), player);
+                NicknameService.clear(Mc.server(player), player.getUUID(), player);
                 return Msg.ok(context.getSource(), "nick.cleared");
             }).then(player("player", true).requires(perm(Perm.NICKNAME_OTHERS)).executes(context -> {
                 Names.Target found = target(context, "player");
-                NicknameService.clear(context.getSource().getServer(), found.id(), context.getSource().getPlayer());
+                NicknameService.clear(context.getSource().getServer(), found.id(), Mc.player(context.getSource()));
                 return Msg.ok(context.getSource(), "nick.cleared_other", found.name());
             })))
             .then(Commands.literal("set").requires(perm(Perm.NICKNAME_OTHERS))
                 .then(player("player", true).then(Commands.argument("nickname", StringArgumentType.greedyString()).executes(context -> {
                     Names.Target found = target(context, "player");
                     String nickname = StringArgumentType.getString(context, "nickname");
-                    String error = NicknameService.set(context.getSource().getServer(), found.id(), nickname, true, context.getSource().getPlayer());
+                    String error = NicknameService.set(context.getSource().getServer(), found.id(), nickname, true, Mc.player(context.getSource()));
                     return error == null ? Msg.ok(context.getSource(), "nick.set_other", found.name(), StyledText.strip(nickname)) : Msg.error(context.getSource(), error);
                 }))))
             .then(Commands.argument("nickname", StringArgumentType.greedyString()).executes(context -> {
                 ServerPlayer player = context.getSource().getPlayerOrException();
                 String nickname = StringArgumentType.getString(context, "nickname");
                 boolean colors = Perms.has(player, Perm.NICKNAME_COLOR);
-                String error = NicknameService.set(player.server, player.getUUID(), nickname, colors, player);
+                String error = NicknameService.set(Mc.server(player), player.getUUID(), nickname, colors, player);
                 return error == null ? Msg.ok(context.getSource(), "nick.set", StyledText.strip(nickname)) : Msg.error(context.getSource(), error);
             }));
     }
@@ -453,7 +454,7 @@ public final class StaffCommands {
         if (snapshot == null) {
             return Msg.error(context.getSource(), "inventory.no_data", found.name());
         }
-        SuServer.get().log(context.getSource().getPlayer(), "backup.create", found.id(), found.name(), snapshot.id());
+        SuServer.get().log(Mc.player(context.getSource()), "backup.create", found.id(), found.name(), snapshot.id());
         return Msg.ok(context.getSource(), "backup.created", snapshot.id(), shown(context.getSource(), found));
     }
 
@@ -463,11 +464,11 @@ public final class StaffCommands {
         if (snapshots.isEmpty()) {
             return Msg.info(context.getSource(), "backup.none", found.name());
         }
-        ServerPlayer viewer = context.getSource().getPlayer();
+        ServerPlayer viewer = Mc.player(context.getSource());
         Msg.info(context.getSource(), "backup.list.header", found.name());
         for (int i = 0; i < Math.min(20, snapshots.size()); i++) {
             PlayerSnapshot snapshot = snapshots.get(i);
-            context.getSource().sendSystemMessage(Component.literal(Lang.tr(viewer, "backup.list.line", i + 1, snapshot.id(),
+            Mc.reply(context.getSource(), Texts.literal(Lang.tr(viewer, "backup.list.line", i + 1, snapshot.id(),
                 TIME.format(Instant.ofEpochMilli(snapshot.timestamp())), Lang.tr(viewer, snapshot.type().langKey()))).withStyle(ChatFormatting.GRAY));
         }
         return 1;
@@ -501,7 +502,7 @@ public final class StaffCommands {
         if (snapshot.isEmpty()) {
             return Msg.error(context.getSource(), "backup.not_found", backup);
         }
-        boolean ok = BackupService.restore(context.getSource().getServer(), context.getSource().getPlayer(), found.id(), found.name(),
+        boolean ok = BackupService.restore(context.getSource().getServer(), Mc.player(context.getSource()), found.id(), found.name(),
             snapshot.get(), parts, parts == BackupService.FULL);
         return ok ? Msg.ok(context.getSource(), "backup.restored", snapshot.get().id(), shown(context.getSource(), found))
             : Msg.error(context.getSource(), "backup.restore_failed");
@@ -570,14 +571,14 @@ public final class StaffCommands {
                 .then(player("player", false).then(Commands.argument("name", StringArgumentType.word()).executes(context -> {
                     ServerPlayer target = onlineTarget(context, "player");
                     String name = StringArgumentType.getString(context, "name");
-                    String error = ProfileService.switchTo(target, name, context.getSource().getPlayer(), true);
+                    String error = ProfileService.switchTo(target, name, Mc.player(context.getSource()), true);
                     return error == null ? Msg.ok(context.getSource(), "profile.switched_other", Names.realName(target), name) : Msg.error(context.getSource(), error, name);
                 }))));
     }
 
     private static SuggestionProvider<CommandSourceStack> ownProfiles() {
         return (context, builder) -> {
-            ServerPlayer player = context.getSource().getPlayer();
+            ServerPlayer player = Mc.player(context.getSource());
             return player == null ? builder.buildFuture() : SharedSuggestionProvider.suggest(ProfileService.of(player.getUUID()).names(), builder);
         };
     }
@@ -595,7 +596,7 @@ public final class StaffCommands {
 
     private static int punish(CommandContext<CommandSourceStack> context, String kind, String details) throws CommandSyntaxException {
         Names.Target found = target(context, "player");
-        ServerPlayer actor = context.getSource().getPlayer();
+        ServerPlayer actor = Mc.player(context.getSource());
         if (actor != null && found.isOnline() && found.online() != actor && Perms.opLevel(found.online()) > Perms.opLevel(actor)) {
             return Msg.error(context.getSource(), "punish.cannot_target");
         }
@@ -629,7 +630,7 @@ public final class StaffCommands {
     private static LiteralArgumentBuilder<CommandSourceStack> unmute(String literal, Perm perm, boolean voice) {
         return Commands.literal(literal).requires(perm(perm)).then(player("player", true).executes(context -> {
             Names.Target found = target(context, "player");
-            return PunishmentService.unmute(context.getSource().getServer(), context.getSource().getPlayer(), found, voice)
+            return PunishmentService.unmute(context.getSource().getServer(), Mc.player(context.getSource()), found, voice)
                 ? Msg.ok(context.getSource(), voice ? "punish.done.voice_unmute" : "punish.done.unmute", shown(context.getSource(), found))
                 : Msg.error(context.getSource(), "punish.not_muted", shown(context.getSource(), found));
         }));
@@ -637,7 +638,7 @@ public final class StaffCommands {
 
     private static int kick(CommandContext<CommandSourceStack> context, String reason) throws CommandSyntaxException {
         ServerPlayer target = onlineTarget(context, "player");
-        ServerPlayer actor = context.getSource().getPlayer();
+        ServerPlayer actor = Mc.player(context.getSource());
         if (actor != null && target != actor && Perms.opLevel(target) > Perms.opLevel(actor)) {
             return Msg.error(context.getSource(), "punish.cannot_target");
         }
@@ -651,11 +652,11 @@ public final class StaffCommands {
         if (records.isEmpty()) {
             return Msg.info(context.getSource(), "punish.history.empty", found.name());
         }
-        ServerPlayer viewer = context.getSource().getPlayer();
+        ServerPlayer viewer = Mc.player(context.getSource());
         Msg.info(context.getSource(), "punish.history.header", found.name(), records.size());
         for (int i = 0; i < Math.min(15, records.size()); i++) {
             Punishment record = records.get(i);
-            context.getSource().sendSystemMessage(Component.literal(Lang.tr(viewer, "punish.history.line", record.id, record.type.name(),
+            Mc.reply(context.getSource(), Texts.literal(Lang.tr(viewer, "punish.history.line", record.id, record.type.name(),
                 TIME.format(Instant.ofEpochMilli(record.createdAt)), record.actorName, record.reason)).withStyle(ChatFormatting.GRAY));
         }
         return 1;
@@ -671,7 +672,7 @@ public final class StaffCommands {
                 now[0] = record.silentQuit = !record.silentQuit;
             }
         });
-        SuServer.get().log(context.getSource().getPlayer(), join ? "silent_join" : "silent_quit", found.id(), found.name(), String.valueOf(now[0]));
+        SuServer.get().log(Mc.player(context.getSource()), join ? "silent_join" : "silent_quit", found.id(), found.name(), String.valueOf(now[0]));
         return Msg.ok(context.getSource(), (join ? "silentjoin." : "silentquit.") + (now[0] ? "on" : "off"), found.name());
     }
 
@@ -690,13 +691,13 @@ public final class StaffCommands {
                         if (limit == null) {
                             return Msg.error(context.getSource(), "settings.invalid_value", StringArgumentType.getString(context, "quantity"));
                         }
-                        setPortalLimit(context.getSource().getPlayer(), key, limit);
-                        ServerPlayer viewer = context.getSource().getPlayer();
+                        setPortalLimit(Mc.player(context.getSource()), key, limit);
+                        ServerPlayer viewer = Mc.player(context.getSource());
                         return Msg.ok(context.getSource(), "portal.limit_set", PortalRegistry.normalizeKey(key), limit < 0 ? Lang.tr(viewer, "portal.unlimited") : limit);
                     }))))
             .then(Commands.literal("count").executes(context -> {
                 SuConfig.Portals config = SuServer.config().portals;
-                ServerPlayer viewer = context.getSource().getPlayer();
+                ServerPlayer viewer = Mc.player(context.getSource());
                 List<String> keySet = new ArrayList<>(List.of("nether", "end"));
                 config.limits.keySet().forEach(key -> {
                     if (!keySet.contains(key)) {
@@ -715,13 +716,13 @@ public final class StaffCommands {
             .then(Commands.literal("remove").then(Commands.argument("id", StringArgumentType.word()).executes(context -> {
                 String id = StringArgumentType.getString(context, "id").replace("#", "");
                 boolean removed = SuServer.get().portals().remove(id);
-                SuServer.get().log(context.getSource().getPlayer(), "portal.remove", null, "", "#" + id);
+                SuServer.get().log(Mc.player(context.getSource()), "portal.remove", null, "", "#" + id);
                 return removed ? Msg.ok(context.getSource(), "portal.removed", id) : Msg.error(context.getSource(), "portal.not_found", id);
             })))
             .then(Commands.literal("clear").then(Commands.argument("dimension", StringArgumentType.word()).suggests(keys).executes(context -> {
                 String key = StringArgumentType.getString(context, "dimension");
                 int removed = SuServer.get().portals().clear(key);
-                SuServer.get().log(context.getSource().getPlayer(), "portal.clear", null, key, removed + " portals");
+                SuServer.get().log(Mc.player(context.getSource()), "portal.clear", null, key, removed + " portals");
                 return Msg.ok(context.getSource(), "portal.cleared", removed, key);
             })));
     }
@@ -743,9 +744,9 @@ public final class StaffCommands {
         if (portals.isEmpty()) {
             return Msg.info(context.getSource(), "portal.list_empty", key == null ? "*" : key);
         }
-        ServerPlayer viewer = context.getSource().getPlayer();
+        ServerPlayer viewer = Mc.player(context.getSource());
         for (PortalRecord portal : portals) {
-            context.getSource().sendSystemMessage(Component.literal(Lang.tr(viewer, "portal.list_line", portal.id, portal.key, portal.dimension,
+            Mc.reply(context.getSource(), Texts.literal(Lang.tr(viewer, "portal.list_line", portal.id, portal.key, portal.dimension,
                 portal.x, portal.y, portal.z, portal.creatorName.isEmpty() ? "?" : portal.creatorName)).withStyle(ChatFormatting.GRAY));
         }
         return 1;
@@ -761,7 +762,7 @@ public final class StaffCommands {
         };
         return Commands.literal("dimension").requires(perm(Perm.DIMENSION_MANAGE))
             .then(Commands.literal("list").executes(context -> {
-                ServerPlayer viewer = context.getSource().getPlayer();
+                ServerPlayer viewer = Mc.player(context.getSource());
                 SuConfig.Dimensions config = SuServer.config().dimensions;
                 List<String> entries = new ArrayList<>();
                 for (ServerLevel level : context.getSource().getServer().getAllLevels()) {
@@ -777,7 +778,7 @@ public final class StaffCommands {
 
     private static int setDimension(CommandContext<CommandSourceStack> context, boolean open) {
         String input = StringArgumentType.getString(context, "dimension");
-        if (!setDimension(context.getSource().getPlayer(), input, open)) {
+        if (!setDimension(Mc.player(context.getSource()), input, open)) {
             return Msg.error(context.getSource(), "dimension.unknown", input);
         }
         return Msg.ok(context.getSource(), open ? "dimension.unblocked_now" : "dimension.blocked_now", input);
@@ -822,13 +823,13 @@ public final class StaffCommands {
         }
         ServerPlayer target = onlineTarget(context, "player");
         TrollService.apply(action, target, argument);
-        SuServer.get().log(context.getSource().getPlayer(), "troll." + action.id(), target.getUUID(), Names.realName(target), argument);
+        SuServer.get().log(Mc.player(context.getSource()), "troll." + action.id(), target.getUUID(), Names.realName(target), argument);
         return Msg.ok(context.getSource(), "troll.done", action.id(), Names.realName(target));
     }
 
     private static int announce(CommandContext<CommandSourceStack> context, TrollService.Action action, String text) {
         TrollService.broadcastTitle(context.getSource().getServer(), action, text);
-        SuServer.get().log(context.getSource().getPlayer(), "announce." + action.id(), null, "", text);
+        SuServer.get().log(Mc.player(context.getSource()), "announce." + action.id(), null, "", text);
         return 1;
     }
 
@@ -876,7 +877,7 @@ public final class StaffCommands {
     // ================================================================ vanish
 
     private static int vanish(CommandContext<CommandSourceStack> context, ServerPlayer target, Boolean value) throws CommandSyntaxException {
-        ServerPlayer actor = context.getSource().getPlayer();
+        ServerPlayer actor = Mc.player(context.getSource());
         ServerPlayer who = target != null ? target : context.getSource().getPlayerOrException();
         boolean on = value != null ? value : !VanishService.isVanished(who.getUUID());
         VanishService.set(who, on, actor);
@@ -887,7 +888,7 @@ public final class StaffCommands {
     }
 
     static MutableComponent line(String text) {
-        return Component.literal(text).withStyle(ChatFormatting.GRAY);
+        return Texts.literal(text).withStyle(ChatFormatting.GRAY);
     }
 
     static String lower(String value) {

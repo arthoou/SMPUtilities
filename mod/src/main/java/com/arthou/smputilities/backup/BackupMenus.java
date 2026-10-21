@@ -1,5 +1,7 @@
 package com.arthou.smputilities.backup;
 
+import com.arthou.smputilities.mc.Texts;
+import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.inventory.PlayerNbt;
 import com.arthou.smputilities.inventory.PlayerState;
@@ -50,7 +52,7 @@ public final class BackupMenus {
     }
 
     public static void openCategories(ServerPlayer viewer, Target target, Mode mode) {
-        ButtonMenu.open(viewer, Component.literal(Lang.tr(viewer, "backup.title.categories", shown(viewer, target))),
+        ButtonMenu.open(viewer, Texts.literal(Lang.tr(viewer, "backup.title.categories", shown(viewer, target))),
             (id, inventory) -> new Categories(id, inventory, viewer, target, mode));
     }
 
@@ -91,7 +93,7 @@ public final class BackupMenus {
             int index = slot - 9;
             if (index >= 0 && index < TYPES.length) {
                 SnapshotType type = TYPES[index];
-                ButtonMenu.open(viewer, Component.literal(typeName(viewer, type) + " · " + shown(viewer, target)),
+                ButtonMenu.open(viewer, Texts.literal(typeName(viewer, type) + " · " + shown(viewer, target)),
                     (id, inventory) -> new Entries(id, inventory, viewer, target, type, 0, mode));
             }
         }
@@ -144,10 +146,10 @@ public final class BackupMenus {
                 String snapshotId = ids.get(slot);
                 openDetail(viewer, target, snapshotId, false, type, page, mode);
             } else if (slot == 45 && page > 0) {
-                ButtonMenu.open(viewer, Component.literal(typeName(viewer, type) + " · " + shown(viewer, target)),
+                ButtonMenu.open(viewer, Texts.literal(typeName(viewer, type) + " · " + shown(viewer, target)),
                     (id, inventory) -> new Entries(id, inventory, viewer, target, type, page - 1, mode));
             } else if (slot == 53 && page + 1 < pages) {
-                ButtonMenu.open(viewer, Component.literal(typeName(viewer, type) + " · " + shown(viewer, target)),
+                ButtonMenu.open(viewer, Texts.literal(typeName(viewer, type) + " · " + shown(viewer, target)),
                     (id, inventory) -> new Entries(id, inventory, viewer, target, type, page + 1, mode));
             } else if (slot == 49) {
                 openCategories(viewer, target, mode);
@@ -163,7 +165,7 @@ public final class BackupMenus {
             return;
         }
         String title = Lang.tr(viewer, ender ? "backup.title.ender" : "backup.title.detail", snapshot.get().id(), shown(viewer, target));
-        ButtonMenu.open(viewer, Component.literal(title),
+        ButtonMenu.open(viewer, Texts.literal(title),
             (id, inventory) -> new Detail(id, inventory, viewer, target, snapshot.get(), ender, type, page, mode));
     }
 
@@ -186,7 +188,7 @@ public final class BackupMenus {
             this.type = type;
             this.page = page;
             this.mode = mode;
-            MinecraftServer server = viewer.server;
+            MinecraftServer server = Mc.server(viewer);
             CompoundTag data = BackupService.upgraded(server, snapshot.playerData());
             switch (mode) {
                 case VANILLA -> {
@@ -272,11 +274,11 @@ public final class BackupMenus {
                         Msg.error(viewer, "error.no_permission");
                         return;
                     }
-                    ButtonMenu.open(viewer, Component.literal(Lang.tr(viewer, "backup.title.transfer")),
+                    ButtonMenu.open(viewer, Texts.literal(Lang.tr(viewer, "backup.title.transfer")),
                         (id, inventory) -> new TransferTarget(id, inventory, viewer, target, snapshot, () ->
                             openDetail(viewer, target, snapshot.id(), ender, type, page, mode)));
                 }
-                case 53 -> ButtonMenu.open(viewer, Component.literal(typeName(viewer, type) + " · " + shown(viewer, target)),
+                case 53 -> ButtonMenu.open(viewer, Texts.literal(typeName(viewer, type) + " · " + shown(viewer, target)),
                     (id, inventory) -> new Entries(id, inventory, viewer, target, type, page, mode));
                 default -> {
                 }
@@ -291,7 +293,7 @@ public final class BackupMenus {
             Runnable back = () -> openDetail(viewer, target, snapshot.id(), ender, type, page, mode);
             ConfirmMenu.open(viewer, named(Items.CHEST, "ID " + snapshot.id(), time(snapshot.timestamp())),
                 Lang.tr(viewer, questionKey, shown(viewer, target)), () -> {
-                    boolean ok = BackupService.restore(viewer.server, viewer, target.id(), target.name(), snapshot, parts, compat || parts == BackupService.FULL);
+                    boolean ok = BackupService.restore(Mc.server(viewer), viewer, target.id(), target.name(), snapshot, parts, compat || parts == BackupService.FULL);
                     if (ok) {
                         Msg.ok(viewer, "backup.restored", snapshot.id(), shown(viewer, target));
                     } else {
@@ -306,7 +308,7 @@ public final class BackupMenus {
                 Msg.error(viewer, "error.no_permission");
                 return;
             }
-            ServerPlayer online = viewer.server.getPlayerList().getPlayer(target.id());
+            ServerPlayer online = Mc.server(viewer).getPlayerList().getPlayer(target.id());
             if (online == null) {
                 Msg.error(viewer, "inventory.online_only", target.name());
                 return;
@@ -340,7 +342,7 @@ public final class BackupMenus {
             this.source = source;
             this.snapshot = snapshot;
             this.back = back;
-            for (ServerPlayer player : viewer.server.getPlayerList().getPlayers()) {
+            for (ServerPlayer player : Mc.server(viewer).getPlayerList().getPlayers()) {
                 if (players.size() >= 45) {
                     break;
                 }
@@ -359,7 +361,7 @@ public final class BackupMenus {
             if (slot >= players.size()) {
                 return;
             }
-            ServerPlayer destination = viewer.server.getPlayerList().getPlayer(players.get(slot));
+            ServerPlayer destination = Mc.server(viewer).getPlayerList().getPlayer(players.get(slot));
             if (destination == null) {
                 Msg.error(viewer, "player.not_found_online", "?");
                 return;

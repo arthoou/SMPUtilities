@@ -1,5 +1,6 @@
 package com.arthou.smputilities.client.staff;
 
+import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.client.ClientState;
 import com.arthou.smputilities.client.gui.Dialog;
 import com.arthou.smputilities.client.gui.SuButton;
@@ -80,7 +81,7 @@ abstract class PanelTab {
     }
 
     protected static Component tr(String key, Object... args) {
-        return Component.translatable("panel.smputilities." + key, args);
+        return Texts.translatable("panel.smputilities." + key, args);
     }
 
     protected SuButton button(int x, int y, int width, String key, Consumer<SuButton> action) {

@@ -1,11 +1,13 @@
 package com.arthou.smputilities.client.staff;
 
+import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.client.ClientState;
 import com.arthou.smputilities.client.gui.Dialog;
 import com.arthou.smputilities.client.gui.SuButton;
 import com.arthou.smputilities.client.gui.SuScreen;
 import com.arthou.smputilities.client.gui.Theme;
 import com.arthou.smputilities.core.perm.Perm;
+import com.arthou.smputilities.client.ClientNetwork;
 import com.arthou.smputilities.network.Payloads;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -13,7 +15,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Arrays;
 import java.util.List;
@@ -57,7 +58,7 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
     private long lastFrame = Util.getMillis();
 
     public StaffPanelScreen(String tab, String target) {
-        super(Component.translatable("panel.smputilities.title"));
+        super(Texts.translatable("panel.smputilities.title"));
         this.tabId = tab == null || tab.isEmpty() ? "dashboard" : tab;
         if (target != null && !target.isEmpty()) {
             try {
@@ -72,7 +73,7 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
     // ------------------------------------------------------------ network
 
     void request(String kind, String argument) {
-        PacketDistributor.sendToServer(new Payloads.Request(kind, argument == null ? "" : argument));
+        ClientNetwork.send(new Payloads.Request(kind, argument == null ? "" : argument));
     }
 
     void action(String action, UUID target, String... arguments) {
@@ -80,13 +81,13 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
     }
 
     void action(String action, String target, String... arguments) {
-        PacketDistributor.sendToServer(new Payloads.Action(action, target == null ? "" : target, Arrays.asList(arguments)));
+        ClientNetwork.send(new Payloads.Action(action, target == null ? "" : target, Arrays.asList(arguments)));
     }
 
     // ------------------------------------------------------------ dialogs
 
     void confirm(Component title, Component message, boolean danger, Runnable onConfirm) {
-        openDialog(new Dialog.Confirm(title, message, Component.translatable(danger ? "gui.smputilities.confirm_danger" : "gui.smputilities.confirm"), danger, onConfirm));
+        openDialog(new Dialog.Confirm(title, message, Texts.translatable(danger ? "gui.smputilities.confirm_danger" : "gui.smputilities.confirm"), danger, onConfirm));
     }
 
     void form(Component title, List<Dialog.Form.Field> fields, Component submit, boolean danger, Component note, Consumer<List<String>> onSubmit) {
@@ -159,7 +160,7 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
             NavItem item = add(new NavItem(panelLeft + 6, y, SIDEBAR - 12, itemHeight - 2, info, this));
             item.active = allowed;
             if (!allowed) {
-                item.setTooltip(Tooltip.create(Component.translatable("panel.smputilities.no_permission")));
+                item.setTooltip(Tooltip.create(Texts.translatable("panel.smputilities.no_permission")));
             }
             if (info.id().equals(tabId) && indicatorY < 0) {
                 indicatorY = y;
@@ -170,12 +171,12 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
         if (ClientState.has(Perm.STAFF_VANISH)) {
             boolean vanished = minecraft != null && minecraft.player != null && ClientState.isVanished(minecraft.player.getUUID());
             add(new SuButton(panelLeft + 6, bottom - 40, SIDEBAR - 12, 18,
-                Component.translatable(vanished ? "panel.smputilities.vanish_off" : "panel.smputilities.vanish_on"),
+                Texts.translatable(vanished ? "panel.smputilities.vanish_off" : "panel.smputilities.vanish_on"),
                 button -> action("vanish_self", "")).kind(vanished ? SuButton.Kind.PRIMARY : SuButton.Kind.GHOST).icon("◐"));
         }
         if (ClientState.has(Perm.STAFF_REALNAMES)) {
             add(new SuButton(panelLeft + 6, bottom - 20, SIDEBAR - 12, 18,
-                Component.translatable(ClientState.realNames() ? "panel.smputilities.realnames_off" : "panel.smputilities.realnames_on"),
+                Texts.translatable(ClientState.realNames() ? "panel.smputilities.realnames_off" : "panel.smputilities.realnames_on"),
                 button -> action("realnames", "", String.valueOf(!ClientState.realNames()))).kind(ClientState.realNames() ? SuButton.Kind.PRIMARY : SuButton.Kind.GHOST).icon("⚑"));
         }
 
@@ -276,8 +277,8 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
         int logoY = panelTop + 12;
         Theme.roundRect(graphics, logoX, logoY, logoX + 20, logoY + 20, Theme.ACCENT);
         graphics.drawString(font, "SU", logoX + 4, logoY + 6, Theme.ACCENT_TEXT, false);
-        graphics.drawString(font, Component.literal("SMPutilities").withStyle(ChatFormatting.BOLD), logoX + 26, logoY + 2, Theme.TEXT, false);
-        graphics.drawString(font, Component.translatable("panel.smputilities.subtitle"), logoX + 26, logoY + 12, Theme.TEXT_DIM, false);
+        graphics.drawString(font, Texts.literal("SMPutilities").withStyle(ChatFormatting.BOLD), logoX + 26, logoY + 2, Theme.TEXT, false);
+        graphics.drawString(font, Texts.translatable("panel.smputilities.subtitle"), logoX + 26, logoY + 12, Theme.TEXT_DIM, false);
 
         // selection indicator
         int available = panelHeight - 44 - 52;
@@ -286,9 +287,9 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
         graphics.fill(panelLeft + 6, Math.round(indicatorY) + 3, panelLeft + 8, Math.round(indicatorY) + itemHeight - 5, Theme.ACCENT);
 
         // header of the current tab
-        Component header = Component.translatable("panel.smputilities.tab." + tabId);
+        Component header = Texts.translatable("panel.smputilities.tab." + tabId);
         graphics.drawString(font, header.copy().withStyle(ChatFormatting.BOLD), contentLeft(), panelTop + 12, Theme.TEXT, false);
-        graphics.drawString(font, Component.translatable("panel.smputilities.tab." + tabId + ".hint"), contentLeft(), panelTop + 24, Theme.TEXT_DIM, false);
+        graphics.drawString(font, Texts.translatable("panel.smputilities.tab." + tabId + ".hint"), contentLeft(), panelTop + 24, Theme.TEXT_DIM, false);
         renderStatus(graphics);
         graphics.fill(contentLeft(), panelTop + 37, contentRight(), panelTop + 38, Theme.BORDER);
 

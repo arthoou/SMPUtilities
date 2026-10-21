@@ -1,5 +1,7 @@
 package com.arthou.smputilities.tts;
 
+import com.arthou.smputilities.mc.Texts;
+import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.chat.ChatService;
 import com.arthou.smputilities.core.chat.Placeholders;
 import com.arthou.smputilities.core.config.SuConfig;
@@ -66,10 +68,10 @@ public final class TtsService {
         MutableComponent line = Msg.styled(SuServer.config().tts.chatMarker)
             .append(Names.display(speaker))
             .append(Msg.styled("&8 » &7" + Placeholders.escapeCodes(text)));
-        speaker.server.sendSystemMessage(line);
-        for (ServerPlayer recipient : speaker.server.getPlayerList().getPlayers()) {
+        Mc.console(Mc.server(speaker), line);
+        for (ServerPlayer recipient : Mc.server(speaker).getPlayerList().getPlayers()) {
             if (recipient.getChatVisibility() == ChatVisiblity.FULL && !ChatService.isIgnoring(recipient, speaker)) {
-                recipient.sendSystemMessage(line);
+                Mc.send(recipient, line);
             }
         }
     }
@@ -120,7 +122,7 @@ public final class TtsService {
             record.ttsMode = mode;
             record.ttsLanguage = language.name();
         });
-        player.sendSystemMessage(Msg.prefix().append(Component.translatable("tts.enabled_selection", TtsPresets.selectionComponent(mode, language))));
+        Mc.send(player, Msg.prefix().append(Texts.translatable("tts.enabled_selection", TtsPresets.selectionComponent(mode, language))));
     }
 
     public static void openMenu(ServerPlayer player) {

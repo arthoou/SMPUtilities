@@ -1,5 +1,6 @@
 package com.arthou.smputilities.util;
 
+import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.server.Lang;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -25,7 +26,7 @@ public final class ConfirmMenu extends ButtonMenu {
     }
 
     public static void open(ServerPlayer viewer, ItemStack subject, String question, Runnable onConfirm, Runnable onCancel) {
-        ButtonMenu.open(viewer, Component.literal(Lang.tr(viewer, "gui.confirm_title")),
+        ButtonMenu.open(viewer, Texts.literal(Lang.tr(viewer, "gui.confirm_title")),
             (id, inventory) -> new ConfirmMenu(id, inventory, viewer, subject, question, onConfirm, onCancel));
     }
 

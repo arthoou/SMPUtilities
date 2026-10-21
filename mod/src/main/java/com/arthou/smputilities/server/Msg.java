@@ -1,5 +1,7 @@
 package com.arthou.smputilities.server;
 
+import com.arthou.smputilities.mc.Mc;
+import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.core.chat.StyledText;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -25,7 +27,7 @@ public final class Msg {
     }
 
     public static MutableComponent styled(StyledText text) {
-        MutableComponent root = Component.empty();
+        MutableComponent root = Texts.empty();
         for (StyledText.Run run : text.runs()) {
             if (run.text().isEmpty()) {
                 continue;
@@ -49,54 +51,54 @@ public final class Msg {
             if (run.obfuscated()) {
                 style = style.withObfuscated(true);
             }
-            root.append(Component.literal(run.text()).setStyle(style));
+            root.append(Texts.literal(run.text()).setStyle(style));
         }
         return root;
     }
 
     public static MutableComponent prefix() {
-        return Component.empty()
-            .append(Component.literal("SMPU").withStyle(Style.EMPTY.withColor(ACCENT).withBold(true)))
-            .append(Component.literal(" » ").withStyle(ChatFormatting.DARK_GRAY));
+        return Texts.empty()
+            .append(Texts.literal("SMPU").withStyle(Style.EMPTY.withColor(ACCENT).withBold(true)))
+            .append(Texts.literal(" » ").withStyle(ChatFormatting.DARK_GRAY));
     }
 
     public static MutableComponent tr(ServerPlayer player, String key, Object... args) {
-        return Component.literal(Lang.tr(player, key, args));
+        return Texts.literal(Lang.tr(player, key, args));
     }
 
     public static void info(ServerPlayer player, String key, Object... args) {
-        player.sendSystemMessage(prefix().append(tr(player, key, args).withStyle(ChatFormatting.GRAY)));
+        Mc.send(player, prefix().append(tr(player, key, args).withStyle(ChatFormatting.GRAY)));
     }
 
     public static void ok(ServerPlayer player, String key, Object... args) {
-        player.sendSystemMessage(prefix().append(tr(player, key, args).withStyle(Style.EMPTY.withColor(ACCENT))));
+        Mc.send(player, prefix().append(tr(player, key, args).withStyle(Style.EMPTY.withColor(ACCENT))));
     }
 
     public static void error(ServerPlayer player, String key, Object... args) {
-        player.sendSystemMessage(prefix().append(tr(player, key, args).withStyle(Style.EMPTY.withColor(DANGER))));
+        Mc.send(player, prefix().append(tr(player, key, args).withStyle(Style.EMPTY.withColor(DANGER))));
     }
 
     public static int ok(CommandSourceStack source, String key, Object... args) {
-        ServerPlayer player = source.getPlayer();
+        ServerPlayer player = Mc.player(source);
         MutableComponent text = prefix().append(tr(player, key, args).withStyle(Style.EMPTY.withColor(ACCENT)));
-        source.sendSuccess(() -> text, false);
+        Mc.reply(source, text);
         return 1;
     }
 
     public static int info(CommandSourceStack source, String key, Object... args) {
-        ServerPlayer player = source.getPlayer();
+        ServerPlayer player = Mc.player(source);
         MutableComponent text = prefix().append(tr(player, key, args).withStyle(ChatFormatting.GRAY));
-        source.sendSuccess(() -> text, false);
+        Mc.reply(source, text);
         return 1;
     }
 
     public static int error(CommandSourceStack source, String key, Object... args) {
-        source.sendFailure(prefix().append(tr(source.getPlayer(), key, args).withStyle(Style.EMPTY.withColor(DANGER))));
+        source.sendFailure(prefix().append(tr(Mc.player(source), key, args).withStyle(Style.EMPTY.withColor(DANGER))));
         return 0;
     }
 
     public static void raw(CommandSourceStack source, Component text) {
-        source.sendSuccess(() -> text, false);
+        Mc.reply(source, text);
     }
 
     /** Sends {@code key} to every online player in their own language. */
@@ -108,6 +110,6 @@ public final class Msg {
         for (ServerPlayer player : context.server().getPlayerList().getPlayers()) {
             info(player, key, args);
         }
-        context.server().sendSystemMessage(Component.literal(Lang.format(Lang.EN, key, args)));
+        Mc.console(context.server(), Texts.literal(Lang.format(Lang.EN, key, args)));
     }
 }

@@ -1,5 +1,7 @@
 package com.arthou.smputilities.chat;
 
+import com.arthou.smputilities.mc.Texts;
+import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.core.config.SuConfig;
 import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.core.player.PlayerRecord;
@@ -113,7 +115,7 @@ public final class ChatCommands {
     private static int message(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
         String targetName = StringArgumentType.getString(context, "target");
-        Optional<Names.Target> target = Names.resolve(source.getServer(), targetName, source.getPlayer());
+        Optional<Names.Target> target = Names.resolve(source.getServer(), targetName, Mc.player(source));
         if (target.isEmpty() || !target.get().isOnline()) {
             return Msg.error(source, "player.not_found_online", targetName);
         }
@@ -123,7 +125,7 @@ public final class ChatCommands {
     private static int reply(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer sender = context.getSource().getPlayerOrException();
         UUID last = SuServer.get().players().get(sender.getUUID()).lastMessaged;
-        ServerPlayer target = last == null ? null : sender.server.getPlayerList().getPlayer(last);
+        ServerPlayer target = last == null ? null : Mc.server(sender).getPlayerList().getPlayer(last);
         if (target == null || !com.arthou.smputilities.vanish.VanishService.canSee(sender, target)) {
             return Msg.error(context.getSource(), "msg.no_reply");
         }
@@ -132,7 +134,7 @@ public final class ChatCommands {
 
     /** Delivers a private message. Console can message players too. */
     public static int send(CommandSourceStack source, ServerPlayer target, String text) {
-        ServerPlayer sender = source.getPlayer();
+        ServerPlayer sender = Mc.player(source);
         SuConfig.Chat config = SuServer.config().chat;
         if (sender != null) {
             if (sender == target) {
@@ -156,22 +158,22 @@ public final class ChatCommands {
         MutableComponent toSender = Msg.styled(Placeholders.apply(config.privateFormatOutgoing, outgoing));
         MutableComponent toTarget = Msg.styled(Placeholders.apply(config.privateFormatIncoming, outgoing));
 
-        source.sendSystemMessage(toSender);
-        target.sendSystemMessage(toTarget);
+        Mc.reply(source, toSender);
+        Mc.send(target, toTarget);
         target.playNotifySound(SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, 0.5F, 1.2F);
         SuServer context = SuServer.get();
         if (sender != null) {
             context.players().update(sender.getUUID(), record -> record.lastMessaged = target.getUUID());
             context.players().update(target.getUUID(), record -> record.lastMessaged = sender.getUUID());
         }
-        Component spy = Component.literal("[spy] " + (sender == null ? "Console" : Names.realName(sender)) + " → " + Names.realName(target) + ": " + text)
+        Component spy = Texts.literal("[spy] " + (sender == null ? "Console" : Names.realName(sender)) + " → " + Names.realName(target) + ": " + text)
             .withStyle(ChatFormatting.DARK_GRAY);
-        for (ServerPlayer staff : target.server.getPlayerList().getPlayers()) {
+        for (ServerPlayer staff : Mc.server(target).getPlayerList().getPlayers()) {
             if (staff != sender && staff != target && context.players().get(staff.getUUID()).socialSpy && Perms.has(staff, Perm.CHAT_MANAGE)) {
-                staff.sendSystemMessage(spy);
+                Mc.send(staff, spy);
             }
         }
-        target.server.sendSystemMessage(spy);
+        Mc.console(Mc.server(target), spy);
         return 1;
     }
 
@@ -182,7 +184,7 @@ public final class ChatCommands {
     private static int toggleIgnore(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = context.getSource().getPlayerOrException();
         String input = StringArgumentType.getString(context, "target");
-        Optional<Names.Target> target = Names.resolve(player.server, input, player);
+        Optional<Names.Target> target = Names.resolve(Mc.server(player), input, player);
         if (target.isEmpty()) {
             return Msg.error(context.getSource(), "player.not_found", input);
         }
@@ -212,7 +214,7 @@ public final class ChatCommands {
             if (names.length() > 0) {
                 names.append(", ");
             }
-            names.append(Names.plainDisplay(id, Names.offlineName(player.server, id).orElse(id.toString().substring(0, 8))));
+            names.append(Names.plainDisplay(id, Names.offlineName(Mc.server(player), id).orElse(id.toString().substring(0, 8))));
         }
         return Msg.info(context.getSource(), "ignore.list", names.toString());
     }

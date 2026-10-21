@@ -1,6 +1,8 @@
 package com.arthou.smputilities.inventory;
 
 import com.arthou.smputilities.core.perm.Perm;
+import com.arthou.smputilities.mc.Mc;
+import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.server.Lang;
 import com.arthou.smputilities.server.Msg;
 import com.arthou.smputilities.server.Names;
@@ -24,11 +26,21 @@ public final class InventoryViews {
         return Perms.has(viewer, Perm.STAFF_INVENTORY_EDIT) && (online || SuServer.config().inventory.allowOfflineEdit);
     }
 
+    /** Edit rights for this view; a second editor of the same offline data only gets to look. */
+    private static boolean editable(ServerPlayer viewer, Names.Target target, boolean online, boolean ender) {
+        boolean edit = canEdit(viewer, online);
+        if (edit && !online && TargetInventoryMenu.isOfflineEditOpen(target.id(), ender)) {
+            Msg.info(viewer, "inventory.offline_busy");
+            return false;
+        }
+        return edit;
+    }
+
     public static boolean openInventory(ServerPlayer viewer, Names.Target target) {
-        MinecraftServer server = viewer.server;
+        MinecraftServer server = Mc.server(viewer);
         ServerPlayer online = server.getPlayerList().getPlayer(target.id());
-        boolean edit = canEdit(viewer, online != null);
-        Component title = Component.literal(Lang.tr(viewer, edit ? "inventory.title_edit" : "inventory.title", display(viewer, target)));
+        boolean edit = editable(viewer, target, online != null, false);
+        Component title = Texts.literal(Lang.tr(viewer, edit ? "inventory.title_edit" : "inventory.title", display(viewer, target)));
         if (online != null) {
             viewer.openMenu(new SimpleMenuProvider((id, inventory, player) -> TargetInventoryMenu.live(id, inventory, online, edit), title));
         } else {
@@ -46,10 +58,10 @@ public final class InventoryViews {
     }
 
     public static boolean openEnderChest(ServerPlayer viewer, Names.Target target) {
-        MinecraftServer server = viewer.server;
+        MinecraftServer server = Mc.server(viewer);
         ServerPlayer online = server.getPlayerList().getPlayer(target.id());
-        boolean edit = canEdit(viewer, online != null);
-        Component title = Component.literal(Lang.tr(viewer, edit ? "inventory.ender_title_edit" : "inventory.ender_title", display(viewer, target)));
+        boolean edit = editable(viewer, target, online != null, true);
+        Component title = Texts.literal(Lang.tr(viewer, edit ? "inventory.ender_title_edit" : "inventory.ender_title", display(viewer, target)));
         if (online != null) {
             viewer.openMenu(new SimpleMenuProvider((id, inventory, player) -> TargetInventoryMenu.liveEnderChest(id, inventory, online, edit), title));
         } else {
@@ -75,7 +87,7 @@ public final class InventoryViews {
         boolean edit = canEdit(viewer, true);
         viewer.openMenu(new SimpleMenuProvider((id, inventory, player) ->
             new TargetExtraInventoryMenu(id, inventory, compat.rightSlots(), compat.saveHook(), edit),
-            Component.literal(Lang.tr(viewer, "inventory.curios_title", Names.realName(target)))));
+            Texts.literal(Lang.tr(viewer, "inventory.curios_title", Names.realName(target)))));
         return true;
     }
 
@@ -88,7 +100,7 @@ public final class InventoryViews {
         boolean edit = canEdit(viewer, true);
         viewer.openMenu(new SimpleMenuProvider((id, inventory, player) ->
             new TargetExtraInventoryMenu(id, inventory, compat.leftSlots(), compat.saveHook(), edit),
-            Component.literal(Lang.tr(viewer, "inventory.cosmetic_title", Names.realName(target)))));
+            Texts.literal(Lang.tr(viewer, "inventory.cosmetic_title", Names.realName(target)))));
         return true;
     }
 

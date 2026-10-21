@@ -11,7 +11,8 @@ import com.arthou.smputilities.core.util.SuLog;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
-import net.neoforged.fml.loading.FMLPaths;
+import com.arthou.smputilities.mc.Mc;
+import com.arthou.smputilities.platform.Platform;
 
 import java.nio.file.Path;
 import java.util.UUID;
@@ -24,8 +25,7 @@ import java.util.UUID;
 public final class SuServer {
     private static volatile SuServer instance;
     /** Config survives between integrated-server sessions, so it is loaded once. */
-    private static final ConfigManager CONFIG = new ConfigManager(FMLPaths.CONFIGDIR.get().resolve("smputilities").resolve("server.json"));
-    private static boolean configLoaded;
+    private static volatile ConfigManager config;
 
     private final MinecraftServer server;
     private final Path dataDir;
@@ -52,7 +52,7 @@ public final class SuServer {
         created.punishments.load();
         created.teleports.load();
         created.portals.load();
-        created.audit.prune(CONFIG.get().staff.auditRetentionDays);
+        created.audit.prune(config().staff.auditRetentionDays);
         instance = created;
         SuLog.info("SMPutilities data folder: " + created.dataDir);
         return created;
@@ -77,17 +77,23 @@ public final class SuServer {
 
     public static ConfigManager configManager() {
         config();
-        return CONFIG;
+        return config;
     }
 
+    /** The server config, loaded from config/smputilities/server.json on first use. */
     public static SuConfig config() {
-        synchronized (SuServer.class) {
-            if (!configLoaded) {
-                configLoaded = true;
-                CONFIG.load();
+        ConfigManager manager = config;
+        if (manager == null) {
+            synchronized (SuServer.class) {
+                if (config == null) {
+                    ConfigManager created = new ConfigManager(Platform.get().configDir().resolve("smputilities").resolve("server.json"));
+                    created.load();
+                    config = created;
+                }
+                manager = config;
             }
         }
-        return CONFIG.get();
+        return manager.get();
     }
 
     public MinecraftServer server() {
@@ -120,7 +126,7 @@ public final class SuServer {
 
     /** Records an administrative action with the acting player (null for console). */
     public void log(ServerPlayer actor, String action, UUID target, String targetName, String details) {
-        audit.record(actor == null ? null : actor.getUUID(), actor == null ? "Console" : actor.getGameProfile().getName(),
+        audit.record(actor == null ? null : actor.getUUID(), actor == null ? "Console" : Mc.name(actor),
             action, target, targetName, details);
     }
 }

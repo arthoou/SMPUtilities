@@ -1,5 +1,7 @@
 package com.arthou.smputilities.vanish;
 
+import com.arthou.smputilities.mc.Texts;
+import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.chat.ChatService;
 import com.arthou.smputilities.core.config.SuConfig;
 import com.arthou.smputilities.core.perm.Perm;
@@ -84,7 +86,7 @@ public final class VanishService {
             Msg.ok(player, "vanish.enabled");
         } else {
             Msg.ok(player, "vanish.disabled");
-            player.displayClientMessage(Component.empty(), true);
+            player.displayClientMessage(Texts.empty(), true);
         }
         context.log(actor, vanish ? "vanish.on" : "vanish.off", player.getUUID(), player.getGameProfile().getName(), "");
         SuNetwork.syncStateToStaff(context.server());
@@ -92,7 +94,7 @@ public final class VanishService {
 
     /** Re-applies visibility of {@code target} for every online viewer. */
     public static void refresh(ServerPlayer target) {
-        MinecraftServer server = target.server;
+        MinecraftServer server = Mc.server(target);
         boolean hideTab = SuServer.config().vanish.hideFromTabList;
         Object tracked = ((ChunkMapAccessor) target.serverLevel().getChunkSource().chunkMap).smputilities$entityMap().get(target.getId());
         for (ServerPlayer viewer : server.getPlayerList().getPlayers()) {
@@ -118,7 +120,7 @@ public final class VanishService {
             return;
         }
         boolean hideTab = SuServer.config().vanish.hideFromTabList;
-        for (ServerPlayer other : player.server.getPlayerList().getPlayers()) {
+        for (ServerPlayer other : Mc.server(player).getPlayerList().getPlayers()) {
             if (other != player && isHiddenFrom(player, other) && hideTab) {
                 player.connection.send(new ClientboundPlayerInfoRemovePacket(List.of(other.getUUID())));
             }
@@ -147,7 +149,7 @@ public final class VanishService {
         for (UUID id : VANISHED) {
             ServerPlayer player = server.getPlayerList().getPlayer(id);
             if (player != null) {
-                player.displayClientMessage(Component.literal(Lang.tr(player, "vanish.indicator"))
+                player.displayClientMessage(Texts.literal(Lang.tr(player, "vanish.indicator"))
                     .withStyle(Style.EMPTY.withColor(Msg.ACCENT).withBold(true)), true);
             }
         }

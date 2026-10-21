@@ -44,6 +44,10 @@ public final class Preprocessor {
     private record CompiledSwap(Pattern pattern, String replacement) {
     }
 
+    private static boolean isWord(char c) {
+        return Character.isLetterOrDigit(c) || c == '_' || c == '$';
+    }
+
     /**
      * @param minecraft target version, for example "1.20.1"
      * @param flags     names that are true, for example FABRIC; every other name is false
@@ -53,8 +57,11 @@ public final class Preprocessor {
         this.flags = flags;
         for (Swap swap : swapRules) {
             if (evaluate(swap.condition(), "swap rule " + swap.from())) {
-                swaps.add(new CompiledSwap(Pattern.compile("(?<![\\w$])" + Pattern.quote(swap.from()) + "(?![\\w$])"),
-                    Matcher.quoteReplacement(swap.to())));
+                // Word boundaries only where the text starts or ends with a word character, so ".location()" works too.
+                String from = swap.from();
+                String before = isWord(from.charAt(0)) ? "(?<![\\w$])" : "";
+                String after = isWord(from.charAt(from.length() - 1)) ? "(?![\\w$])" : "";
+                swaps.add(new CompiledSwap(Pattern.compile(before + Pattern.quote(from) + after), Matcher.quoteReplacement(swap.to())));
             }
         }
     }

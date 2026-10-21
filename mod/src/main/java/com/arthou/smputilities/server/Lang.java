@@ -1,5 +1,6 @@
 package com.arthou.smputilities.server;
 
+import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.SmpUtilities;
 import com.arthou.smputilities.core.util.SuLog;
 import com.google.gson.JsonElement;
@@ -59,7 +60,7 @@ public final class Lang {
         if (player == null) {
             return EN;
         }
-        String client = player.clientInformation().language();
+        String client = Mc.language(player);
         return client != null && client.toLowerCase(Locale.ROOT).startsWith("pt") ? PT : EN;
     }
 

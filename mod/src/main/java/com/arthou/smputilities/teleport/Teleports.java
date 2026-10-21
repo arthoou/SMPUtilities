@@ -1,5 +1,8 @@
 package com.arthou.smputilities.teleport;
 
+import com.arthou.smputilities.mc.Ids;
+import com.arthou.smputilities.mc.Texts;
+import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.core.config.SuConfig;
 import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.core.teleport.Cooldowns;
@@ -45,7 +48,7 @@ public final class Teleports {
     }
 
     public static ServerLevel level(MinecraftServer server, String dimension) {
-        ResourceLocation id = ResourceLocation.tryParse(dimension);
+        ResourceLocation id = Ids.parse(dimension);
         if (id == null) {
             return null;
         }
@@ -54,7 +57,7 @@ public final class Teleports {
 
     /** Immediate teleport. Saves the current position for /back when asked. */
     public static boolean teleport(ServerPlayer player, Location location, boolean saveBack) {
-        ServerLevel level = level(player.server, location.dimension());
+        ServerLevel level = level(Mc.server(player), location.dimension());
         if (level == null) {
             Msg.error(player, "teleport.world_unavailable");
             return false;
@@ -128,7 +131,7 @@ public final class Teleports {
                 complete(player, pending);
             } else {
                 long secondsLeft = (pending.fireAt() - now + 999) / 1000;
-                player.displayClientMessage(Component.literal(Lang.tr(player, "teleport.countdown", secondsLeft)), true);
+                player.displayClientMessage(Texts.literal(Lang.tr(player, "teleport.countdown", secondsLeft)), true);
             }
         }
     }
@@ -168,7 +171,7 @@ public final class Teleports {
     }
 
     public static ResourceKey<Level> dimensionKey(String dimension) {
-        ResourceLocation id = ResourceLocation.tryParse(dimension);
+        ResourceLocation id = Ids.parse(dimension);
         return id == null ? Level.OVERWORLD : ResourceKey.create(Registries.DIMENSION, id);
     }
 }

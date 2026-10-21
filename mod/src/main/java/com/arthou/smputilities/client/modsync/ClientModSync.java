@@ -9,7 +9,6 @@ import com.arthou.smputilities.network.Payloads;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.resolver.ServerAddress;
-import net.neoforged.fml.loading.FMLPaths;
 
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
@@ -31,11 +30,11 @@ public final class ClientModSync {
     }
 
     public static Path modsDir() {
-        return FMLPaths.GAMEDIR.get().resolve("mods");
+        return com.arthou.smputilities.platform.Platform.get().gameDir().resolve("mods");
     }
 
     public static Path stateDir() {
-        return FMLPaths.CONFIGDIR.get().resolve("smputilities").resolve("modsync-client");
+        return com.arthou.smputilities.platform.Platform.get().configDir().resolve("smputilities").resolve("modsync-client");
     }
 
     public static void received(Payloads.Manifest payload) {

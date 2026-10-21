@@ -1,3 +1,27 @@
 # Whole-word renames applied to active source lines when the condition holds,
-# for classes Mojang renamed. Format: condition | from => to
+# for game members Mojang renamed. Rules apply in this order.
+# Format: condition | from => to   (text starting or ending with a word
+# character only matches at word boundaries)
+
+# 1.21.11: ResourceLocation became Identifier, ResourceKey.location() became identifier().
 MC>=1.21.11 | ResourceLocation => Identifier
+MC>=1.21.11 | .location() => .identifier()
+
+# 1.21.9: GameProfile became a record.
+MC>=1.21.9 | .getGameProfile().getName() => .getGameProfile().name()
+MC>=1.21.9 | .getGameProfile().getId() => .getGameProfile().id()
+
+# 1.21.6: ServerPlayer.level() returns the ServerLevel; serverLevel() is gone.
+MC>=1.21.6 | .serverLevel() => .level()
+
+# Before 1.20 the level was reached with getLevel() (ServerPlayer's returns the ServerLevel).
+MC<1.20 | .serverLevel() => .getLevel()
+MC<1.20 | .level() => .getLevel()
+MC<1.20 | .onGround() => .isOnGround()
+
+# 1.21.5: CompoundTag.getAllKeys() became keySet().
+MC>=1.21.5 | .getAllKeys() => .keySet()
+
+# Before 1.19.3 the built-in registries were static fields of Registry.
+MC<1.19.3 | net.minecraft.core.registries.BuiltInRegistries => net.minecraft.core.Registry
+MC<1.19.3 | BuiltInRegistries => Registry

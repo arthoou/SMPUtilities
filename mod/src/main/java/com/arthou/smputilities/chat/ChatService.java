@@ -1,5 +1,8 @@
 package com.arthou.smputilities.chat;
 
+import com.arthou.smputilities.mc.Ids;
+import com.arthou.smputilities.mc.Texts;
+import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.core.chat.MentionFinder;
 import com.arthou.smputilities.core.chat.Placeholders;
 import com.arthou.smputilities.core.chat.SpamGuard;
@@ -135,7 +138,7 @@ public final class ChatService {
     }
 
     private static void broadcastFormatted(ServerPlayer sender, String text, Set<UUID> mentioned) {
-        MinecraftServer server = sender.server;
+        MinecraftServer server = Mc.server(sender);
         SuConfig.Chat config = SuServer.config().chat;
         boolean colors = config.playerColors && Perms.has(sender, Perm.CHAT_COLOR);
         String role = role(sender);
@@ -159,18 +162,18 @@ public final class ChatService {
 
         MutableComponent publicLine = assemble(line, nameMarker, nameComponent(sender, false));
         MutableComponent staffLine = assemble(line, nameMarker, nameComponent(sender, true));
-        server.sendSystemMessage(staffLine);
+        Mc.console(server, staffLine);
         for (ServerPlayer recipient : server.getPlayerList().getPlayers()) {
             if (recipient.getChatVisibility() != ChatVisiblity.FULL || isIgnoring(recipient, sender)) {
                 continue;
             }
-            recipient.sendSystemMessage(showsRealNames(recipient) ? staffLine : publicLine);
+            Mc.send(recipient, showsRealNames(recipient) ? staffLine : publicLine);
         }
     }
 
     /** Splits the formatted line at the name marker so the name keeps its own colors and hover. */
     private static MutableComponent assemble(String line, String marker, Component name) {
-        MutableComponent result = Component.empty();
+        MutableComponent result = Texts.empty();
         int index = line.indexOf(marker);
         if (index < 0) {
             return result.append(Msg.styled(line));
@@ -183,7 +186,7 @@ public final class ChatService {
         if (name.getStyle().getColor() == null && !beforeText.runs().isEmpty()) {
             StyledText.Run last = beforeText.runs().get(beforeText.runs().size() - 1);
             if (last.color() >= 0) {
-                named = Component.empty().withStyle(Style.EMPTY.withColor(last.color())).append(name);
+                named = Texts.empty().withStyle(Style.EMPTY.withColor(last.color())).append(name);
             }
         }
         result.append(named);
@@ -212,11 +215,11 @@ public final class ChatService {
         String real = Names.realName(player);
         boolean hasNick = !Names.nickname(player.getUUID()).isEmpty();
         if (withRealName && hasNick) {
-            name = Component.empty().append(name).append(Component.literal(" (" + real + ")").withStyle(ChatFormatting.DARK_GRAY));
+            name = Texts.empty().append(name).append(Texts.literal(" (" + real + ")").withStyle(ChatFormatting.DARK_GRAY));
         }
         if (withRealName || !hasNick || !SuServer.config().nicknames.hideRealNames) {
-            MutableComponent hover = Component.literal(real).withStyle(ChatFormatting.GRAY);
-            name = name.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
+            MutableComponent hover = Texts.literal(real).withStyle(ChatFormatting.GRAY);
+            name = name.withStyle(style -> style.withHoverEvent(Texts.showText(hover)));
         }
         return name;
     }
@@ -275,7 +278,7 @@ public final class ChatService {
             return Set.of();
         }
         List<MentionFinder.Candidate<UUID>> candidates = new ArrayList<>();
-        for (ServerPlayer player : sender.server.getPlayerList().getPlayers()) {
+        for (ServerPlayer player : Mc.server(sender).getPlayerList().getPlayers()) {
             if (player == sender || !VanishService.canSee(sender, player)) {
                 continue;
             }
@@ -289,7 +292,7 @@ public final class ChatService {
         Set<UUID> found = MentionFinder.find(text, candidates, config.requireAtSign);
         SuServer context = SuServer.get();
         for (UUID id : found) {
-            ServerPlayer target = sender.server.getPlayerList().getPlayer(id);
+            ServerPlayer target = Mc.server(sender).getPlayerList().getPlayer(id);
             if (target == null || context == null || isIgnoring(target, sender)) {
                 continue;
             }
@@ -305,7 +308,7 @@ public final class ChatService {
     }
 
     public static void playSound(ServerPlayer player, String soundId, float volume, float pitch) {
-        ResourceLocation id = ResourceLocation.tryParse(soundId);
+        ResourceLocation id = Ids.parse(soundId);
         if (id == null) {
             return;
         }
@@ -346,20 +349,20 @@ public final class ChatService {
 
         Component publicLine = presenceLine(player, join, false);
         Component staffLine = presenceLine(player, join, true);
-        context.server().sendSystemMessage(staffLine);
+        Mc.console(context.server(), staffLine);
         for (ServerPlayer recipient : context.server().getPlayerList().getPlayers()) {
             if (recipient == player && !join) {
                 continue;
             }
             if (hidden) {
                 if (recipient != player && Perms.has(recipient, Perm.STAFF_VANISH_SEE)) {
-                    recipient.sendSystemMessage(Component.empty()
-                        .append(Component.literal(Lang.tr(recipient, "vanish.presence_tag") + " ").withStyle(ChatFormatting.DARK_GRAY))
+                    Mc.send(recipient, Texts.empty()
+                        .append(Texts.literal(Lang.tr(recipient, "vanish.presence_tag") + " ").withStyle(ChatFormatting.DARK_GRAY))
                         .append(staffLine));
                 }
                 continue;
             }
-            recipient.sendSystemMessage(showsRealNames(recipient) ? staffLine : publicLine);
+            Mc.send(recipient, showsRealNames(recipient) ? staffLine : publicLine);
         }
     }
 
@@ -368,7 +371,7 @@ public final class ChatService {
         Component name = nameComponent(player, withRealName);
         if (!config.customFormat) {
             // Wrapped so PresenceFilter lets it through.
-            return Component.empty().append(Component.translatable(join ? "multiplayer.player.joined" : "multiplayer.player.left", name)
+            return Texts.empty().append(Texts.translatable(join ? "multiplayer.player.joined" : "multiplayer.player.left", name)
                 .withStyle(ChatFormatting.YELLOW));
         }
         String marker = "\u0000NAME\u0000";
@@ -384,6 +387,6 @@ public final class ChatService {
     public static void serverAnnouncement(MinecraftServer server, String text) {
         SuConfig.Chat config = SuServer.config().chat;
         Component line = Msg.styled(config.serverPrefix + text);
-        server.getPlayerList().broadcastSystemMessage(line, false);
+        Mc.broadcast(server, line);
     }
 }

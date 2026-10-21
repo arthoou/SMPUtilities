@@ -1,5 +1,7 @@
 package com.arthou.smputilities.moderation;
 
+import com.arthou.smputilities.mc.Mc;
+import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.core.config.SuConfig;
 import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.core.punish.Punishment;
@@ -75,7 +77,7 @@ public final class PunishmentService {
         Punishment record = context.punishments().issue(PunishmentType.KICK, target.getUUID(), Names.realName(target),
             actor == null ? null : actor.getUUID(), actorName(actor), why, 0, System.currentTimeMillis());
         context.log(actor, "kick", target.getUUID(), Names.realName(target), why);
-        target.connection.disconnect(Component.literal(Lang.tr(target, "punish.kicked_screen", why)));
+        target.connection.disconnect(Texts.literal(Lang.tr(target, "punish.kicked_screen", why)));
         announce(server, "punish.announce.kick", new Names.Target(target.getUUID(), Names.realName(target), null), record);
     }
 
@@ -124,7 +126,7 @@ public final class PunishmentService {
         context.log(actor, "warn", target.id(), target.name(), reason);
         ServerPlayer online = server.getPlayerList().getPlayer(target.id());
         if (online != null) {
-            online.sendSystemMessage(Msg.prefix().append(Component.literal(Lang.tr(online, "punish.warned_you", reason))
+            Mc.send(online, Msg.prefix().append(Texts.literal(Lang.tr(online, "punish.warned_you", reason))
                 .withStyle(ChatFormatting.GOLD)));
         }
         return record;
@@ -152,7 +154,7 @@ public final class PunishmentService {
 
     private static Component banScreen(ServerPlayer player, Punishment record) {
         String duration = record.isPermanent() ? Lang.tr(player, "punish.permanent") : Durations.format(record.remaining(System.currentTimeMillis()));
-        return Component.literal(Lang.tr(player, "punish.banned_screen", record.reason, duration));
+        return Texts.literal(Lang.tr(player, "punish.banned_screen", record.reason, duration));
     }
 
     private static void announce(MinecraftServer server, String key, Names.Target target, Punishment record) {
