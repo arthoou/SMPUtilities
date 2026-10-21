@@ -452,7 +452,8 @@ public final class StaffService {
                 boolean lock = Boolean.parseBoolean(arg(action, 0));
                 SuServer.configManager().edit(config -> config.chat.globalChatEnabled = !lock);
                 context.log(actor, lock ? "chat.lock" : "chat.unlock", null, "", "");
-                com.arthou.smputilities.server.Msg.broadcast(lock ? "chat.lock.on" : "chat.lock.off", actor.getGameProfile().getName());
+                com.arthou.smputilities.server.Msg.broadcastStaffAware(lock ? "chat.lock.on" : "chat.lock.off", lock ? "chat.lock.on.public" : "chat.lock.off.public",
+                    actor.getGameProfile().getName());
                 return null;
             }
             case "chat_clear" -> {

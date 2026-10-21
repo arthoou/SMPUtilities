@@ -1,5 +1,6 @@
 package com.arthou.smputilities.server;
 
+import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.core.chat.StyledText;
@@ -135,6 +136,21 @@ public final class Msg {
     }
 
     /** Sends {@code key} to every online player in their own language. */
+    /**
+     * Staff see {@code staffKey} (which names who did it); everyone else sees
+     * {@code publicKey}, which does not.
+     */
+    public static void broadcastStaffAware(String staffKey, String publicKey, Object... args) {
+        SuServer context = SuServer.get();
+        if (context == null) {
+            return;
+        }
+        for (ServerPlayer player : context.server().getPlayerList().getPlayers()) {
+            info(player, Perms.has(player, Perm.STAFF_PANEL) ? staffKey : publicKey, args);
+        }
+        Mc.console(context.server(), Texts.literal(Lang.format(Lang.EN, staffKey, args)));
+    }
+
     public static void broadcast(String key, Object... args) {
         SuServer context = SuServer.get();
         if (context == null) {

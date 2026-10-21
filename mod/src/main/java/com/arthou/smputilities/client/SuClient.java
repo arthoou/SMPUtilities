@@ -5,6 +5,7 @@ import com.arthou.smputilities.client.bubble.BubbleManager;
 import com.arthou.smputilities.client.bubble.TypingWatcher;
 import com.arthou.smputilities.client.gui.Theme;
 import com.arthou.smputilities.client.modsync.ClientModSync;
+import com.arthou.smputilities.client.staff.PanelReturn;
 import com.arthou.smputilities.client.tts.BridgeLauncher;
 import com.arthou.smputilities.core.chat.StyledText;
 import com.arthou.smputilities.core.nick.NameAnimation;
@@ -44,6 +45,7 @@ public final class SuClient {
         }
         BubbleManager.tick();
         TypingWatcher.tick(minecraft);
+        PanelReturn.tick(minecraft);
         ClientModSync.tick();
         if (++ticks % 20 == 0) {
             VoiceMuteBridge.tick();
@@ -134,6 +136,7 @@ public final class SuClient {
         ClientState.reset();
         BubbleManager.clear();
         TypingWatcher.reset();
+        PanelReturn.reset();
         ClientModSync.reset();
         BridgeLauncher.requestShutdownAsync();
     }

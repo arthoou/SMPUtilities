@@ -6,6 +6,8 @@ chat.duplicate	Please don't repeat the same message.	Não repita a mesma mensage
 chat.spam	You are sending messages too fast. Wait %s.	Você está enviando mensagens rápido demais. Aguarde %s.
 chat.lock.on	Global chat locked by %s.	Chat global bloqueado por %s.
 chat.lock.off	Global chat unlocked by %s.	Chat global desbloqueado por %s.
+chat.lock.on.public	The global chat was locked.	O chat global foi bloqueado.
+chat.lock.off.public	The global chat was unlocked.	O chat global foi desbloqueado.
 chat.cleared	The chat was cleared by staff.	O chat foi limpo pela staff.
 chat.setting_changed	Chat setting %s is now %s.	A configuração de chat %s agora é %s.
 vanish.presence_tag	[vanished]	[invisível]

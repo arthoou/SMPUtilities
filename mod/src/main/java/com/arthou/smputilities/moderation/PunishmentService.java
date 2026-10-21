@@ -160,7 +160,8 @@ public final class PunishmentService {
             }
             String name = Names.seesRealNames(player) ? target.name() : Names.plainDisplay(target.id(), target.name());
             String duration = record.isPermanent() ? Lang.tr(player, "punish.permanent") : Durations.format(record.remaining(now));
-            Msg.info(player, key, name, record.actorName, duration, record.reason);
+            // Only staff learn who issued it.
+            Msg.info(player, staff ? key : key + ".public", name, record.actorName, duration, record.reason);
         }
     }
 

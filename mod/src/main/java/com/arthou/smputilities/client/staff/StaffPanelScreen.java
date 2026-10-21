@@ -69,6 +69,13 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
         }
     }
 
+    /** The panel as it was: the given tab, with the given player selected. */
+    static StaffPanelScreen reopen(String tab, UUID player) {
+        StaffPanelScreen screen = new StaffPanelScreen(tab, null);
+        screen.selectedPlayer = player;
+        return screen;
+    }
+
     // ------------------------------------------------------------ network
 
     void request(String kind, String argument) {
@@ -81,6 +88,13 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
 
     void action(String action, String target, String... arguments) {
         ClientNetwork.send(new Payloads.Action(action, target == null ? "" : target, Arrays.asList(arguments)));
+        UUID player = selectedPlayer;
+        try {
+            player = target == null || target.isEmpty() ? selectedPlayer : UUID.fromString(target);
+        } catch (IllegalArgumentException ignored) {
+            // not a player target
+        }
+        PanelReturn.sent(action, tabId, player);
     }
 
     // ------------------------------------------------------------ dialogs
