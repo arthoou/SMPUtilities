@@ -33,6 +33,7 @@ import com.arthou.smputilities.teleport.TeleportCommands;
 import com.arthou.smputilities.teleport.Teleports;
 import com.arthou.smputilities.troll.TrollService;
 import com.arthou.smputilities.tts.TtsService;
+import com.arthou.smputilities.vanish.VanishCommands;
 import com.arthou.smputilities.vanish.VanishService;
 import com.arthou.smputilities.voice.VoiceChatCompat;
 import com.mojang.brigadier.CommandDispatcher;
@@ -71,6 +72,7 @@ public final class CommonEvents {
         WelcomeService.register(dispatcher);
         InfoCommands.register(dispatcher);
         HiddenNamesCommands.register(dispatcher);
+        VanishCommands.register(dispatcher);
     }
 
     public static void serverStarting(MinecraftServer server) {

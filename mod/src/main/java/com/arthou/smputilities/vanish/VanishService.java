@@ -18,6 +18,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -30,6 +31,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class VanishService {
     private static final Set<UUID> VANISHED = ConcurrentHashMap.newKeySet();
+    /** The vanished player whose death or advancement is being announced (server thread only). */
+    private static ServerPlayer announcing;
 
     private VanishService() {
     }
@@ -155,6 +158,53 @@ public final class VanishService {
 
     public static boolean shouldBlockTarget(LivingEntity target) {
         return target instanceof ServerPlayer player && SuServer.config().vanish.preventMobTargeting && isVanished(player.getUUID());
+    }
+
+    /** The players the server list shows: everyone but the vanished. */
+    public static List<ServerPlayer> listed(List<ServerPlayer> players) {
+        if (VANISHED.isEmpty() || !SuServer.config().features.vanish) {
+            return players;
+        }
+        List<ServerPlayer> listed = new ArrayList<>(players.size());
+        for (ServerPlayer player : players) {
+            if (!VANISHED.contains(player.getUUID())) {
+                listed.add(player);
+            }
+        }
+        return listed;
+    }
+
+    /** A player's death or advancement is about to be announced. */
+    public static void beginAnnouncement(ServerPlayer player) {
+        announcing = !VANISHED.isEmpty() && isVanished(player.getUUID()) ? player : null;
+    }
+
+    public static void endAnnouncement() {
+        announcing = null;
+    }
+
+    /**
+     * Sends an announcement about a vanished player only to those who may see
+     * them. @return true when it was handled here and vanilla must not send it
+     */
+    public static boolean redirectAnnouncement(Component message) {
+        ServerPlayer player = announcing;
+        if (player == null) {
+            return false;
+        }
+        MinecraftServer server = Mc.server(player);
+        for (ServerPlayer viewer : server.getPlayerList().getPlayers()) {
+            if (canSee(viewer, player)) {
+                Mc.send(viewer, message);
+            }
+        }
+        Mc.console(server, message);
+        return true;
+    }
+
+    /** Vanished players who are awake do not hold up the night. */
+    public static boolean ignoredForSleep(ServerPlayer player) {
+        return isVanished(player.getUUID()) && !player.isSleeping();
     }
 
     public static boolean shouldBlockPickup(ServerPlayer player) {
