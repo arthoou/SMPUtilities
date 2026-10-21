@@ -107,6 +107,10 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
         openDialog(new Dialog.Form(title, fields, submit, danger, note, onSubmit));
     }
 
+    void message(Component title, Component message) {
+        openDialog(new Dialog.Message(title, message));
+    }
+
     void choice(Component title, List<Dialog.Choice.Option> options, Consumer<String> onChoose) {
         openDialog(new Dialog.Choice(title, options, onChoose));
     }

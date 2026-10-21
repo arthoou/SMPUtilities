@@ -45,6 +45,7 @@ public enum Perm {
     CHAT_BYPASS_COOLDOWN("smputilities.chat.bypass.cooldown", 2),
     CHAT_COLOR("smputilities.chat.color", 2),
     CHAT_MSG("smputilities.chat.msg", 0),
+    CHAT_HISTORY("smputilities.chat.history", 2),
 
     NICKNAME_CHANGE("smputilities.nickname.change", 0),
     NICKNAME_COLOR("smputilities.nickname.color", 0),

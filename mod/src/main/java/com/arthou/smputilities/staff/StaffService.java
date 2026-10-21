@@ -7,6 +7,7 @@ import com.arthou.smputilities.backup.PlayerSnapshot;
 import com.arthou.smputilities.backup.SnapshotType;
 import com.arthou.smputilities.chat.ChatService;
 import com.arthou.smputilities.core.audit.AuditEntry;
+import com.arthou.smputilities.core.chat.ChatHistory;
 import com.arthou.smputilities.core.chat.StyledText;
 import com.arthou.smputilities.core.config.ConfigPaths;
 import com.arthou.smputilities.core.config.SuConfig;
@@ -67,6 +68,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class StaffService {
     private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.systemDefault());
+    private static final DateTimeFormatter CLOCK = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault());
+    private static final int CHAT_PAGE = 100;
     private static final Map<UUID, GameType> SPECTATE_RETURN = new ConcurrentHashMap<>();
     private static long startedAt = System.currentTimeMillis();
 
@@ -99,6 +102,10 @@ public final class StaffService {
             case "player" -> parseUuid(request.argument()).ifPresent(id -> sendDetail(player, id));
             case "table" -> {
                 String[] parts = request.argument().split("\\|", 2);
+                if (parts[0].equals("chatlog")) {
+                    chatLog(player, parts.length > 1 ? parts[1] : "");
+                    return;
+                }
                 Dto.Table table = table(player, parts[0], parts.length > 1 ? parts[1] : "");
                 if (table != null) {
                     SuNetwork.send(player, new Payloads.TableData(table));
@@ -238,6 +245,37 @@ public final class StaffService {
 
     // ============================================================== tables
 
+    /**
+     * A page of a day's chat ({@code context} "day|before"), newest first.
+     * It is read from disk on the history's own thread and sent from the
+     * server thread, so the tick never waits on the file.
+     */
+    private static void chatLog(ServerPlayer viewer, String context) {
+        SuServer server = SuServer.get();
+        if (!Perms.has(viewer, Perm.CHAT_HISTORY)) {
+            return;
+        }
+        String[] parts = context.split("\\|", 2);
+        String day = parts[0].isEmpty() ? server.chatHistory().today() : parts[0];
+        long before = -1;
+        try {
+            before = parts.length > 1 && !parts[1].isEmpty() ? Long.parseLong(parts[1]) : -1;
+        } catch (NumberFormatException ignored) {
+            // newest page
+        }
+        MinecraftServer minecraft = Mc.server(viewer);
+        server.chatHistory().readAsync(day, before, CHAT_PAGE, lines -> minecraft.execute(() -> {
+            List<Dto.Row> rows = new ArrayList<>();
+            for (ChatHistory.Line line : lines) {
+                rows.add(new Dto.Row(String.valueOf(line.offset()), List.of(CLOCK.format(Instant.ofEpochMilli(line.time())), line.name(),
+                    line.text(), line.sender())));
+            }
+            if (!viewer.hasDisconnected()) {
+                SuNetwork.send(viewer, new Payloads.TableData(new Dto.Table("chatlog", context, List.of("time", "player", "message", "uuid"), rows)));
+            }
+        }));
+    }
+
     public static Dto.Table table(ServerPlayer viewer, String kind, String context) {
         SuServer server = SuServer.get();
         long now = System.currentTimeMillis();
@@ -284,6 +322,20 @@ public final class StaffService {
                         report.reporterName, report.targetName, report.reason, report.where == null ? "" : report.where.shortText())));
                 }
                 return new Dto.Table(kind, context, List.of("id", "date", "reporter", "player", "reason", "where"), rows);
+            }
+            case "chatdays" -> {
+                if (!Perms.has(viewer, Perm.CHAT_HISTORY)) {
+                    return null;
+                }
+                String today = server.chatHistory().today();
+                List<String> days = server.chatHistory().days(90);
+                if (!days.contains(today)) {
+                    days.add(0, today);
+                }
+                for (String day : days) {
+                    rows.add(new Dto.Row(day, List.of(day)));
+                }
+                return new Dto.Table(kind, context, List.of("date"), rows);
             }
             case "logs" -> {
                 if (!Perms.has(viewer, Perm.STAFF_LOGS)) {

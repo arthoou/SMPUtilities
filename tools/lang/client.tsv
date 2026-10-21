@@ -2,6 +2,7 @@ key.categories.smputilities	SMPutilities	SMPutilities
 key.smputilities.panel	Open staff panel	Abrir painel da staff
 hud.smputilities.vanished	VANISHED	INVISÍVEL
 gui.smputilities.cancel	Cancel	Cancelar
+gui.smputilities.close	Close	Fechar
 gui.smputilities.confirm	Confirm	Confirmar
 gui.smputilities.confirm_danger	Yes, do it	Sim, fazer
 modsync.smputilities.title	Mod sync	Sincronização de mods
@@ -316,6 +317,17 @@ panel.smputilities.field.value	Value	Valor
 panel.smputilities.field.value.hint	New value	Novo valor
 panel.smputilities.punish.view.reports	Reports	Denúncias
 panel.smputilities.col.reporter	Reported by	Denunciado por
+panel.smputilities.col.time	Time	Hora
+panel.smputilities.col.message	Message	Mensagem
+panel.smputilities.chat.view.options	Options	Opções
+panel.smputilities.chat.view.history	History	Histórico
+panel.smputilities.history.older_day	Previous day	Dia anterior
+panel.smputilities.history.newer_day	Next day	Próximo dia
+panel.smputilities.history.reload	Reload	Atualizar
+panel.smputilities.history.empty	No messages on this day.	Nenhuma mensagem neste dia.
+panel.smputilities.history.message	%s at %s	%s às %s
+panel.smputilities.history.older	Load older messages	Carregar mensagens mais antigas
+panel.smputilities.history.start	Start of the day	Início do dia
 panel.smputilities.action.report_tp	Teleport	Teleportar
 panel.smputilities.action.report_close	Close	Fechar
 panel.smputilities.info.afk	AFK	AFK

@@ -19,6 +19,8 @@ setting.smputilities.chat.joinFormat	Join line format	Formato da entrada
 setting.smputilities.chat.quitFormat	Quit line format	Formato da saída
 setting.smputilities.chat.globalChatEnabled	Public chat open to everyone	Chat público aberto a todos
 setting.smputilities.chat.cooldownSeconds	Seconds between two messages	Segundos entre duas mensagens
+setting.smputilities.chat.history	Keep the chat history on disk	Guardar o histórico do chat em disco
+setting.smputilities.chat.historyDays	Days of chat history kept (0 = all)	Dias de histórico do chat guardados (0 = todos)
 setting.smputilities.chat.spam.maxMessages	Messages allowed per window	Mensagens permitidas por janela
 setting.smputilities.chat.spam.windowSeconds	Spam window in seconds	Janela anti-spam em segundos
 setting.smputilities.chat.spam.duplicateSeconds	Seconds before the same text may be repeated	Segundos para poder repetir o mesmo texto
