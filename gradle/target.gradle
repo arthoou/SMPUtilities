@@ -42,9 +42,13 @@ def preprocess = tasks.register('preprocessSources', su.gradle.PreprocessTask) {
 // mixin needed only on some versions simply does not exist on the others.
 // Common mixins live in com.arthou.smputilities.mixin (client ones in .client),
 // loader mixins in com.arthou.smputilities.<loader>.mixin.
+// Forge 1.20.6 runs on Java 21 but ships Mixin 0.8.5, which rejects JAVA_21;
+// JAVA_17 covers every feature the mixins use.
+def mixinLevel = isForge && mc == '1.20.6' ? 17 : javaVersion
 def mixinConfigs = tasks.register('generateMixinConfigs') {
     def sources = preprocess.flatMap { it.outputDirectory }
     def output = layout.buildDirectory.dir('generated/mixins')
+    inputs.property('mixinLevel', mixinLevel)
     inputs.dir(sources)
     outputs.dir(output)
     doLast {
@@ -67,7 +71,7 @@ def mixinConfigs = tasks.register('generateMixinConfigs') {
                 required          : true,
                 minVersion        : '0.8',
                 'package'         : packageName,
-                compatibilityLevel: "JAVA_${javaVersion}",
+                compatibilityLevel: "JAVA_${mixinLevel}",
                 mixins            : common.sort(),
                 client            : client.sort(),
                 injectors         : [defaultRequire: 1],
