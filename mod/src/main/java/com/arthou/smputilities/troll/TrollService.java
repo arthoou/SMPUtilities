@@ -110,7 +110,7 @@ public final class TrollService {
     }
 
     /** A block a prank put where there was air; it goes back to air unless someone changed it since. */
-    private record Placed(ServerLevel level, BlockPos pos, BlockState original, BlockState placed) {
+    private record Placed(ServerLevel world, BlockPos pos, BlockState original, BlockState placed) {
     }
 
     private static final String THIS_ACTION_SOUND = SmpUtilities.MOD_ID + ":action.thisaction";
@@ -542,8 +542,8 @@ public final class TrollService {
 
     private static void restore(List<Placed> placed) {
         for (Placed block : placed) {
-            if (block.level().getBlockState(block.pos()) == block.placed()) {
-                block.level().setBlock(block.pos(), block.original(), 3);
+            if (block.world().getBlockState(block.pos()) == block.placed()) {
+                block.world().setBlock(block.pos(), block.original(), 3);
             }
         }
         placed.clear();
