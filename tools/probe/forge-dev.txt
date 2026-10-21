@@ -1,0 +1,4 @@
+# Forge dev jar: anonymous classes of ByteBufCodecs (Forge 1.21.11 dev server fails on ByteBufCodecs$11.<init>())
+net.minecraft.network.codec.ByteBufCodecs$10 | .
+net.minecraft.network.codec.ByteBufCodecs$11 | .
+net.minecraft.network.codec.ByteBufCodecs$12 | .
