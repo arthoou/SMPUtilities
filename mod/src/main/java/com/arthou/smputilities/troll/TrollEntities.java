@@ -24,7 +24,8 @@ final class TrollEntities {
     }
 
     static void summon(ServerLevel level, Kind kind, double x, double y, double z, int ticks, Sink sink) {
-        Entity entity = create(kind == Kind.COW ? EntityType.COW : EntityType.SQUID, level);
+        EntityType<?> type = kind == Kind.COW ? EntityType.COW : EntityType.SQUID;
+        Entity entity = create(type, level);
         if (entity == null) {
             return;
         }
