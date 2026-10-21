@@ -61,6 +61,8 @@ jobs:
       - name: Error summary
         if: failure()
         run: python3 tools/ci_errors.py build.log
+      - name: Count classes in the jar
+        run: unzip -l dist/*.jar | grep -c '\.class$'
       - uses: actions/upload-artifact@v4
         with:
           name: SMPutilities-${{ matrix.target }}
