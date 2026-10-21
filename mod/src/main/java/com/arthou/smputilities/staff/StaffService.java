@@ -975,7 +975,10 @@ public final class StaffService {
                 if (!TrollService.allowed(troll)) {
                     return "!" + Lang.tr(actor, "error.feature_disabled");
                 }
-                TrollService.apply(troll, online, arg(action, 1));
+                String error = TrollService.apply(troll, online, arg(action, 1), actor);
+                if (error != null) {
+                    return "!" + Lang.tr(actor, error, shown);
+                }
                 context.log(actor, "troll." + troll.id(), id, targetName, arg(action, 1));
                 return Lang.tr(actor, "troll.done", troll.id(), shown);
             }

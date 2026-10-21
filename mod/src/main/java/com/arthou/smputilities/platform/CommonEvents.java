@@ -87,6 +87,11 @@ public final class CommonEvents {
         ModSyncServer.onServerStart();
     }
 
+    /** Before the worlds are saved: pranks put back the blocks they placed. */
+    public static void serverStopping(MinecraftServer server) {
+        SuLog.guard("prank cleanup", server, TrollService::stop);
+    }
+
     public static void serverStopped(MinecraftServer server) {
         ModSyncServer.onServerStop();
         BackupService.onServerStop();
@@ -178,6 +183,7 @@ public final class CommonEvents {
         AfkService.onLogout(player);
         ChatService.forget(player);
         TtsService.forget(player);
+        TrollService.forget(player);
         DimensionService.forget(player);
         VanishService.onLogout(player);
         ModSyncServer.onLogout(player);

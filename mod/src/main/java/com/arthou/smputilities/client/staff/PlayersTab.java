@@ -26,9 +26,6 @@ import java.util.UUID;
 final class PlayersTab extends PanelTab {
     enum Section { INFO, ACTIONS, NOTES, HISTORY }
 
-    private static final String[] TROLLS = {"explosion", "lightning", "sound", "jumpscare", "nausea", "darkness", "levitate", "slow",
-        "glow", "tiny_jump", "spin", "launch", "fake_message", "fake_join", "fake_quit"};
-
     private static String search = "";
     private static boolean offline;
     private static Section section = Section.INFO;
@@ -309,16 +306,16 @@ final class PlayersTab extends PanelTab {
                 panel.refreshTab();
             }).kind(category == value ? SuButton.Kind.PRIMARY : SuButton.Kind.SUBTLE));
         }
+        int x = splitX + categoryWidth + 8;
         List<SuButton> buttons = switch (category) {
             case PUNISH -> punishButtons(detail, id, name, online);
             case TOOLS -> toolButtons(detail, id, online);
             case INVENTORY -> inventoryButtons(id);
             case IDENTITY -> identityButtons(detail, id);
-            case FUN -> funButtons(id, online);
+            case FUN -> funButtons(id, online, x, y);
         };
-        int x = splitX + categoryWidth + 8;
         int columns = right() - x > 260 ? 3 : 2;
-        grid(x, y, right() - x, columns, 20, buttons);
+        grid(x, category == Category.FUN ? y + 20 : y, right() - x, columns, 20, buttons);
     }
 
     private List<SuButton> punishButtons(Dto.PlayerDetail detail, UUID id, String name, boolean online) {
@@ -399,10 +396,10 @@ final class PlayersTab extends PanelTab {
         return buttons;
     }
 
-    private List<SuButton> funButtons(UUID id, boolean online) {
-        List<SuButton> buttons = new ArrayList<>();
-        buttons.add(onlineOnly(button(0, 0, 10, "action.troll", Perm.STAFF_TROLL, b -> trollMenu(id)).icon("☻"), online));
-        return buttons;
+    /** The prank group chips sit above the grid; returns the buttons of the chosen group. */
+    private List<SuButton> funButtons(UUID id, boolean online, int x, int y) {
+        Pranks.chips(panel, x, y, right() - x);
+        return Pranks.buttons(prank -> onlineOnly(button(0, 0, 10, "troll." + prank, Perm.STAFF_TROLL, b -> Pranks.run(panel, id, prank)), online));
     }
 
     private SuButton onlineOnly(SuButton button, boolean online) {
@@ -416,24 +413,6 @@ final class PlayersTab extends PanelTab {
     private void punishForm(String action, String titleKey, UUID id, String name) {
         panel.form(tr(titleKey), List.of(fieldDef("duration", ""), fieldDef("reason", "")), tr(titleKey), true, tr("duration.note", name),
             values -> panel.action(action, id, values.get(0).trim(), values.get(1)));
-    }
-
-    private void trollMenu(UUID id) {
-        List<Dialog.Choice.Option> options = new ArrayList<>();
-        for (String troll : TROLLS) {
-            options.add(new Dialog.Choice.Option(troll, tr("troll." + troll), SuButton.Kind.GHOST));
-        }
-        panel.choice(tr("action.troll"), options, troll -> {
-            switch (troll) {
-                case "sound" -> panel.form(tr("troll.sound"), List.of(fieldDef("sound", "minecraft:entity.creeper.primed")), tr("button.send"), false, null,
-                    values -> panel.action("troll", id, troll, values.get(0)));
-                case "fake_message" -> panel.form(tr("troll.fake_message"), List.of(fieldDef("entity", "Herobrine"), fieldDef("message", "")), tr("button.send"),
-                    false, null, values -> panel.action("troll", id, troll, values.get(0).trim() + " " + values.get(1)));
-                case "fake_join", "fake_quit" -> panel.form(tr("troll." + troll), List.of(fieldDef("entity", "Herobrine")), tr("button.send"), false, null,
-                    values -> panel.action("troll", id, troll, values.get(0)));
-                default -> panel.action("troll", id, troll, "");
-            }
-        });
     }
 
     // -------------------------------------------------------------- notes

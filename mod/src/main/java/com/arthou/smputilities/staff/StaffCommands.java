@@ -826,7 +826,10 @@ public final class StaffCommands {
             return Msg.error(context.getSource(), "error.feature_disabled");
         }
         ServerPlayer target = onlineTarget(context, "player");
-        TrollService.apply(action, target, argument);
+        String error = TrollService.apply(action, target, argument, Mc.player(context.getSource()));
+        if (error != null) {
+            return Msg.error(context.getSource(), error, Names.realName(target));
+        }
         SuServer.get().log(Mc.player(context.getSource()), "troll." + action.id(), target.getUUID(), Names.realName(target), argument);
         return Msg.ok(context.getSource(), "troll.done", action.id(), Names.realName(target));
     }

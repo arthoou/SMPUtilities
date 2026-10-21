@@ -72,7 +72,13 @@ jogador ajusta com `/su mentions on|off|sound <id>|volume <0-1>`), destaque das 
 admin, bloqueio do chat global (`/su chat lock|unlock`), limpar chat, cooldown, proteção contra spam
 (taxa, repetição, CAPS), mute individual, entrada/saída desativáveis globalmente ou por jogador
 (`/su silentjoin|silentquit`), `/msg` `/tell` `/w` `/reply` `/r` com MPs permitidas ou não durante o
-bloqueio, `/ignore` e social spy para a staff.
+bloqueio, `/ignore` e social spy para a staff. Avisos como "chat bloqueado por <nick>" e bans só mostram
+quem fez para a staff; os jogadores veem a versão sem o nome.
+
+**Histórico do chat** (painel → Chat → Histórico, `smputilities.chat.history`): todo o chat público fica em
+`<mundo>/smputilities/chat/AAAA-MM-DD.log`, gravado por uma thread separada, sem nada guardado na RAM. No
+painel você escolhe o dia, lê do mais novo para o mais antigo carregando 100 mensagens por vez, filtra e
+clica numa mensagem para ver inteira. `chat.historyDays` (30) define quantos dias ficam guardados.
 
 ### Moderação
 `/su ban|mute|voicemute <jogador> [duração] [motivo]`, `/su unban|unmute|voiceunmute`, `/su kick`,
@@ -84,7 +90,10 @@ Staff não pode punir quem tem nível de OP maior.
 Feito no servidor: um mixin no rastreamento de entidades impede que o jogador invisível seja enviado a
 quem não tem `smputilities.staff.vanish.see` (sem posição, equipamento, sons ou partículas), remoção da
 TAB, entrada/saída silenciosas (a staff vê com a etiqueta `[invisível]`), mobs não miram, coleta de itens
-opcionalmente bloqueada, indicador na action bar e no HUD, persiste entre logins.
+opcionalmente bloqueada, indicador na action bar e no HUD, persiste entre logins. Também fica de fora do
+`/list`, da contagem e da amostra na lista de servidores, das menções e sugestões de nome, do `/msg`, `/seen`
+e TPA; mensagens de morte e de conquistas dele só chegam a quem pode vê-lo, não atrasa a noite e, no Simple
+Voice Chat, só é ouvido por quem pode vê-lo.
 
 ### Inventários
 * `/su inventory <jogador>`, `/su enderchest <jogador>` (e `curios`/`cosmetic`): online é editado ao vivo;
@@ -123,10 +132,12 @@ nickname ou UUID, e guardam sempre o UUID. Não use o HiddenNames junto: o SMPut
 importa o `hiddennames/data.json`).
 
 ### TTS e balões de fala — `/su tts`
-O menu do DuTTS (gênero, variação, idioma). Com uma voz ativa, o que o jogador digita no chat vira fala: o
-servidor envia o texto ao cliente dele, cujo *SMPutilities Voice Bridge* (um jar à parte, embutido no mod
-e iniciado só quando necessário) fala num microfone virtual que o voice chat/Discord usa. Todos por perto
-com o mod veem um balão de fala animado (estilo do Bubbles4All). Sem o bridge, só o TTS fica indisponível.
+O menu do DuTTS (gênero, variação, idioma). Com uma voz ativa, o que o jogador digita vai para o chat
+normalmente e também vira fala: o servidor envia o texto ao cliente dele, cujo *SMPutilities Voice Bridge*
+(um jar à parte, embutido no mod e iniciado só quando necessário) fala num microfone virtual que o voice
+chat/Discord usa. Todos por perto com o mod veem o balão de fala do NEXEL/LeafTalk (mesmas texturas e
+geometria, um balão por mensagem empilhado acima da cabeça, quase transparente agachado) e, enquanto ele
+digita, o balão animado "...". Sem o bridge, só o TTS fica indisponível.
 
 ### Mundo
 * `/su portal limit <nether|end|aether|id> <n|unlimited>`, `/su portal count|list|remove|clear`. Portais do
@@ -170,11 +181,27 @@ Tudo funciona com clientes sem o mod e cada parte pode ser desligada em `feature
 * **Informações:** `/playtime [jogador]`, `/seen <jogador>` (respeita o vanish) e, ao morrer, só o jogador
   vê as coordenadas e a dimensão, com um atalho `[/back]`.
 
-### Brincadeiras da staff — `/su troll <ação> <jogador>`
-Explosão e raio só visuais, sons atrás do jogador, susto (guardião ancião + escuridão), náusea, escuridão,
-flutuar (com queda lenta), lentidão, brilho, super pulo, girar, lançar (com queda lenta), mensagens/entradas/
-saídas falsas, e os títulos do DUSMP (`/su announce action|death`). Nada quebra blocos, causa dano ou mexe em
-inventário. Cada grupo pode ser desligado na config.
+### Brincadeiras da staff — `/su troll <ação> <jogador> [valor]`
+Seguem a lista do [TrollBoss](https://github.com/minesuchtiiii/troll-boss) (só como referência: ele é GPL-3.0,
+então nenhum código dele foi copiado). No painel ficam em cinco grupos (ações do jogador → Brincadeiras, e a
+aba Utilidades):
+* **Visual:** explosão e raio falsos, creeper inofensivo (explode sem dano), som, susto, abdução alienígena,
+  estouro de vacas, chuva de lulas (mobs invulneráveis, somem sozinhos), cabeça de abóbora (o capacete volta
+  para o inventário), brilho e os títulos do DUSMP.
+* **Efeitos:** náusea, escuridão, tontura, infecção, congelar (preso no lugar), sem minerar, lentidão,
+  flutuar, super pulo.
+* **Movimento:** lançar, empurrar, girar, virar de costas, teleportes aleatórios, borda do mundo, trocar de
+  lugar com outro jogador, céu, enterrar (com Resistência, sem sufocar), gaiola de vidro e teia.
+* **Chat e kicks:** mensagens/entradas/saídas falsas, op/deop falsos, spam, chat embaralhado (liga/desliga),
+  kick troll, crash falso e reinício falso.
+* **Dano:** queimar, raio de verdade, explosão (sem quebrar blocos), machucar (até meio coração), fome,
+  palmada, queda livre, bigorna e contagem fatal.
+
+O que coloca blocos só ocupa ar e é desfeito ao terminar, quando o jogador sai e quando o servidor desliga.
+As de dano e kicks pedem confirmação no painel. Cada grupo pode ser desligado na config (`troll.harmful`,
+`troll.kicks`, `troll.worldChanges`…), e quem tem `smputilities.troll.bypass` só pode ser alvo de si mesmo.
+Ficaram de fora as do TrollBoss que apagam ou trocam o inventário (potato troll, drop inventory), as que
+dependem de itens especiais (bad apple, arcos, AK-47) e as de mau gosto.
 
 ### Sincronização de mods (opcional, desligada por padrão)
 Coloque jars em `config/smputilities/modsync/` e/ou liste downloads externos em `modSync.external`. Clientes
@@ -215,7 +242,6 @@ DuTTS (vozes) e HiddenNames (nomes e animações das placas). Os comandos antigo
   1.21.3–1.21.8 eles são desenhados por um mixin e no Forge 1.21.9+ por uma etapa própria do frame graph
   (`AddFramePassEvent`); nos outros loaders/versões, pelo evento do loader. Esses dois caminhos do Forge
   ainda não foram vistos em jogo.
-* Vanish: a contagem de jogadores na lista de servidores não é alterada.
 * Limite de portais: portais de destino gerados automaticamente pelo jogo não são contados; portais de
   outros mods só são limitados se o mod disparar o `PortalSpawnEvent` do Forge/NeoForge (no Fabric, só
   portais do Nether). O bloqueio de dimensão funciona para qualquer dimensão.
@@ -287,7 +313,7 @@ animations, hidden nameplates, blocks hiding nameplates, team color override, da
 limits, dimension access control, TPA-style QoL commands (with /tpacancel and /tpatoggle), AFK detection
 (tab tag, AFK players ignored by the sleep percentage, optional kick), /report with staff alerts, staff chat,
 automatic announcements, scheduled restarts with countdown, first-join welcome, MOTD and /rules,
-/playtime, /seen, death coordinates, harmless staff pranks, opt-in mod sync with
+/playtime, /seen, death coordinates, staff pranks after TrollBoss (no code copied; block changes are undone), opt-in mod sync with
 SHA-512 verification, permission nodes for LuckPerms and an audit log. It imports data from the
 standalone mods it replaces.
 

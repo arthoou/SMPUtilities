@@ -64,6 +64,9 @@ setting.smputilities.teleport.cancelOnMove	Cancel the warmup when moving	Cancela
 setting.smputilities.teleport.requestTimeoutSeconds	Seconds a /tpa request stays valid	Segundos que um pedido /tpa vale
 setting.smputilities.teleport.respawnAtSpawn	Respawn at /spawn	Renascer no /spawn
 setting.smputilities.teleport.rtpRadius	Random teleport radius	Raio do teleporte aleatório
+setting.smputilities.troll.worldChanges	Pranks that place blocks (put back afterwards)	Brincadeiras que colocam blocos (desfeitas depois)
+setting.smputilities.troll.harmful	Pranks that hurt or kill	Brincadeiras que machucam ou matam
+setting.smputilities.troll.kicks	Pranks that disconnect	Brincadeiras que desconectam
 setting.smputilities.troll.maxEffectSeconds	Longest prank effect in seconds	Maior duração de efeito em segundos
 setting.smputilities.features.afk	AFK detection (/afk, tab tag, sleep)	Detecção de AFK (/afk, tag na TAB, sono)
 setting.smputilities.features.reports	Player reports (/report)	Denúncias de jogadores (/report)

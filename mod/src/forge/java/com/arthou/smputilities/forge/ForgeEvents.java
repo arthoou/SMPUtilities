@@ -21,6 +21,7 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.server.permission.events.PermissionGatherEvent;
 //#if MC>=1.19
 import net.minecraftforge.event.entity.EntityJoinLevelEvent;
@@ -40,6 +41,7 @@ public final class ForgeEvents {
         ForgeBus.on(PermissionGatherEvent.Nodes.class, ForgePlatform::onGatherNodes);
         ForgeBus.on(RegisterCommandsEvent.class, event -> CommonEvents.registerCommands(event.getDispatcher()));
         ForgeBus.on(ServerStartingEvent.class, event -> CommonEvents.serverStarting(event.getServer()));
+        ForgeBus.on(ServerStoppingEvent.class, event -> CommonEvents.serverStopping(event.getServer()));
         ForgeBus.on(ServerStoppedEvent.class, event -> CommonEvents.serverStopped(event.getServer()));
         //#if MC>=1.21.9
         ForgeBus.on(TickEvent.ServerTickEvent.Post.class, event -> CommonEvents.serverTick(event.server()));

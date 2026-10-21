@@ -252,6 +252,51 @@ panel.smputilities.troll.launch	Launch	Lançar
 panel.smputilities.troll.fake_message	Fake message	Mensagem falsa
 panel.smputilities.troll.fake_join	Fake join	Entrada falsa
 panel.smputilities.troll.fake_quit	Fake quit	Saída falsa
+panel.smputilities.troll.title_action	"Consequences" title	Título "Consequências"
+panel.smputilities.troll.title_death	Death title	Título de morte
+panel.smputilities.troll.creeper	Harmless creeper	Creeper inofensivo
+panel.smputilities.troll.abduct	Alien abduction	Abdução alienígena
+panel.smputilities.troll.trample	Cow stampede	Estouro de vacas
+panel.smputilities.troll.squidrain	Squid rain	Chuva de lulas
+panel.smputilities.troll.pumpkinhead	Pumpkin head	Cabeça de abóbora
+panel.smputilities.troll.drug	Dizzy	Tontura
+panel.smputilities.troll.infect	Infection	Infecção
+panel.smputilities.troll.freeze	Freeze	Congelar
+panel.smputilities.troll.nomine	No mining	Sem minerar
+panel.smputilities.troll.push	Push	Empurrar
+panel.smputilities.troll.turn	Turn around	Virar de costas
+panel.smputilities.troll.randomtp	Random teleports	Teleportes aleatórios
+panel.smputilities.troll.border	World border	Borda do mundo
+panel.smputilities.troll.switch	Swap places	Trocar de lugar
+panel.smputilities.troll.switch.note	Swaps the selected player with this one.	Troca o jogador selecionado de lugar com este.
+panel.smputilities.troll.sky	Sky	Céu
+panel.smputilities.troll.bury	Bury	Enterrar
+panel.smputilities.troll.trap	Glass cage	Gaiola de vidro
+panel.smputilities.troll.webtrap	Web trap	Teia
+panel.smputilities.troll.fakeop	Fake op	Op falso
+panel.smputilities.troll.fakedeop	Fake deop	Deop falso
+panel.smputilities.troll.spam	Spam	Spam
+panel.smputilities.troll.garbage	Garbled chat	Chat embaralhado
+panel.smputilities.troll.trollkick	Troll kick	Kick troll
+panel.smputilities.troll.crash	Fake crash	Crash falso
+panel.smputilities.troll.fakerestart	Fake restart	Reinício falso
+panel.smputilities.troll.burn	Burn	Queimar
+panel.smputilities.troll.bolt	Lightning strike	Raio de verdade
+panel.smputilities.troll.boom	Explosion	Explosão
+panel.smputilities.troll.hurt	Hurt	Machucar
+panel.smputilities.troll.starve	Starve	Fome
+panel.smputilities.troll.spank	Spank	Palmada
+panel.smputilities.troll.freefall	Free fall	Queda livre
+panel.smputilities.troll.anvil	Anvil	Bigorna
+panel.smputilities.troll.gokill	Doom countdown	Contagem fatal
+panel.smputilities.troll.confirm_harm	This prank hurts, kills or disconnects the player. Go ahead?	Esta brincadeira machuca, mata ou desconecta o jogador. Continuar?
+panel.smputilities.troll.group.visual	Visual	Visual
+panel.smputilities.troll.group.effects	Effects	Efeitos
+panel.smputilities.troll.group.movement	Movement	Movimento
+panel.smputilities.troll.group.chat	Chat & kicks	Chat e kicks
+panel.smputilities.troll.group.harm	Damage	Dano
+panel.smputilities.field.player	Other player	Outro jogador
+panel.smputilities.field.player.hint	Name	Nome
 panel.smputilities.col.action	Action	Ação
 panel.smputilities.col.active	Active	Ativo
 panel.smputilities.col.by	By	Por

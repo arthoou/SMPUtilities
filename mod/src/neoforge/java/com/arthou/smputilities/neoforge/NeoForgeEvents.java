@@ -22,6 +22,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 //#if MC>=1.21.5
 import net.minecraft.util.TriState;
 //#elif MC>=1.20.6
@@ -45,6 +46,7 @@ public final class NeoForgeEvents {
         bus.addListener(NeoForgePlatform::onGatherNodes);
         bus.addListener((RegisterCommandsEvent event) -> CommonEvents.registerCommands(event.getDispatcher()));
         bus.addListener((ServerStartingEvent event) -> CommonEvents.serverStarting(event.getServer()));
+        bus.addListener((ServerStoppingEvent event) -> CommonEvents.serverStopping(event.getServer()));
         bus.addListener((ServerStoppedEvent event) -> CommonEvents.serverStopped(event.getServer()));
         //#if MC>=1.20.6
         bus.addListener((ServerTickEvent.Post event) -> CommonEvents.serverTick(event.getServer()));
