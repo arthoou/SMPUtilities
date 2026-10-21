@@ -92,3 +92,7 @@ setting.smputilities.restart.sound	Restart warning sound	Som do aviso de reiníc
 setting.smputilities.restart.kickMessage	Message when the server stops (empty = default)	Mensagem ao desligar (vazio = padrão)
 setting.smputilities.welcome.firstJoinBroadcast	Announce a player's first join	Anunciar a primeira entrada de um jogador
 setting.smputilities.welcome.firstJoinMessage	First join message (empty = default)	Mensagem da primeira entrada (vazio = padrão)
+setting.smputilities.nicknames.teamColorOverride	A team color replaces the nickname's own color (HiddenNames)	A cor do time substitui a cor do nick (HiddenNames)
+setting.smputilities.nicknames.defaultNameplateVisible	Nameplates shown by default	Placas de nome aparecem por padrão
+setting.smputilities.nicknames.blocksHideNameplates	Blocks hide nameplates (clients with the mod)	Blocos escondem as placas de nome (clientes com o mod)
+setting.smputilities.nicknames.importHiddenNames	Import HiddenNames data on first start	Importar os dados do HiddenNames na primeira inicialização

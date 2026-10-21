@@ -100,10 +100,25 @@ opcionalmente bloqueada, indicador na action bar e no HUD, persiste entre logins
   o arquivo do jogador lembra qual perfil ele carrega, então uma queda do servidor no meio da troca é
   corrigida no próximo login. Staff: `/su profile view|switchfor`, e pelo painel.
 
-### Nicknames — `/su nick <nome>`
-Aparecem no chat, mensagens de morte, TAB, `/msg` (configurável) e acima da cabeça (clientes com o mod).
-Cores com `&`, unicidade opcional, nome real oculto para quem não é staff. `/su realnames` mostra os nomes
-reais só para você; `/su whois`. Comandos aceitam nome real, nickname ou UUID, e guardam sempre o UUID.
+### Nicknames (base: HiddenNames) — `/hiddennames setName …` e `/su nick <nome>`
+O sistema segue o modelo do [HiddenNames](https://github.com/pitbox46/HiddenNames) (MIT): cada jogador tem
+um nome com cor e uma **animação da placa de nome** — `none`, `hidden` (placa escondida), `breathe`,
+`rainbow`, `cycle` ou `random` (as animações foram portadas do HiddenNames). Os comandos são os mesmos do
+HiddenNames, só que o nome usa `&`-cores em vez de JSON (assim quem não tem o mod continua entrando):
+* `/hiddennames setName <cor> <animação> <nome>`, `/hiddennames setName name|color|animation|reset …`,
+  e para outros `/hiddennames setName <jogadores> …` (`smputilities.nickname.others`).
+* `/hiddennames nameplateVisible <jogadores> <true|false>`, `/hiddennames defaultVisible <true|false>`
+  (placas visíveis por padrão), `/hiddennames blocksHideName <true|false>` (blocos escondem as placas).
+* `/su nick <nome>`, `/su nick clear` e `/su nick set <jogador> <nome>` continuam como atalhos.
+
+Como no HiddenNames, a cor do time substitui a do nick (`nicknames.teamColorOverride`), e cada cliente pode
+mostrar a própria placa em terceira pessoa e desligar as animações (`nametags.showOwn`, `nametags.animations`
+no `client.json`). O nome aparece no chat, mensagens de morte, TAB (com prefixo/sufixo do time), `/msg`
+(configurável) e acima da cabeça; animações, placas escondidas e placas escondidas atrás de blocos são
+desenhadas pelo cliente, então valem para quem tem o mod. Unicidade opcional, nome real oculto para quem não
+é staff, `/su realnames` mostra os nomes reais só para você; `/su whois`. Comandos aceitam nome real,
+nickname ou UUID, e guardam sempre o UUID. Não use o HiddenNames junto: o SMPutilities o substitui (e
+importa o `hiddennames/data.json`).
 
 ### TTS e balões de fala — `/su tts`
 O menu do DuTTS (gênero, variação, idioma). Com uma voz ativa, o que o jogador digita no chat vira fala: o
@@ -180,9 +195,9 @@ administrativa vai para o log de auditoria (também visível no painel).
 
 ### Dados dos mods antigos
 Na primeira inicialização o SMPutilities importa (só lê, nunca altera) os dados de Inv Profile (vira a
-Troca Rápida), Inventory Rollback Plus (backups), TPA (homes, warps, spawn), DUSMP (silent join/quit, voz)
-e DuTTS (vozes). Os comandos antigos `/invprofile`, `/view`, `/inventoryrollback` e `/dutts` continuam
-funcionando.
+Troca Rápida), Inventory Rollback Plus (backups), TPA (homes, warps, spawn), DUSMP (silent join/quit, voz),
+DuTTS (vozes) e HiddenNames (nomes e animações das placas). Os comandos antigos `/invprofile`, `/view`,
+`/inventoryrollback`, `/dutts` e `/hiddennames` continuam funcionando.
 
 ## O que ficou de fora de propósito
 
@@ -191,7 +206,8 @@ funcionando.
 
 ## Limitações conhecidas
 
-* Nickname acima da cabeça só para clientes com o mod (o nome da entidade é desenhado pelo cliente).
+* Nickname, animação e placa escondida acima da cabeça só para clientes com o mod (a placa é desenhada pelo
+  cliente; o HiddenNames tem a mesma limitação).
   Sugestões de comandos e a tela de "interações sociais" do jogo ainda mostram nomes de conta.
 * Balões de fala: o Forge não tem evento de renderização do mundo a partir da 1.21.3, então no Forge
   1.21.3–1.21.8 eles são desenhados por um mixin e no Forge 1.21.9+ por uma etapa própria do frame graph
@@ -255,7 +271,8 @@ e rode `python3 tools/genlang.py tools/lang mod/src/main/resources/assets/smputi
 SMPutilities is one mod for SMP/roleplay servers: staff panel GUI with eight categories, vanilla-by-default
 chat with an optional QSMP format, mentions, mutes, spam protection, bans synced with the vanilla ban list,
 server-side vanish, live and offline inventory editing, automatic and manual backups with safe restore,
-Inv Profile's Quick Change plus crash-safe named profiles, RP nicknames, TTS with speech bubbles, portal
+Inv Profile's Quick Change plus crash-safe named profiles, RP nicknames built on HiddenNames (same /hiddennames commands, nameplate
+animations, hidden nameplates, blocks hiding nameplates, team color override, data import), TTS with speech bubbles, portal
 limits, dimension access control, TPA-style QoL commands (with /tpacancel and /tpatoggle), AFK detection
 (tab tag, AFK players ignored by the sleep percentage, optional kick), /report with staff alerts, staff chat,
 automatic announcements, scheduled restarts with countdown, first-join welcome, MOTD and /rules,

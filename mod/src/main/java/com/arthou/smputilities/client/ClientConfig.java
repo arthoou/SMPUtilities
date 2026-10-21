@@ -13,12 +13,21 @@ import java.util.Map;
 /** Client-only settings ({@code config/smputilities/client.json}). Never sent to servers. */
 public final class ClientConfig {
     public Bubbles bubbles = new Bubbles();
+    public Nametags nametags = new Nametags();
     public ModSync modSync = new ModSync();
     public Tts tts = new Tts();
 
     public static final class Bubbles {
         public boolean enabled = true;
         public boolean showOwn = true;
+    }
+
+    /** Like HiddenNames' client options. */
+    public static final class Nametags {
+        /** Show your own nameplate in third person. */
+        public boolean showOwn = false;
+        /** Draw nameplate animations; off shows the static name (hidden nameplates stay hidden). */
+        public boolean animations = true;
     }
 
     public static final class ModSync {

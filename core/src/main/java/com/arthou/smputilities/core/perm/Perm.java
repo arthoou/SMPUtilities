@@ -49,6 +49,7 @@ public enum Perm {
     NICKNAME_CHANGE("smputilities.nickname.change", 0),
     NICKNAME_COLOR("smputilities.nickname.color", 0),
     NICKNAME_OTHERS("smputilities.nickname.others", 2),
+    NICKNAME_ANIMATION("smputilities.nickname.animation", 0),
 
     // Level 2 matches the standalone Inv Profile mod (/invprofile needed op level 2).
     PROFILE_USE("smputilities.profile.use", 2),

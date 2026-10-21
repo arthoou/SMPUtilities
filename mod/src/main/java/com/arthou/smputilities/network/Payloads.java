@@ -5,6 +5,7 @@ import com.arthou.smputilities.core.modsync.ModManifest;
 import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -76,10 +77,15 @@ public final class Payloads {
     // =========================================================== to client
 
     /** Which panel features this player may use, the real-names toggle and who is vanished. */
-    public record State(long permissions, boolean realNames, List<UUID> vanished, boolean modSyncEnabled) implements Message {
+    /** @param permissions bit {@code Perm.ordinal()} set for every node the player has */
+    public record State(BitSet permissions, boolean realNames, List<UUID> vanished, boolean modSyncEnabled) implements Message {
         @Override
         public void write(FriendlyByteBuf buf) {
-            buf.writeLong(permissions);
+            long[] words = permissions.toLongArray();
+            buf.writeVarInt(words.length);
+            for (long word : words) {
+                buf.writeLong(word);
+            }
             buf.writeBoolean(realNames);
             buf.writeVarInt(vanished.size());
             vanished.forEach(buf::writeUUID);
@@ -87,7 +93,11 @@ public final class Payloads {
         }
 
         public static State read(FriendlyByteBuf buf) {
-            long permissions = buf.readLong();
+            long[] words = new long[Math.min(buf.readVarInt(), 16)];
+            for (int i = 0; i < words.length; i++) {
+                words[i] = buf.readLong();
+            }
+            BitSet permissions = BitSet.valueOf(words);
             boolean realNames = buf.readBoolean();
             int size = buf.readVarInt();
             List<UUID> vanished = new ArrayList<>(Math.min(size, 256));
@@ -103,17 +113,28 @@ public final class Payloads {
         }
     }
 
-    /** Nicknames for nametags; real names only for staff who turned real names on. */
-    public record Nicknames(Map<UUID, String> nicknames, Map<UUID, String> realNames, boolean showAboveHead) implements Message {
+    /**
+     * Nicknames for nametags; real names only for staff who turned real names on.
+     *
+     * @param animations nameplate animation ids (HiddenNames' set) of players who have one
+     * @param blocksHide nameplates are hidden behind blocks
+     * @param teamOverride a team color replaces the nickname's own color
+     */
+    public record Nicknames(Map<UUID, String> nicknames, Map<UUID, String> realNames, boolean showAboveHead,
+                            Map<UUID, String> animations, boolean blocksHide, boolean teamOverride) implements Message {
         @Override
         public void write(FriendlyByteBuf buf) {
             Dto.writeUuidMap(buf, nicknames);
             Dto.writeUuidMap(buf, realNames);
             buf.writeBoolean(showAboveHead);
+            Dto.writeUuidMap(buf, animations);
+            buf.writeBoolean(blocksHide);
+            buf.writeBoolean(teamOverride);
         }
 
         public static Nicknames read(FriendlyByteBuf buf) {
-            return new Nicknames(Dto.readUuidMap(buf), Dto.readUuidMap(buf), buf.readBoolean());
+            return new Nicknames(Dto.readUuidMap(buf), Dto.readUuidMap(buf), buf.readBoolean(), Dto.readUuidMap(buf), buf.readBoolean(),
+                buf.readBoolean());
         }
 
         @Override

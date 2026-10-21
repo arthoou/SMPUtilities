@@ -11,6 +11,17 @@ public final class NicknameRules {
     private NicknameRules() {
     }
 
+    private static final Pattern LEADING_CODES = Pattern.compile("^(?:&(?:#[0-9a-fA-F]{6}|[0-9a-fA-Fk-oK-OrR]))+");
+
+    /** The color and format codes at the start of a nickname ("&c&l" in "&c&lBob"), which style the whole name. */
+    public static String leadingCodes(String nickname) {
+        if (nickname == null) {
+            return "";
+        }
+        java.util.regex.Matcher matcher = LEADING_CODES.matcher(nickname);
+        return matcher.find() ? matcher.group() : "";
+    }
+
     /** Comparison key: no color codes, trimmed, lower case, collapsed spaces. */
     public static String key(String nickname) {
         return StyledText.strip(nickname).trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);

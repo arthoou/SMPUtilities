@@ -5,13 +5,20 @@ import com.arthou.smputilities.mc.Nbt;
 import com.arthou.smputilities.backup.BackupService;
 import com.arthou.smputilities.backup.PlayerSnapshot;
 import com.arthou.smputilities.backup.SnapshotType;
+import com.arthou.smputilities.core.chat.StyledText;
+import com.arthou.smputilities.core.nick.HiddenNamesFormat;
+import com.arthou.smputilities.core.nick.NameAnimation;
 import com.arthou.smputilities.core.punish.PunishmentType;
 import com.arthou.smputilities.core.teleport.Location;
 import com.arthou.smputilities.core.util.Json;
 import com.arthou.smputilities.core.util.SuLog;
 import com.arthou.smputilities.profile.ProfileService;
 import com.arthou.smputilities.profile.ProfileStore;
+import com.arthou.smputilities.server.Names;
 import com.arthou.smputilities.server.SuServer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -52,6 +59,7 @@ public final class LegacyImport {
         changed |= once(marker, "tpa", () -> SuServer.config().teleport.importTpa && importTpa(server, context));
         changed |= once(marker, "dusmp", () -> importDusmp(server, context));
         changed |= once(marker, "dutts", () -> importDuTts(server, context));
+        changed |= once(marker, "hiddennames", () -> SuServer.config().nicknames.importHiddenNames && importHiddenNames(server, context));
         if (changed) {
             try {
                 Json.write(markerFile, marker);
@@ -284,6 +292,53 @@ public final class LegacyImport {
             }
         }
         return result;
+    }
+
+    // ----------------------------------------------------------- HiddenNames
+
+    /**
+     * world/hiddennames/data.json: [{uuid, displayName (text component), animation}].
+     * HiddenNames keeps an entry for everyone who joined, with their plain
+     * account name when they never got another one, so only real nicknames
+     * are taken; animations (hidden nameplates included) are always taken.
+     * Nicknames already set in SMPutilities win.
+     */
+    private static boolean importHiddenNames(MinecraftServer server, SuServer context) throws IOException {
+        Path file = server.getWorldPath(LevelResource.ROOT).resolve("hiddennames").resolve("data.json");
+        if (!Files.isRegularFile(file)) {
+            return true;
+        }
+        JsonElement root = JsonParser.parseString(Files.readString(file));
+        if (!root.isJsonArray()) {
+            return true;
+        }
+        int names = 0;
+        int animations = 0;
+        for (JsonElement element : root.getAsJsonArray()) {
+            if (!element.isJsonObject() || !element.getAsJsonObject().has("uuid")) {
+                continue;
+            }
+            JsonObject entry = element.getAsJsonObject();
+            UUID id = uuid(entry.get("uuid").getAsString());
+            if (id == null) {
+                continue;
+            }
+            String nickname = entry.has("displayName") ? HiddenNamesFormat.toLegacy(entry.get("displayName")) : "";
+            String account = Names.offlineName(server, id).orElse(context.players().get(id).lastName);
+            String plain = StyledText.strip(nickname).trim();
+            boolean realNickname = !plain.isEmpty() && (!plain.equalsIgnoreCase(account) || !nickname.equals(plain));
+            NameAnimation animation = entry.has("animation") ? NameAnimation.parse(entry.get("animation").getAsString()) : null;
+            if (realNickname && !context.players().get(id).hasNickname()) {
+                context.players().update(id, record -> record.nickname = nickname);
+                names++;
+            }
+            if (animation != null && animation != NameAnimation.NONE && context.players().get(id).nameAnimation.isEmpty()) {
+                context.players().update(id, record -> record.nameAnimation = animation.id());
+                animations++;
+            }
+        }
+        SuLog.info("Imported " + names + " nicknames and " + animations + " nameplate animations from HiddenNames");
+        return true;
     }
 
     // ----------------------------------------------------------------- DuTTS
