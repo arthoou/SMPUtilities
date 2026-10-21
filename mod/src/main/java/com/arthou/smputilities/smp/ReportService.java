@@ -23,6 +23,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 
@@ -144,29 +145,34 @@ public final class ReportService {
     private static int close(CommandContext<CommandSourceStack> context) {
         CommandSourceStack source = context.getSource();
         int id = IntegerArgumentType.getInteger(context, "id");
-        ServerPlayer actor = Mc.player(source);
-        SuServer server = SuServer.get();
-        Optional<Report> report = server.reports().get(id);
+        return close(source.getServer(), Mc.player(source), id) ? Msg.ok(source, "report.closed", id) : Msg.error(source, "report.not_found", id);
+    }
+
+    /** Closes an open report and tells the reporter. Shared by the command and the staff panel. */
+    public static boolean close(MinecraftServer server, ServerPlayer actor, int id) {
+        SuServer context = SuServer.get();
+        Optional<Report> report = context.reports().get(id);
         String actorName = actor == null ? "Console" : Names.realName(actor);
-        if (report.isEmpty() || !server.reports().close(id, actorName, System.currentTimeMillis(), SuServer.config().reports.keepClosed)) {
-            return Msg.error(source, "report.not_found", id);
+        if (report.isEmpty() || !context.reports().close(id, actorName, System.currentTimeMillis(), SuServer.config().reports.keepClosed)) {
+            return false;
         }
-        server.log(actor, "report.close", report.get().target, report.get().targetName, "#" + id);
-        ServerPlayer reporter = report.get().reporter == null ? null : source.getServer().getPlayerList().getPlayer(report.get().reporter);
+        context.log(actor, "report.close", report.get().target, report.get().targetName, "#" + id);
+        ServerPlayer reporter = report.get().reporter == null ? null : server.getPlayerList().getPlayer(report.get().reporter);
         if (reporter != null) {
             Msg.info(reporter, "report.closed_notice", id);
         }
-        return Msg.ok(source, "report.closed", id);
+        return true;
     }
 
     private static int teleport(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerPlayer staff = context.getSource().getPlayerOrException();
         int id = IntegerArgumentType.getInteger(context, "id");
+        return teleport(context.getSource().getPlayerOrException(), id) ? 1 : Msg.error(context.getSource(), "report.not_found", id);
+    }
+
+    /** Takes staff to where the report was made. */
+    public static boolean teleport(ServerPlayer staff, int id) {
         Optional<Report> report = SuServer.get().reports().get(id);
-        if (report.isEmpty() || report.get().where == null) {
-            return Msg.error(context.getSource(), "report.not_found", id);
-        }
-        return Teleports.teleport(staff, report.get().where, true) ? 1 : Msg.error(context.getSource(), "report.not_found", id);
+        return report.isPresent() && report.get().where != null && Teleports.teleport(staff, report.get().where, true);
     }
 
     /** Tells staff who join how many reports are waiting. */

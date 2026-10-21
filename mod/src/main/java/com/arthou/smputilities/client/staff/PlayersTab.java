@@ -243,6 +243,7 @@ final class PlayersTab extends PanelTab {
         left.add(new String[] {"info.profile", detail.get("activeProfile")});
         left.add(new String[] {"info.voice", tr("voice." + detail.get("voiceStatus")).getString()});
         left.add(new String[] {"info.vanished", yesNo(detail.get("vanished"))});
+        left.add(new String[] {"info.afk", yesNo(detail.get("afk"))});
         rightColumn.add(new String[] {"info.deaths", detail.get("deaths")});
         rightColumn.add(new String[] {"info.player_kills", detail.get("playerKills")});
         rightColumn.add(new String[] {"info.mob_kills", detail.get("mobKills")});
@@ -254,6 +255,7 @@ final class PlayersTab extends PanelTab {
         rightColumn.add(new String[] {"info.voice_mute", punishment(detail.get("voiceMute"))});
         rightColumn.add(new String[] {"info.records", detail.get("records") + " · " + tr("info.warnings", detail.get("warnings")).getString()});
         rightColumn.add(new String[] {"info.backups", detail.get("backups")});
+        rightColumn.add(new String[] {"info.reports", detail.get("reports").isEmpty() ? "-" : detail.get("reports")});
         drawColumn(graphics, left, splitX, y, columnWidth - 6);
         drawColumn(graphics, rightColumn, splitX + columnWidth, y, columnWidth);
     }

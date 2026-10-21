@@ -17,6 +17,7 @@ import com.arthou.smputilities.core.portal.PortalRecord;
 import com.arthou.smputilities.core.portal.PortalRegistry;
 import com.arthou.smputilities.core.punish.Punishment;
 import com.arthou.smputilities.core.punish.PunishmentType;
+import com.arthou.smputilities.core.report.Report;
 import com.arthou.smputilities.core.util.Durations;
 import com.arthou.smputilities.inventory.InventoryViews;
 import com.arthou.smputilities.inventory.PlayerState;
@@ -33,6 +34,8 @@ import com.arthou.smputilities.server.Lang;
 import com.arthou.smputilities.server.Names;
 import com.arthou.smputilities.server.Perms;
 import com.arthou.smputilities.server.SuServer;
+import com.arthou.smputilities.smp.AfkService;
+import com.arthou.smputilities.smp.ReportService;
 import com.arthou.smputilities.stats.PlayerStats;
 import com.arthou.smputilities.teleport.Teleports;
 import com.arthou.smputilities.troll.TrollService;
@@ -207,6 +210,8 @@ public final class StaffService {
         values.put("voiceStatus", VoiceChatCompat.status(id));
         values.put("voiceDeafened", String.valueOf(record.voiceDeafened));
         values.put("vanished", String.valueOf(VanishService.isVanished(id)));
+        values.put("afk", String.valueOf(online != null && AfkService.isAfk(online)));
+        values.put("reports", String.valueOf(context.reports().openAgainst(id)));
         values.put("silentJoin", String.valueOf(record.silentJoin));
         values.put("silentQuit", String.valueOf(record.silentQuit));
         values.put("warnings", String.valueOf(context.punishments().history(id).stream().filter(p -> p.type == PunishmentType.WARN).count()));
@@ -267,6 +272,16 @@ public final class StaffService {
                         record.actorName, record.reason)));
                 }
                 return new Dto.Table(kind, context, List.of("player", "type", "since", "remaining", "by", "reason"), rows);
+            }
+            case "reports" -> {
+                if (!Perms.has(viewer, Perm.STAFF_REPORTS)) {
+                    return null;
+                }
+                for (Report report : server.reports().open()) {
+                    rows.add(new Dto.Row(String.valueOf(report.id), List.of("#" + report.id, TIME.format(Instant.ofEpochMilli(report.createdAt)),
+                        report.reporterName, report.targetName, report.reason, report.where == null ? "" : report.where.shortText())));
+                }
+                return new Dto.Table(kind, context, List.of("id", "date", "reporter", "player", "reason", "where"), rows);
             }
             case "logs" -> {
                 if (!Perms.has(viewer, Perm.STAFF_LOGS)) {
@@ -517,6 +532,23 @@ public final class StaffService {
                 TrollService.broadcastTitle(server, kind, arg(action, 1));
                 context.log(actor, "announce." + kind.id(), null, "", arg(action, 1));
                 return null;
+            }
+            case "report_close", "report_tp" -> {
+                boolean tp = name.equals("report_tp");
+                if (!Perms.has(actor, Perm.STAFF_REPORTS) || tp && !Perms.has(actor, Perm.STAFF_TELEPORT)) {
+                    return denied(actor);
+                }
+                int reportId;
+                try {
+                    reportId = Integer.parseInt(arg(action, 0));
+                } catch (NumberFormatException e) {
+                    return "!" + Lang.tr(actor, "report.not_found", arg(action, 0));
+                }
+                boolean done = tp ? ReportService.teleport(actor, reportId) : ReportService.close(server, actor, reportId);
+                if (!done) {
+                    return "!" + Lang.tr(actor, "report.not_found", reportId);
+                }
+                return tp ? null : Lang.tr(actor, "report.closed", reportId);
             }
             case "modsync_rescan" -> {
                 if (!Perms.has(actor, Perm.MODSYNC_MANAGE)) {
