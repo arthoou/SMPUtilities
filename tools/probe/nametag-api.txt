@@ -1,0 +1,8 @@
+# Nametag visibility hooks (class | member regex)
+net.minecraft.client.renderer.entity.EntityRenderer | shouldShowName|renderNameTag|getNameTag|extractRenderState
+net.minecraft.client.renderer.entity.LivingEntityRenderer | shouldShowName
+net.minecraft.client.renderer.entity.player.PlayerRenderer | shouldShowName|renderNameTag|extractRenderState
+net.minecraft.client.renderer.entity.player.AvatarRenderer | shouldShowName|renderNameTag|extractRenderState
+net.minecraft.world.level.ClipContext | ClipContext\(
+net.minecraft.world.scores.PlayerTeam | formatNameForTeam
+net.minecraft.ChatFormatting | getChar|getColor\(
