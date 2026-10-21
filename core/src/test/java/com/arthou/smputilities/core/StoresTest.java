@@ -11,6 +11,8 @@ import com.arthou.smputilities.core.portal.PortalRegistry;
 import com.arthou.smputilities.core.punish.Punishment;
 import com.arthou.smputilities.core.punish.PunishmentStore;
 import com.arthou.smputilities.core.punish.PunishmentType;
+import com.arthou.smputilities.core.teleport.Location;
+import com.arthou.smputilities.core.teleport.TeleportStore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -25,6 +27,36 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class StoresTest {
+    /** Records (Location) must load with the Gson 2.8.9 that Minecraft 1.18.2 and 1.19.2 ship. */
+    @Test
+    void homesWarpsAndBackSurviveARestart(@TempDir Path dir) {
+        UUID id = UUID.randomUUID();
+        Location home = new Location("minecraft:overworld", 1.5, 64, -3, 90, 10);
+        Location back = new Location("minecraft:the_nether", 7, 70, 8, 0, 0);
+        PlayerStore players = new PlayerStore(dir.resolve("players"));
+        players.loadAll();
+        players.update(id, record -> {
+            record.nickname = "Capitão";
+            record.homes.put("base", home);
+            record.back = back;
+        });
+        players.flush();
+        PlayerStore reloadedPlayers = new PlayerStore(dir.resolve("players"));
+        reloadedPlayers.loadAll();
+        assertEquals("Capitão", reloadedPlayers.get(id).nickname);
+        assertEquals(home, reloadedPlayers.get(id).homes.get("base"));
+        assertEquals(back, reloadedPlayers.get(id).back);
+
+        TeleportStore teleports = new TeleportStore(dir.resolve("teleport.json"));
+        teleports.load();
+        teleports.setSpawn(home);
+        teleports.setWarp("shop", back);
+        TeleportStore reloadedTeleports = new TeleportStore(dir.resolve("teleport.json"));
+        reloadedTeleports.load();
+        assertEquals(home, reloadedTeleports.spawn());
+        assertEquals(back, reloadedTeleports.warps().get("shop"));
+    }
+
     @Test
     void punishments(@TempDir Path dir) {
         Path file = dir.resolve("punishments.json");

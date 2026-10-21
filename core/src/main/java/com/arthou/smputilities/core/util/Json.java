@@ -14,6 +14,7 @@ public final class Json {
         .setPrettyPrinting()
         .disableHtmlEscaping()
         .serializeNulls()
+        .registerTypeAdapterFactory(new RecordTypeAdapterFactory())
         .create();
 
     private Json() {
