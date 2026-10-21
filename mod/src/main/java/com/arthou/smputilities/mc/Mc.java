@@ -154,7 +154,7 @@ public final class Mc {
         //#if MC>=1.20.2
         return player.clientInformation().language();
         //#else
-        //$$ return ((com.arthou.smputilities.mixin.ServerPlayerAccessor) player).smputilities$language();
+        //$$ return ((com.arthou.smputilities.platform.ClientLanguage) player).smputilities$language();
         //#endif
     }
 
