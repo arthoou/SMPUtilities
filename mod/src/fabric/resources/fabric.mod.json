@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": ["${mod_authors}"],
+  "license": "${mod_license}",
+  "icon": "smputilities_logo.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["com.arthou.smputilities.fabric.FabricMod"],
+    "client": ["com.arthou.smputilities.fabric.FabricClientMod"]
+  },
+  "mixins": ["smputilities.mixins.json", "smputilities.fabric.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.14.0",
+    "fabric-api": "*",
+    "minecraft": "${fabric_mc_range}",
+    "java": ">=${java_version}"
+  },
+  "suggests": {
+    "voicechat": "*",
+    "luckperms": "*"
+  }
+}
