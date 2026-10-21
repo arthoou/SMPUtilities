@@ -3,28 +3,32 @@ package com.arthou.smputilities.tts;
 import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.chat.ChatService;
-import com.arthou.smputilities.core.chat.Placeholders;
 import com.arthou.smputilities.core.config.SuConfig;
 import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.core.player.PlayerRecord;
 import com.arthou.smputilities.network.SuNetwork;
 import com.arthou.smputilities.server.Msg;
-import com.arthou.smputilities.server.Names;
 import com.arthou.smputilities.server.Perms;
 import com.arthou.smputilities.server.SuServer;
 import com.arthou.smputilities.vanish.VanishService;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.ChatVisiblity;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Text to speech (DuTTS, integrated). A player with a TTS voice selected
- * types in chat; the server sends the text to that player's own client, whose
- * local helper speaks it into a virtual microphone, and shows a speech bubble
- * above their head to everyone nearby with the client mod.
+ * chats as usual; the server also sends the text to that player's own client,
+ * whose local helper speaks it into a virtual microphone, and shows a speech
+ * bubble above their head to everyone nearby with the client mod.
  */
 public final class TtsService {
+    /** When each player's typing bubble was last relayed. Server thread only. */
+    private static final Map<UUID, Long> TYPING = new HashMap<>();
+
     private TtsService() {
     }
 
@@ -34,19 +38,26 @@ public final class TtsService {
             && Perms.has(player, Perm.TTS_USE);
     }
 
-    /** @return true when the chat line was consumed as speech */
-    public static boolean handleChat(ServerPlayer player, String rawText) {
+    /**
+     * Voices a TTS player's chat line: their own client speaks it into the
+     * virtual microphone and nearby players see it as a bubble. The line
+     * itself still goes to chat like any other message.
+     *
+     * @return whether the line was spoken (it then has its bubble)
+     */
+    public static boolean speak(ServerPlayer player, String rawText) {
         if (!isActive(player)) {
             return false;
         }
+        typing(player, false);
         SuConfig.Tts config = SuServer.config().tts;
         String text = rawText.trim();
         if (text.isBlank()) {
-            return true;
+            return false;
         }
         if (text.length() > config.maxLength) {
             Msg.error(player, "tts.too_long", config.maxLength);
-            return true;
+            return false;
         }
         PlayerRecord record = SuServer.get().players().get(player.getUUID());
         TtsPresets.VoiceLanguage language = language(record);
@@ -58,33 +69,55 @@ public final class TtsService {
         if (config.bubbles) {
             sendBubble(player, text, true);
         }
-        if (config.echoToChat) {
-            echo(player, text);
-        }
         return true;
     }
 
-    private static void echo(ServerPlayer speaker, String text) {
-        MutableComponent line = Msg.styled(SuServer.config().tts.chatMarker)
-            .append(Names.display(speaker))
-            .append(Msg.styled("&8 » &7" + Placeholders.escapeCodes(text)));
-        Mc.console(Mc.server(speaker), line);
-        for (ServerPlayer recipient : Mc.server(speaker).getPlayerList().getPlayers()) {
-            if (recipient.getChatVisibility() == ChatVisiblity.FULL && !ChatService.isIgnoring(recipient, speaker)) {
-                Mc.send(recipient, line);
+    /**
+     * NEXEL's typing bubble: while a TTS player (or anyone, with bubbles for
+     * all chat) has a message in the chat box, nearby players see "...".
+     * Clients repeat it while typing; repeats closer than 400 ms are dropped.
+     */
+    public static void typing(ServerPlayer player, boolean active) {
+        SuConfig config = SuServer.config();
+        long now = System.currentTimeMillis();
+        if (active) {
+            boolean shows = config.tts.bubbles && (isActive(player) || config.tts.bubblesForAllChat) && !ChatService.isSilenced(player);
+            Long last = TYPING.get(player.getUUID());
+            if (!shows || last != null && now - last < 400) {
+                return;
+            }
+            TYPING.put(player.getUUID(), now);
+        } else if (TYPING.remove(player.getUUID()) == null) {
+            return;
+        }
+        for (ServerPlayer viewer : nearbyViewers(player)) {
+            SuNetwork.bubbleTyping(viewer, player.getUUID(), active);
+        }
+    }
+
+    public static void forget(ServerPlayer player) {
+        TYPING.remove(player.getUUID());
+    }
+
+    /** Players close enough to see the speaker's bubbles, who can see them and do not ignore them. */
+    private static List<ServerPlayer> nearbyViewers(ServerPlayer speaker) {
+        double range = SuServer.config().tts.bubbleRange * SuServer.config().tts.bubbleRange;
+        List<ServerPlayer> viewers = new ArrayList<>();
+        for (ServerPlayer viewer : speaker.serverLevel().players()) {
+            if (viewer.distanceToSqr(speaker) <= range && VanishService.canSee(viewer, speaker) && !ChatService.isIgnoring(viewer, speaker)) {
+                viewers.add(viewer);
             }
         }
+        return viewers;
     }
 
     /** Speech bubble for every nearby player that has the client mod. */
     public static void sendBubble(ServerPlayer speaker, String text, boolean tts) {
         SuConfig.Tts config = SuServer.config().tts;
-        double range = config.bubbleRange * config.bubbleRange;
         String clipped = text.length() > config.maxLength ? text.substring(0, config.maxLength) : text;
-        for (ServerPlayer viewer : speaker.serverLevel().players()) {
-            if (viewer.distanceToSqr(speaker) <= range && VanishService.canSee(viewer, speaker) && !ChatService.isIgnoring(viewer, speaker)) {
-                SuNetwork.bubble(viewer, speaker.getUUID(), clipped, tts);
-            }
+        typing(speaker, false);
+        for (ServerPlayer viewer : nearbyViewers(speaker)) {
+            SuNetwork.bubble(viewer, speaker.getUUID(), clipped, tts);
         }
     }
 

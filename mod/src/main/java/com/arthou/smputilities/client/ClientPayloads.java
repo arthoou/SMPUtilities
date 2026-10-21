@@ -38,6 +38,8 @@ public final class ClientPayloads {
             ttsMenu(payload);
         } else if (message instanceof Payloads.Bubble payload) {
             bubble(payload);
+        } else if (message instanceof Payloads.BubbleTyping payload) {
+            BubbleManager.typing(payload.speaker(), payload.active());
         } else if (message instanceof Payloads.VoiceRestriction payload) {
             voiceRestriction(payload);
         } else if (message instanceof Payloads.Manifest payload) {

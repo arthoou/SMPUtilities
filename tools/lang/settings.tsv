@@ -48,7 +48,6 @@ setting.smputilities.nicknames.uniqueNicknames	Nicknames must be unique	Apelidos
 setting.smputilities.nicknames.maxLength	Maximum nickname length	Tamanho máximo do apelido
 setting.smputilities.nicknames.tabFormat	Tab list format ({nick}, {name})	Formato na TAB ({nick}, {name})
 setting.smputilities.tts.maxLength	Maximum TTS characters	Máximo de caracteres de TTS
-setting.smputilities.tts.echoToChat	Also show TTS lines in chat	Também mostrar TTS no chat
 setting.smputilities.tts.bubblesForAllChat	Speech bubbles for all chat	Balões para todo o chat
 setting.smputilities.tts.bubbleSeconds	Seconds a bubble stays	Segundos que o balão fica
 setting.smputilities.tts.bubbleRange	Blocks a bubble is visible from	Distância em blocos para ver o balão

@@ -20,8 +20,10 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 //#if MC>=1.19.3
 import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 //#else
 //$$ import com.mojang.math.Matrix4f;
+//$$ import com.mojang.math.Vector3f;
 //#endif
 //#if MC>=1.21.11
 import net.minecraft.client.renderer.rendertype.RenderTypes;
@@ -30,10 +32,13 @@ import net.minecraft.client.renderer.rendertype.RenderTypes;
 //#endif
 
 /**
- * Speech bubbles above players (from Bubbles4All). Drawn once per frame
- * after the entities, in world space around the camera, which works the
- * same on every loader and version; the 9-slice frame uses the text render
- * type, so it is lit and depth-tested like nametags.
+ * Speech bubbles above players with NEXEL's look (the same geometry,
+ * textures and opacity as NEXEL and LeafTalk): one bubble per message, the
+ * newest with the tail, nearly transparent while the speaker sneaks. Drawn
+ * once per frame after the entities, in world space around the camera, which
+ * works the same on every loader and version. The bubble turns toward the
+ * camera from its own position, so the camera's rotation convention (which
+ * changed between versions) does not matter.
  */
 public final class BubbleRenderer {
     private static final ResourceLocation ROUNDED_BORDER = SmpUtilities.id("textures/gui/speech_bubbles/rounded_border.png");
@@ -43,7 +48,12 @@ public final class BubbleRenderer {
     private static final float TEXTURE = 32.0F;
     private static final int PADDING = 2;
     private static final int MIN_WIDTH = 13;
+    private static final int STACK_GAP = 1;
+    private static final int VERTICAL_NUDGE = 13;
     private static final double MAX_DISTANCE_SQR = 64 * 64;
+    /** Depth behind the text, in bubble pixels: the fill, then the border. */
+    private static final float FILL_DEPTH = 0.5F;
+    private static final float BORDER_DEPTH = 1.0F;
 
     private BubbleRenderer() {
     }
@@ -55,17 +65,19 @@ public final class BubbleRenderer {
      */
     public static void renderWorld(PoseStack poseStack) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level == null || minecraft.player == null || !BubbleManager.hasAny()) {
+        if (minecraft.level == null || minecraft.player == null || minecraft.options.hideGui || !BubbleManager.hasAny()) {
             return;
         }
         Camera camera = minecraft.gameRenderer.getMainCamera();
         Vec3 cameraPos = cameraPosition(camera);
         float partialTick = partialTick(minecraft);
         MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
+        long now = System.currentTimeMillis();
         boolean drew = false;
         for (Player player : minecraft.level.players()) {
             List<BubbleManager.Bubble> bubbles = BubbleManager.bubbles(player.getUUID());
-            if (bubbles.isEmpty() || !shouldDraw(minecraft, player)) {
+            boolean typing = BubbleManager.isTyping(player.getUUID(), now);
+            if (bubbles.isEmpty() && !typing || !shouldDraw(minecraft, player)) {
                 continue;
             }
             double x = Mth.lerp(partialTick, player.xo, player.getX()) - cameraPos.x;
@@ -73,7 +85,7 @@ public final class BubbleRenderer {
             double z = Mth.lerp(partialTick, player.zo, player.getZ()) - cameraPos.z;
             poseStack.pushPose();
             poseStack.translate(x, y, z);
-            draw(minecraft, player, bubbles, poseStack, camera, buffers);
+            draw(minecraft, player, bubbles, typing, poseStack, buffers, x, y, z, now);
             poseStack.popPose();
             drew = true;
         }
@@ -88,60 +100,148 @@ public final class BubbleRenderer {
             return false;
         }
         Entity camera = minecraft.getCameraEntity();
-        return camera != null && !player.isInvisibleTo(minecraft.player) && camera.distanceToSqr(player) <= MAX_DISTANCE_SQR;
+        return camera != null && player.isAlive() && !player.isInvisibleTo(minecraft.player) && camera.distanceToSqr(player) <= MAX_DISTANCE_SQR;
     }
 
-    private static void draw(Minecraft minecraft, Player player, List<BubbleManager.Bubble> bubbles, PoseStack poseStack, Camera camera,
-                             MultiBufferSource buffers) {
+    private static void draw(Minecraft minecraft, Player player, List<BubbleManager.Bubble> bubbles, boolean typing, PoseStack poseStack,
+                             MultiBufferSource buffers, double x, double y, double z, long now) {
         Font font = minecraft.font;
-        long now = System.currentTimeMillis();
+        double anchor = player.getBbHeight() + 0.5 + PADDING / 32.0;
         poseStack.pushPose();
-        // Above the nametag.
-        poseStack.translate(0.0, player.getBbHeight() + 0.75, 0.0);
-        poseStack.mulPose(camera.rotation());
-        poseStack.scale(0.025F, -0.025F, 0.025F);
+        poseStack.translate(0.0, anchor, 0.0);
+        face(poseStack, x, y + anchor, z);
+        poseStack.translate(0.0F, -VERTICAL_NUDGE, 0.0F);
+        float backgroundScale = player.isCrouching() ? 0.2F : 0.9F;
 
-        float offset = 0;
-        for (int index = 0; index < bubbles.size(); index++) {
-            BubbleManager.Bubble bubble = bubbles.get(index);
+        int offsetY = 0;
+        boolean first = true;
+        if (typing) {
+            BubbleManager.Bubble look = bubbles.isEmpty() ? null : bubbles.get(0);
+            String dots = ".".repeat((int) (now / 350L % 3L) + 1);
+            Layout layout = new Layout(font.width("..."), 1, font.lineHeight);
+            poseStack.pushPose();
+            poseStack.translate(0.0F, offsetY, 0.0F);
+            Matrix4f matrix = poseStack.last().pose();
+            drawBubble(buffers, matrix, layout, look == null ? "rounded" : look.style(), true, argb(look == null ? 0x000000 : look.borderColor(),
+                backgroundScale), argb(look == null ? 0xFFFFFF : look.fillColor(), backgroundScale));
+            text(font, Texts.literal(dots).getVisualOrderText(), layout.textBaseY, argb(look == null ? 0x000000 : look.textColor(), 1.0F),
+                matrix, buffers);
+            poseStack.popPose();
+            offsetY -= layout.stackHeight + STACK_GAP;
+            first = false;
+        }
+        for (BubbleManager.Bubble bubble : bubbles) {
             float alpha = BubbleManager.alpha(bubble, now);
-            if (alpha <= 0.02F) {
+            if (alpha <= 0.03F) {
                 continue;
             }
-            String text = (bubble.tts() ? "♪ " : "") + bubble.text().trim();
-            List<FormattedCharSequence> lines = font.split(Texts.literal(text), bubble.maxWidth());
+            List<FormattedCharSequence> lines = font.split(Texts.literal(bubble.text()), Math.max(MIN_WIDTH, bubble.maxWidth()));
             int widest = MIN_WIDTH;
             for (FormattedCharSequence line : lines) {
                 widest = Math.max(widest, font.width(line));
             }
-            int width = widest + PADDING * 2 + 4;
-            int height = lines.size() * font.lineHeight + PADDING * 2 + 2;
-            int left = -width / 2;
-            int top = (int) (-offset - height - (index == 0 ? 5 : 0));
-            boolean squared = "squared".equalsIgnoreCase(bubble.style());
-
+            Layout layout = new Layout(Math.min(widest, bubble.maxWidth()), lines.size(), font.lineHeight);
+            poseStack.pushPose();
+            poseStack.translate(0.0F, offsetY, 0.0F);
             Matrix4f matrix = poseStack.last().pose();
-            drawFrame(buffers, matrix, squared ? SQUARED_BORDER : ROUNDED_BORDER, left, top, width, height, index == 0,
-                argb(bubble.borderColor(), alpha), 0.03F);
-            drawFrame(buffers, matrix, squared ? SQUARED_FILL : ROUNDED_FILL, left, top, width, height, index == 0,
-                argb(bubble.fillColor(), alpha), 0.015F);
+            drawBubble(buffers, matrix, layout, bubble.style(), first, argb(bubble.borderColor(), alpha * backgroundScale),
+                argb(bubble.fillColor(), alpha * backgroundScale));
+            // The font draws nearly transparent text as opaque, so faded text is skipped.
             if (alpha > 0.1F) {
-                int textColor = argb(bubble.textColor(), alpha);
-                int lineY = top + PADDING + 2;
+                int lineY = layout.textBaseY;
                 for (FormattedCharSequence line : lines) {
-                    //#if MC>=1.19.3
-                    font.drawInBatch(line, -font.width(line) / 2.0F, lineY, textColor, false, matrix, buffers,
-                        Font.DisplayMode.NORMAL, 0, LightTexture.FULL_BRIGHT);
-                    //#else
-                    //$$ font.drawInBatch(line, -font.width(line) / 2.0F, lineY, textColor, false, matrix, buffers,
-                    //$$     false, 0, LightTexture.FULL_BRIGHT);
-                    //#endif
+                    text(font, line, lineY, argb(bubble.textColor(), alpha), matrix, buffers);
                     lineY += font.lineHeight;
                 }
             }
-            offset += height + 3 + (index == 0 ? 5 : 0);
+            poseStack.popPose();
+            offsetY -= layout.stackHeight + STACK_GAP;
+            first = false;
         }
         poseStack.popPose();
+    }
+
+    /**
+     * Turns the bubble toward the camera, which looks along (dx, dy, dz), and
+     * scales it like a nametag: x to the camera's right, y down, z away.
+     */
+    private static void face(PoseStack poseStack, double dx, double dy, double dz) {
+        float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+        float pitch = (float) Math.toDegrees(Math.atan2(-dy, Math.sqrt(dx * dx + dz * dz)));
+        //#if MC>=1.19.3
+        poseStack.mulPose(new Quaternionf().rotationYXZ((float) Math.toRadians(-yaw), (float) Math.toRadians(pitch), 0.0F));
+        //#else
+        //$$ poseStack.mulPose(Vector3f.YP.rotationDegrees(-yaw));
+        //$$ poseStack.mulPose(Vector3f.XP.rotationDegrees(pitch));
+        //#endif
+        poseStack.scale(-0.025F, -0.025F, 0.025F);
+    }
+
+    private static void text(Font font, FormattedCharSequence line, int y, int color, Matrix4f matrix, MultiBufferSource buffers) {
+        float x = -(font.width(line) / 2) + 1;
+        //#if MC>=1.19.3
+        font.drawInBatch(line, x, y, color, false, matrix, buffers, Font.DisplayMode.NORMAL, 0, LightTexture.FULL_BRIGHT);
+        //#else
+        //$$ font.drawInBatch(line, x, y, color, false, matrix, buffers, false, 0, LightTexture.FULL_BRIGHT);
+        //#endif
+    }
+
+    /** NEXEL's bubble geometry for a block of lines; y grows downward, the tail at the bottom. */
+    private static final class Layout {
+        final int width;
+        final int baseX;
+        final int baseY;
+        final int middleHeight;
+        final int textBaseY;
+        final int stackHeight;
+
+        Layout(int widestLine, int lineCount, int lineHeight) {
+            int balloon = Mth.clamp(widestLine, MIN_WIDTH, 400);
+            width = (balloon & 1) == 0 ? balloon - 1 : balloon;
+            int count = Math.max(1, lineCount);
+            baseX = width / 2;
+            baseY = -count - (count - 1) * 8;
+            middleHeight = count + (count - 1) * 8 + PADDING * 2;
+            textBaseY = -(lineHeight * count - (lineHeight + 1));
+            stackHeight = lineHeight * count + PADDING * 2 + 2;
+        }
+    }
+
+    private static void drawBubble(MultiBufferSource buffers, Matrix4f matrix, Layout layout, String style, boolean tail, int borderColor,
+                                   int fillColor) {
+        boolean squared = "squared".equalsIgnoreCase(style);
+        drawLayer(buffer(buffers, squared ? SQUARED_BORDER : ROUNDED_BORDER), matrix, layout, tail, true, borderColor, BORDER_DEPTH);
+        drawLayer(buffer(buffers, squared ? SQUARED_FILL : ROUNDED_FILL), matrix, layout, tail, false, fillColor, FILL_DEPTH);
+    }
+
+    /** 5px corners and edges stretched from the 32x32 texture; the border leaves a gap where the tail joins. */
+    private static void drawLayer(VertexConsumer consumer, Matrix4f matrix, Layout layout, boolean tail, boolean border, int color, float z) {
+        int top = layout.baseY - PADDING;
+        int middle = layout.baseY + 5 - PADDING;
+        int bottom = 5 + PADDING;
+        int left = -layout.baseX - 3 - PADDING;
+        int middleX = -layout.baseX + 2 - PADDING;
+        int right = layout.baseX - 1 + PADDING;
+        int middleWidth = layout.width - 4 + PADDING * 2;
+
+        quad(consumer, matrix, left, top, 5, 5, 0, 0, 5, 5, color, z);
+        quad(consumer, matrix, left, middle, 5, layout.middleHeight, 0, 6, 5, 1, color, z);
+        quad(consumer, matrix, left, bottom, 5, 5, 0, 8, 5, 5, color, z);
+        quad(consumer, matrix, middleX, top, middleWidth, 5, 6, 0, 5, 5, color, z);
+        quad(consumer, matrix, middleX, middle, middleWidth, layout.middleHeight, 6, 6, 5, 1, color, z);
+        if (tail && border) {
+            int leftWidth = (middleWidth - 5) / 2;
+            quad(consumer, matrix, middleX, bottom, leftWidth, 5, 6, 8, 5, 5, color, z);
+            quad(consumer, matrix, middleX + leftWidth + 5, bottom, middleWidth - leftWidth - 5, 5, 6, 8, 5, 5, color, z);
+        } else {
+            quad(consumer, matrix, middleX, bottom, middleWidth, 5, 6, 8, 5, 5, color, z);
+        }
+        quad(consumer, matrix, right, top, 5, 5, 12, 0, 5, 5, color, z);
+        quad(consumer, matrix, right, middle, 5, layout.middleHeight, 12, 6, 5, 1, color, z);
+        quad(consumer, matrix, right, bottom, 5, 5, 12, 8, 5, 5, color, z);
+        if (tail) {
+            quad(consumer, matrix, -3, 9 + PADDING, 7, 4, 18, 6, 7, 4, color, z);
+        }
     }
 
     private static Vec3 cameraPosition(Camera camera) {
@@ -163,7 +263,7 @@ public final class BubbleRenderer {
     }
 
     private static int argb(int rgb, float alpha) {
-        return (Math.round(alpha * 255) & 0xFF) << 24 | (rgb & 0xFFFFFF);
+        return ((int) (Mth.clamp(alpha, 0, 1) * 255) & 0xFF) << 24 | (rgb & 0xFFFFFF);
     }
 
     private static VertexConsumer buffer(MultiBufferSource buffers, ResourceLocation texture) {
@@ -174,32 +274,11 @@ public final class BubbleRenderer {
         //#endif
     }
 
-    /** 5px corners and edges stretched from the 32x32 texture; the tail sits under the newest bubble. */
-    private static void drawFrame(MultiBufferSource buffers, Matrix4f matrix, ResourceLocation texture, int x, int y, int width, int height,
-                                  boolean tail, int color, float z) {
-        VertexConsumer consumer = buffer(buffers, texture);
-        int c = 5;
-        int innerWidth = Math.max(1, width - c * 2);
-        int innerHeight = Math.max(1, height - c * 2);
-        // top row
-        quad(consumer, matrix, x, y, c, c, 0, 0, 5, 5, color, z);
-        quad(consumer, matrix, x + c, y, innerWidth, c, 6, 0, 5, 5, color, z);
-        quad(consumer, matrix, x + c + innerWidth, y, c, c, 12, 0, 5, 5, color, z);
-        // middle row
-        quad(consumer, matrix, x, y + c, c, innerHeight, 0, 6, 5, 1, color, z);
-        quad(consumer, matrix, x + c, y + c, innerWidth, innerHeight, 6, 6, 5, 1, color, z);
-        quad(consumer, matrix, x + c + innerWidth, y + c, c, innerHeight, 12, 6, 5, 1, color, z);
-        // bottom row
-        quad(consumer, matrix, x, y + c + innerHeight, c, c, 0, 8, 5, 5, color, z);
-        quad(consumer, matrix, x + c, y + c + innerHeight, innerWidth, c, 6, 8, 5, 5, color, z);
-        quad(consumer, matrix, x + c + innerWidth, y + c + innerHeight, c, c, 12, 8, 5, 5, color, z);
-        if (tail) {
-            quad(consumer, matrix, -3, y + height - 1, 7, 4, 18, 6, 7, 4, color, z);
-        }
-    }
-
     private static void quad(VertexConsumer consumer, Matrix4f matrix, float x, float y, float width, float height,
                              float u, float v, float uWidth, float vHeight, int color, float z) {
+        if (width <= 0 || height <= 0) {
+            return;
+        }
         float u0 = u / TEXTURE;
         float u1 = (u + uWidth) / TEXTURE;
         float v0 = v / TEXTURE;

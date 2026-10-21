@@ -32,6 +32,7 @@ import com.arthou.smputilities.staff.StaffService;
 import com.arthou.smputilities.teleport.TeleportCommands;
 import com.arthou.smputilities.teleport.Teleports;
 import com.arthou.smputilities.troll.TrollService;
+import com.arthou.smputilities.tts.TtsService;
 import com.arthou.smputilities.vanish.VanishService;
 import com.arthou.smputilities.voice.VoiceChatCompat;
 import com.mojang.brigadier.CommandDispatcher;
@@ -174,6 +175,7 @@ public final class CommonEvents {
         TeleportCommands.forget(player);
         AfkService.onLogout(player);
         ChatService.forget(player);
+        TtsService.forget(player);
         DimensionService.forget(player);
         VanishService.onLogout(player);
         ModSyncServer.onLogout(player);

@@ -676,7 +676,6 @@
   "setting.smputilities.tts.bubbleRange": "Blocks a bubble is visible from",
   "setting.smputilities.tts.bubbleSeconds": "Seconds a bubble stays",
   "setting.smputilities.tts.bubblesForAllChat": "Speech bubbles for all chat",
-  "setting.smputilities.tts.echoToChat": "Also show TTS lines in chat",
   "setting.smputilities.tts.maxLength": "Maximum TTS characters",
   "setting.smputilities.vanish.fakeMessagesOnToggle": "Fake quit/join line when toggling vanish",
   "setting.smputilities.vanish.hideFromTabList": "Remove vanished staff from the tab list",

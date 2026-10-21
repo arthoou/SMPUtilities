@@ -2,6 +2,7 @@ package com.arthou.smputilities.client;
 
 import com.arthou.smputilities.client.gui.Gfx;
 import com.arthou.smputilities.client.bubble.BubbleManager;
+import com.arthou.smputilities.client.bubble.TypingWatcher;
 import com.arthou.smputilities.client.gui.Theme;
 import com.arthou.smputilities.client.modsync.ClientModSync;
 import com.arthou.smputilities.client.tts.BridgeLauncher;
@@ -42,6 +43,7 @@ public final class SuClient {
             }
         }
         BubbleManager.tick();
+        TypingWatcher.tick(minecraft);
         ClientModSync.tick();
         if (++ticks % 20 == 0) {
             VoiceMuteBridge.tick();
@@ -131,6 +133,7 @@ public final class SuClient {
     public static void loggedOut() {
         ClientState.reset();
         BubbleManager.clear();
+        TypingWatcher.reset();
         ClientModSync.reset();
         BridgeLauncher.requestShutdownAsync();
     }
