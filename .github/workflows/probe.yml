@@ -70,3 +70,16 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - run: ./gradlew -q "-Psu.targets=1.18.2-fabric,1.19.2-fabric,1.19.4-fabric,1.20.1-fabric,1.20.4-fabric,1.20.6-fabric,1.21.1-fabric,1.21.8-fabric,1.21.11-fabric" -Psu.probeSpec=tools/probe/billboard-api.txt apiProbe
       - run: for f in versions/*-fabric/build/api.txt; do echo "======== $f"; cat "$f"; done
+
+  vanish:
+    name: vanish hooks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew -q "-Psu.targets=1.18.2-fabric,1.19.2-fabric,1.19.4-fabric,1.20.1-fabric,1.20.4-fabric,1.20.6-fabric,1.21.1-fabric,1.21.4-fabric,1.21.8-fabric,1.21.10-fabric,1.21.11-fabric" -Psu.probeSpec=tools/probe/vanish-api.txt apiProbe
+      - run: for f in versions/*-fabric/build/api.txt; do echo "======== $f"; cat "$f"; done

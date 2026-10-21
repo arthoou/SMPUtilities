@@ -1,0 +1,12 @@
+# Server list ping, announcements and /list (vanish)
+net.minecraft.network.protocol.status.ServerStatus | .
+net.minecraft.network.protocol.status.ServerStatus$Players | .
+net.minecraft.server.MinecraftServer | getStatus|buildServerStatus|buildPlayerStatus|ANONYMOUS|hidesOnlinePlayers|getPlayerCount|lastServerStatus|ServerStatus
+code:net.minecraft.server.MinecraftServer | PlayerList.getPlayers|getPlayerCount|ServerStatus\$Players
+net.minecraft.server.players.PlayerList | broadcastSystemMessage|broadcastMessage|broadcastAll|broadcastChatMessage
+net.minecraft.server.PlayerAdvancements | award
+code:net.minecraft.server.PlayerAdvancements | broadcast
+code:net.minecraft.server.level.ServerPlayer | broadcast
+net.minecraft.server.level.ServerPlayer | allowsListing|die\(
+net.minecraft.server.commands.ListPlayersCommand | .
+net.minecraft.server.players.SleepStatus | .
