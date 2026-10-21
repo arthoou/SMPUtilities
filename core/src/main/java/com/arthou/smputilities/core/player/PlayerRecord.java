@@ -46,6 +46,10 @@ public final class PlayerRecord {
     public boolean silentQuit;
     public boolean realNames;
     public boolean socialSpy;
+    /** /sc without a message: chat lines go to the staff channel. */
+    public boolean staffChatToggled;
+    /** /tpatoggle: refuse incoming /tpa and /tpahere requests. */
+    public boolean tpaDisabled;
     /** DUSMP /silenthear: the player hears nobody on voice chat. */
     public boolean voiceDeafened;
 

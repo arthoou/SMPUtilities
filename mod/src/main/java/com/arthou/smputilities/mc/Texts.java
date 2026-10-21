@@ -66,6 +66,23 @@ public final class Texts {
         //#endif
     }
 
+    /** A link; null when {@code url} is not a valid http(s) address. */
+    public static ClickEvent openUrl(String url) {
+        try {
+            java.net.URI uri = new java.net.URI(url);
+            if (uri.getScheme() == null || !uri.getScheme().toLowerCase(java.util.Locale.ROOT).startsWith("http")) {
+                return null;
+            }
+            //#if MC>=1.21.5
+            return new ClickEvent.OpenUrl(uri);
+            //#else
+            //$$ return new ClickEvent(ClickEvent.Action.OPEN_URL, url);
+            //#endif
+        } catch (java.net.URISyntaxException e) {
+            return null;
+        }
+    }
+
     public static HoverEvent showText(Component text) {
         //#if MC>=1.21.5
         return new HoverEvent.ShowText(text);

@@ -64,3 +64,31 @@ setting.smputilities.teleport.requestTimeoutSeconds	Seconds a /tpa request stays
 setting.smputilities.teleport.respawnAtSpawn	Respawn at /spawn	Renascer no /spawn
 setting.smputilities.teleport.rtpRadius	Random teleport radius	Raio do teleporte aleatório
 setting.smputilities.troll.maxEffectSeconds	Longest prank effect in seconds	Maior duração de efeito em segundos
+setting.smputilities.features.afk	AFK detection (/afk, tab tag, sleep)	Detecção de AFK (/afk, tag na TAB, sono)
+setting.smputilities.features.reports	Player reports (/report)	Denúncias de jogadores (/report)
+setting.smputilities.features.staffChat	Staff chat (/sc)	Chat da staff (/sc)
+setting.smputilities.features.announcements	Automatic announcements	Anúncios automáticos
+setting.smputilities.features.restart	Scheduled restarts (/su restart)	Reinícios agendados (/su restart)
+setting.smputilities.features.welcome	First-join welcome, MOTD and /rules	Boas-vindas, MOTD e /rules
+setting.smputilities.qol.deathCoordinates	Tell players where they died	Avisar o jogador onde ele morreu
+setting.smputilities.qol.playtime	/playtime command	Comando /playtime
+setting.smputilities.qol.seen	/seen command	Comando /seen
+setting.smputilities.afk.autoMinutes	Minutes idle before AFK (0 = only /afk)	Minutos parado até ficar AFK (0 = só /afk)
+setting.smputilities.afk.kickMinutes	Minutes idle before an AFK kick (0 = never)	Minutos parado até ser expulso por AFK (0 = nunca)
+setting.smputilities.afk.broadcast	Tell everyone when someone goes AFK or comes back	Avisar a todos quando alguém fica ou sai do AFK
+setting.smputilities.afk.showInTabList	AFK tag in the tab list	Tag de AFK na TAB
+setting.smputilities.afk.tabPrefix	AFK tag text	Texto da tag de AFK
+setting.smputilities.afk.ignoreForSleep	AFK players don't hold back the night	Jogadores AFK não impedem de pular a noite
+setting.smputilities.reports.cooldownSeconds	Seconds between two reports by one player	Segundos entre duas denúncias do mesmo jogador
+setting.smputilities.reports.maxReasonLength	Longest report reason	Tamanho máximo do motivo da denúncia
+setting.smputilities.reports.keepClosed	Closed reports kept	Denúncias fechadas guardadas
+setting.smputilities.reports.notifySound	Sound staff hears on a new report	Som que a staff ouve numa denúncia nova
+setting.smputilities.staffChat.format	Staff chat line format	Formato da linha do chat da staff
+setting.smputilities.announcements.intervalMinutes	Minutes between announcements	Minutos entre anúncios
+setting.smputilities.announcements.random	Random order	Ordem aleatória
+setting.smputilities.announcements.prefix	Announcement prefix	Prefixo dos anúncios
+setting.smputilities.announcements.minPlayers	Players online needed for announcements	Jogadores online necessários para anunciar
+setting.smputilities.restart.sound	Restart warning sound	Som do aviso de reinício
+setting.smputilities.restart.kickMessage	Message when the server stops (empty = default)	Mensagem ao desligar (vazio = padrão)
+setting.smputilities.welcome.firstJoinBroadcast	Announce a player's first join	Anunciar a primeira entrada de um jogador
+setting.smputilities.welcome.firstJoinMessage	First join message (empty = default)	Mensagem da primeira entrada (vazio = padrão)

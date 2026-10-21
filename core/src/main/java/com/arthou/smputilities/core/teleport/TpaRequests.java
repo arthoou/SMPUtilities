@@ -53,6 +53,24 @@ public final class TpaRequests {
         return requests != null && requests.containsKey(requester);
     }
 
+    /** /tpacancel: withdraws every pending request the player sent. @return the requests withdrawn */
+    public synchronized List<Request> cancel(UUID requester, long now, long timeoutMillis) {
+        prune(now, timeoutMillis);
+        List<Request> cancelled = new ArrayList<>();
+        Iterator<LinkedHashMap<UUID, Request>> outer = byTarget.values().iterator();
+        while (outer.hasNext()) {
+            LinkedHashMap<UUID, Request> requests = outer.next();
+            Request removed = requests.remove(requester);
+            if (removed != null) {
+                cancelled.add(removed);
+            }
+            if (requests.isEmpty()) {
+                outer.remove();
+            }
+        }
+        return cancelled;
+    }
+
     /** Drops everything involving a player who left. */
     public synchronized void forget(UUID player) {
         byTarget.remove(player);

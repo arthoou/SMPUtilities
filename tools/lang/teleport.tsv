@@ -48,3 +48,9 @@ rtp.not_here	Random teleport doesn't work in this dimension.	O teleporte aleató
 rtp.teleported	Teleported to a random location.	Teleportado para um local aleatório.
 tpall.done	Teleported %s players to you.	%s jogadores teleportados até você.
 tplogout.none	No logout location is known for that player.	Não há local de saída conhecido para esse jogador.
+tpa.target_disabled	This player is not accepting teleport requests.	Este jogador não está aceitando pedidos de teleporte.
+tpa.nothing_to_cancel	You have no pending teleport requests.	Você não tem pedidos de teleporte pendentes.
+tpa.cancelled	Cancelled %s teleport request(s).	%s pedido(s) de teleporte cancelado(s).
+tpa.cancelled_by	%s cancelled their teleport request.	%s cancelou o pedido de teleporte.
+tpa.toggle_off	You no longer accept teleport requests. /tpatoggle to accept them again.	Você não aceita mais pedidos de teleporte. /tpatoggle para voltar a aceitar.
+tpa.toggle_on	You accept teleport requests again.	Você voltou a aceitar pedidos de teleporte.
