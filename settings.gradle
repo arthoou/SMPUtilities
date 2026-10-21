@@ -1,31 +1,55 @@
 pluginManagement {
     repositories {
-        gradlePluginPortal()
+        maven {
+            name = 'Architectury'
+            url = 'https://maven.architectury.dev/'
+        }
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        maven {
+            name = 'Forge'
+            url = 'https://maven.minecraftforge.net/'
+        }
         maven {
             name = 'NeoForged'
             url = 'https://maven.neoforged.net/releases/'
         }
+        gradlePluginPortal()
     }
-}
-
-plugins {
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
+    plugins {
+        id 'dev.architectury.loom' version '1.17.493'
+    }
 }
 
 rootProject.name = 'SMPutilities'
 
-// Loader-independent logic, compiled into every platform jar.
+// Loader-independent logic, compiled into every target jar.
 include 'core'
-// Optional desktop helper for TTS, embedded as a resource in the client jar.
+// Optional desktop helper for TTS, embedded as a resource in every jar.
 include 'tts-bridge'
 
-// Platform targets. Each one produces its own SMPutilities-<mc>-<loader>.jar.
-// Pass -Psu.coreOnly=true to build/test only the Minecraft-independent modules
-// (useful where the Minecraft maven repositories are not reachable).
+// Targets: one Minecraft version + one loader each, described by
+// versions/<target>/gradle.properties and built by gradle/target.gradle.
+// Only the requested targets are configured, because each one downloads and
+// sets up its own Minecraft:
+//   -Psu.targets=1.20.1-forge,1.21.1-fabric   or   -Psu.targets=all
+// -Psu.coreOnly=true skips every target (useful without the Minecraft mavens).
 if (!Boolean.parseBoolean(providers.gradleProperty('su.coreOnly').getOrElse('false'))) {
-    file('platforms').eachDir { dir ->
-        if (new File(dir, 'build.gradle').exists()) {
-            include "platforms:${dir.name}"
+    def available = (file('versions').listFiles() ?: new File[0])
+        .findAll { new File(it, 'gradle.properties').isFile() }
+        .collect { it.name }
+        .sort()
+    def requested = providers.gradleProperty('su.targets').getOrElse('')
+    def selected = requested.trim() == 'all' ? available : requested.split(',').collect { it.trim() }.findAll { !it.isEmpty() }
+    selected.each { target ->
+        if (!available.contains(target)) {
+            throw new GradleException("Unknown target '${target}'. Available: ${available.join(', ')}")
         }
+        include ":${target}"
+        def descriptor = project(":${target}")
+        descriptor.projectDir = file("versions/${target}")
+        descriptor.buildFileName = '../../gradle/target.gradle'
     }
 }

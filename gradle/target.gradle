@@ -1,0 +1,149 @@
+// Build of one target (one Minecraft version + one loader). Every directory in
+// versions/ uses this script; its gradle.properties says which game, loader and
+// dependency versions to use. Architectury Loom handles Fabric, Forge and
+// NeoForge with Mojang mappings, so all targets share the same sources.
+plugins {
+    id 'dev.architectury.loom'
+}
+
+def mc = project.property('minecraft_version') as String
+def loader = project.property('loom.platform') as String
+def javaVersion = project.property('java_version') as int
+def isFabric = loader == 'fabric'
+def isForge = loader == 'forge'
+def isNeoForge = loader == 'neoforge'
+def modRoot = rootProject.file('mod')
+
+group = rootProject.mod_group_id
+version = rootProject.mod_version
+base {
+    archivesName = "SMPutilities-${mc}-${loader}"
+}
+
+// ------------------------------------------------------------- sources
+
+def flags = [loader.toUpperCase(Locale.ROOT)]
+if (isForge || isNeoForge) {
+    flags << 'FORGELIKE'
+}
+
+def preprocess = tasks.register('preprocessSources', su.build.PreprocessTask) {
+    sourceRoots.from(rootProject.file('core/src/main/java'), new File(modRoot, 'src/main/java'), new File(modRoot, "src/${loader}/java"))
+    swapFile = new File(modRoot, 'swaps.txt')
+    minecraftVersion = mc
+    it.flags.set(flags)
+    outputDirectory = layout.buildDirectory.dir('preprocessed/java')
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = []
+            srcDir preprocess.map { it.outputDirectory }
+        }
+        resources {
+            srcDirs = [new File(modRoot, 'src/main/resources'), new File(modRoot, "src/${loader}/resources")]
+        }
+    }
+}
+
+// ---------------------------------------------------------------- loom
+
+loom {
+    silentMojangMappingsLicense()
+    mixin {
+        defaultRefmapName = 'smputilities.refmap.json'
+    }
+    if (isForge) {
+        forge {
+            mixinConfig 'smputilities.mixins.json'
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'NeoForged'
+        url = 'https://maven.neoforged.net/releases/'
+    }
+    maven {
+        name = 'Henkel (Simple Voice Chat API)'
+        url = 'https://maven.maxhenkel.de/repository/public'
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${mc}"
+    mappings loom.officialMojangMappings()
+    if (isFabric) {
+        modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
+        modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    } else if (isForge) {
+        forge "net.minecraftforge:forge:${mc}-${project.forge_version}"
+    } else {
+        neoForge "net.neoforged:neoforge:${project.neoforge_version}"
+    }
+    // Optional integration, loaded only when Simple Voice Chat is installed.
+    compileOnly "de.maxhenkel.voicechat:voicechat-api:${rootProject.voicechat_api_version}"
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = javaVersion
+    options.compilerArgs += ['-Xmaxerrs', '2000']
+    dependsOn preprocess
+}
+
+// ----------------------------------------------------------- resources
+
+def metadata = [
+    mod_id            : rootProject.mod_id,
+    mod_name          : rootProject.mod_name,
+    mod_version       : rootProject.mod_version,
+    mod_license       : rootProject.mod_license,
+    mod_authors       : rootProject.mod_authors,
+    mod_description   : rootProject.mod_description,
+    minecraft_version : mc,
+    minecraft_range   : project.property('minecraft_range'),
+    loader_range      : project.findProperty('loader_range') ?: '[1,)',
+    neoforge_range    : project.findProperty('neoforge_range') ?: '[0,)',
+    fabric_mc_range   : project.findProperty('fabric_minecraft_range') ?: mc,
+    pack_format       : project.property('pack_format'),
+    java_version      : javaVersion,
+    mixin_java        : "JAVA_${javaVersion}",
+]
+
+processResources {
+    inputs.properties metadata
+    filesMatching(['fabric.mod.json', 'META-INF/mods.toml', 'META-INF/neoforge.mods.toml', 'pack.mcmeta', '*.mixins.json']) {
+        expand metadata
+    }
+    // NeoForge read META-INF/mods.toml before 1.20.5.
+    if (isNeoForge && project.findProperty('neoforge_legacy_toml') == 'true') {
+        rename 'neoforge.mods.toml', 'mods.toml'
+    }
+    // The TTS desktop helper ships inside the jar and is extracted on demand.
+    from(project(':tts-bridge').tasks.named('jar')) {
+        into 'smputilities/voice-bridge'
+    }
+}
+
+// ----------------------------------------------------------------- jars
+
+jar {
+    archiveClassifier = 'dev'
+}
+
+remapJar {
+    archiveVersion = ''
+    archiveClassifier = ''
+}
+
+def dist = tasks.register('dist', Copy) {
+    from remapJar
+    into rootProject.layout.projectDirectory.dir('dist')
+}
+tasks.named('build') {
+    finalizedBy dist
+}
