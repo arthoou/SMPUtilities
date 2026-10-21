@@ -6,6 +6,9 @@ plugins {
     id 'dev.architectury.loom'
 }
 
+// The TTS helper jar is packed into the mod's resources.
+evaluationDependsOn(':tts-bridge')
+
 def mc = project.property('minecraft_version') as String
 def loader = project.property('loom.platform') as String
 def javaVersion = project.property('java_version') as int
@@ -51,9 +54,6 @@ sourceSets {
 
 loom {
     silentMojangMappingsLicense()
-    mixin {
-        defaultRefmapName = 'smputilities.refmap.json'
-    }
     if (isForge) {
         forge {
             mixinConfig 'smputilities.mixins.json'
