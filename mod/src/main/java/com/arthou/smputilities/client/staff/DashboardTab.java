@@ -119,9 +119,10 @@ final class DashboardTab extends PanelTab {
         graphics.drawString(font, Theme.clip(font, tr(key), width - 14), x + 9, y + 7, Theme.TEXT_DIM, false);
         graphics.push();
         graphics.translate(x + 9, y + 20);
-        float scale = font.width(value) * 1.5F > width - 14 ? 1.0F : 1.5F;
+        Component bold = Texts.literal(value).withStyle(ChatFormatting.BOLD);
+        float scale = font.width(bold) * 1.5F > width - 14 ? 1.0F : 1.5F;
         graphics.scale(scale);
-        graphics.drawString(font, Texts.literal(Theme.clip(font, value, (int) ((width - 14) / scale))).withStyle(ChatFormatting.BOLD), 0, 0, color, false);
+        graphics.drawString(font, Theme.clip(font, bold, (int) ((width - 14) / scale)), 0, 0, color, false);
         graphics.pop();
     }
 

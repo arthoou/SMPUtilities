@@ -19,6 +19,7 @@ public class SuButton extends Widget {
     private long lastFrame = Util.getMillis();
     public Kind kind = Kind.GHOST;
     public String icon = "";
+    private boolean clipped;
 
     public SuButton(int x, int y, int width, int height, Component message, Consumer<SuButton> action) {
         super(x, y, width, height, message);
@@ -93,8 +94,17 @@ public class SuButton extends Widget {
         }
         Theme.roundBox(graphics, getX(), getY(), getWidth(), getHeight(), background, border);
         Font font = Minecraft.getInstance().font;
-        Component label = icon.isEmpty() ? getMessage() : Texts.literal(icon + " ").append(getMessage());
-        FormattedCharSequence text = Theme.clip(font, label.copy().withStyle(ChatFormatting.BOLD), getWidth() - 8);
-        graphics.drawString(font, text, getX() + (getWidth() - font.width(text)) / 2, getY() + (getHeight() - 8) / 2, textColor, false);
+        Component label = (icon.isEmpty() ? getMessage().copy() : Texts.literal(icon + " ").append(getMessage())).withStyle(ChatFormatting.BOLD);
+        int room = getWidth() - 8;
+        clipped = font.width(label) > room;
+        FormattedCharSequence text = Theme.clip(font, label, room);
+        graphics.drawString(font, text, getX() + Math.max(4, (getWidth() - font.width(text)) / 2), getY() + (getHeight() - 8) / 2, textColor, false);
+    }
+
+    /** A label that did not fit shows in full on hover. */
+    @Override
+    public Component tooltip() {
+        Component tooltip = super.tooltip();
+        return tooltip == null && clipped ? getMessage() : tooltip;
     }
 }
