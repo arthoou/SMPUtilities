@@ -17,7 +17,7 @@ public final class Payloads {
     private Payloads() {
     }
 
-    private static <T extends CustomPacketPayload> CustomPacketPayload.Type<T> type(String path) {
+    private static <T extends CustomPacketPayload> CustomPacketPayload.Type<T> payloadType(String path) {
         return new CustomPacketPayload.Type<>(SmpUtilities.id(path));
     }
 
@@ -25,7 +25,7 @@ public final class Payloads {
 
     /** Which panel features this player may use, the real-names toggle and who is vanished. */
     public record State(long permissions, boolean realNames, List<UUID> vanished, boolean modSyncEnabled) implements CustomPacketPayload {
-        public static final Type<State> TYPE = type("state");
+        public static final Type<State> TYPE = payloadType("state");
         public static final StreamCodec<FriendlyByteBuf, State> CODEC = StreamCodec.of((buf, value) -> {
             buf.writeLong(value.permissions);
             buf.writeBoolean(value.realNames);
@@ -51,7 +51,7 @@ public final class Payloads {
 
     /** Nicknames for nametags; real names only for staff who turned real names on. */
     public record Nicknames(Map<UUID, String> nicknames, Map<UUID, String> realNames, boolean showAboveHead) implements CustomPacketPayload {
-        public static final Type<Nicknames> TYPE = type("nicknames");
+        public static final Type<Nicknames> TYPE = payloadType("nicknames");
         public static final StreamCodec<FriendlyByteBuf, Nicknames> CODEC = StreamCodec.of((buf, value) -> {
             Dto.writeUuidMap(buf, value.nicknames);
             Dto.writeUuidMap(buf, value.realNames);
@@ -65,7 +65,7 @@ public final class Payloads {
     }
 
     public record OpenPanel(String tab, String target) implements CustomPacketPayload {
-        public static final Type<OpenPanel> TYPE = type("open_panel");
+        public static final Type<OpenPanel> TYPE = payloadType("open_panel");
         public static final StreamCodec<FriendlyByteBuf, OpenPanel> CODEC = StreamCodec.of((buf, value) -> {
             buf.writeUtf(value.tab);
             buf.writeUtf(value.target);
@@ -78,7 +78,7 @@ public final class Payloads {
     }
 
     public record DashboardData(Dto.Dashboard data) implements CustomPacketPayload {
-        public static final Type<DashboardData> TYPE = type("dashboard");
+        public static final Type<DashboardData> TYPE = payloadType("dashboard");
         public static final StreamCodec<FriendlyByteBuf, DashboardData> CODEC = StreamCodec.of((buf, value) -> value.data.write(buf),
             buf -> new DashboardData(Dto.Dashboard.read(buf)));
 
@@ -89,7 +89,7 @@ public final class Payloads {
     }
 
     public record DetailData(Dto.PlayerDetail data) implements CustomPacketPayload {
-        public static final Type<DetailData> TYPE = type("player_detail");
+        public static final Type<DetailData> TYPE = payloadType("player_detail");
         public static final StreamCodec<FriendlyByteBuf, DetailData> CODEC = StreamCodec.of((buf, value) -> value.data.write(buf),
             buf -> new DetailData(Dto.PlayerDetail.read(buf)));
 
@@ -100,7 +100,7 @@ public final class Payloads {
     }
 
     public record TableData(Dto.Table data) implements CustomPacketPayload {
-        public static final Type<TableData> TYPE = type("table");
+        public static final Type<TableData> TYPE = payloadType("table");
         public static final StreamCodec<FriendlyByteBuf, TableData> CODEC = StreamCodec.of((buf, value) -> value.data.write(buf),
             buf -> new TableData(Dto.Table.read(buf)));
 
@@ -111,7 +111,7 @@ public final class Payloads {
     }
 
     public record SettingsData(List<Dto.Setting> settings) implements CustomPacketPayload {
-        public static final Type<SettingsData> TYPE = type("settings");
+        public static final Type<SettingsData> TYPE = payloadType("settings");
         public static final StreamCodec<FriendlyByteBuf, SettingsData> CODEC = StreamCodec.of((buf, value) -> Dto.writeSettings(buf, value.settings),
             buf -> new SettingsData(Dto.readSettings(buf)));
 
@@ -123,7 +123,7 @@ public final class Payloads {
 
     /** Result of a panel action, shown as a toast inside the panel. */
     public record Feedback(String message, boolean error) implements CustomPacketPayload {
-        public static final Type<Feedback> TYPE = type("feedback");
+        public static final Type<Feedback> TYPE = payloadType("feedback");
         public static final StreamCodec<FriendlyByteBuf, Feedback> CODEC = StreamCodec.of((buf, value) -> {
             buf.writeUtf(value.message);
             buf.writeBoolean(value.error);
@@ -136,7 +136,7 @@ public final class Payloads {
     }
 
     public record TtsSpeak(String text, String voice, String pitch) implements CustomPacketPayload {
-        public static final Type<TtsSpeak> TYPE = type("tts_speak");
+        public static final Type<TtsSpeak> TYPE = payloadType("tts_speak");
         public static final StreamCodec<FriendlyByteBuf, TtsSpeak> CODEC = StreamCodec.of((buf, value) -> {
             buf.writeUtf(value.text);
             buf.writeUtf(value.voice);
@@ -150,7 +150,7 @@ public final class Payloads {
     }
 
     public record TtsMenu(int mode, int language) implements CustomPacketPayload {
-        public static final Type<TtsMenu> TYPE = type("tts_menu");
+        public static final Type<TtsMenu> TYPE = payloadType("tts_menu");
         public static final StreamCodec<FriendlyByteBuf, TtsMenu> CODEC = StreamCodec.of((buf, value) -> {
             buf.writeVarInt(value.mode);
             buf.writeVarInt(value.language);
@@ -165,7 +165,7 @@ public final class Payloads {
     /** A speech bubble with the server's look settings, so every client draws it the same way. */
     public record Bubble(UUID speaker, String text, boolean tts, float seconds, float fadeSeconds, int maxWidth, int textColor,
                          int fillColor, int borderColor, String style) implements CustomPacketPayload {
-        public static final Type<Bubble> TYPE = type("bubble");
+        public static final Type<Bubble> TYPE = payloadType("bubble");
         public static final StreamCodec<FriendlyByteBuf, Bubble> CODEC = StreamCodec.of((buf, value) -> {
             buf.writeUUID(value.speaker);
             buf.writeUtf(value.text);
@@ -187,7 +187,7 @@ public final class Payloads {
     }
 
     public record VoiceRestriction(boolean forceMute) implements CustomPacketPayload {
-        public static final Type<VoiceRestriction> TYPE = type("voice_restriction");
+        public static final Type<VoiceRestriction> TYPE = payloadType("voice_restriction");
         public static final StreamCodec<FriendlyByteBuf, VoiceRestriction> CODEC = StreamCodec.of((buf, value) -> buf.writeBoolean(value.forceMute),
             buf -> new VoiceRestriction(buf.readBoolean()));
 
@@ -198,7 +198,7 @@ public final class Payloads {
     }
 
     public record Manifest(ModManifest manifest, List<String> allowedHosts, long maxBytes) implements CustomPacketPayload {
-        public static final Type<Manifest> TYPE = type("modsync_manifest");
+        public static final Type<Manifest> TYPE = payloadType("modsync_manifest");
         public static final StreamCodec<FriendlyByteBuf, Manifest> CODEC = StreamCodec.of((buf, value) -> {
             buf.writeUtf(value.manifest.hostBase());
             buf.writeUtf(value.manifest.token());
@@ -234,7 +234,7 @@ public final class Payloads {
 
     /** Panel data request: "dashboard", "player" (uuid), "table" (kind|context), "settings". */
     public record Request(String kind, String argument) implements CustomPacketPayload {
-        public static final Type<Request> TYPE = type("request");
+        public static final Type<Request> TYPE = payloadType("request");
         public static final StreamCodec<FriendlyByteBuf, Request> CODEC = StreamCodec.of((buf, value) -> {
             buf.writeUtf(value.kind, 64);
             buf.writeUtf(value.argument, 256);
@@ -248,7 +248,7 @@ public final class Payloads {
 
     /** A panel action; the server checks the permission for every one. */
     public record Action(String action, String target, List<String> arguments) implements CustomPacketPayload {
-        public static final Type<Action> TYPE = type("action");
+        public static final Type<Action> TYPE = payloadType("action");
         public static final StreamCodec<FriendlyByteBuf, Action> CODEC = StreamCodec.of((buf, value) -> {
             buf.writeUtf(value.action, 64);
             buf.writeUtf(value.target, 64);
@@ -274,7 +274,7 @@ public final class Payloads {
     }
 
     public record TtsSelect(int mode, int language) implements CustomPacketPayload {
-        public static final Type<TtsSelect> TYPE = type("tts_select");
+        public static final Type<TtsSelect> TYPE = payloadType("tts_select");
         public static final StreamCodec<FriendlyByteBuf, TtsSelect> CODEC = StreamCodec.of((buf, value) -> {
             buf.writeVarInt(value.mode);
             buf.writeVarInt(value.language);
