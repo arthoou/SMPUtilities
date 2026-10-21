@@ -17,7 +17,9 @@ Um jar por versão do jogo e loader (`SMPutilities-<versão>-<loader>.jar`), tod
 
 Cada jar cobre a sua linha de versão (por exemplo o de 1.21.4 aceita só 1.21.4; o de 1.18.2, a 1.18.x).
 O CI compila os 35 alvos e sobe um servidor dedicado de cada um (smoke test: carrega todas as classes
-que os mixins alteram, roda comandos e desliga). Isso não substitui testar em jogo — veja
+que os mixins alteram, roda comandos e desliga). No Forge 1.21.11 o teste usa um servidor Forge instalado
+pelo instalador oficial com o jar em `mods/`, porque o ambiente de desenvolvimento do Loom não inicia o
+jogo nessa versão. Isso não substitui testar em jogo — veja
 [Limitações conhecidas](#limitações-conhecidas).
 
 ## Instalação
@@ -213,7 +215,7 @@ cada versão (`tools/probe`, workflow `probe`), não de memória.
 ./gradlew -Psu.targets=1.20.1-forge,1.21.11-neoforge build
 ./gradlew -Psu.targets=all build                       # os 35 (cada um baixa o seu Minecraft)
 ./gradlew -Psu.coreOnly=true :core:test                # só a lógica pura, sem baixar o Minecraft
-tools/smoke.sh 1.21.1-fabric                           # sobe o servidor do alvo e faz o smoke test
+tools/smoke.sh 1.21.1-fabric                           # depois do build: sobe o servidor do alvo (smoke test)
 ```
 
 Requer JDK 21 (e JDK 17 para rodar servidores de 1.18.2 a 1.20.4). Traduções: edite `tools/lang/*.tsv`
