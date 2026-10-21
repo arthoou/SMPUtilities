@@ -95,6 +95,7 @@ public final class CommonEvents {
         if (ticks % 600 == 0) {
             context.players().flush();
         }
+        SmokeTest.tick(server);
     }
 
     /** Before the vanilla join line is broadcast: installs the presence filter in time. */
