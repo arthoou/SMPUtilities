@@ -220,12 +220,26 @@ tasks.register('apiProbe') {
         spec.readLines().findAll { it.trim() && !it.trim().startsWith('#') }.each { line ->
             def parts = line.split('\\|', 2)
             def name = parts[0].trim()
+            // "code:" prints matching bytecode lines (javap -c) under the method they belong to.
+            def code = name.startsWith('code:')
+            name = name - 'code:'
             def pattern = java.util.regex.Pattern.compile(parts.length > 1 ? parts[1].trim() : '.')
-            def process = [javap, '-p', '-cp', path, name].execute()
+            def process = (code ? [javap, '-p', '-c', '-cp', path, name] : [javap, '-p', '-cp', path, name]).execute()
             def text = process.inputStream.text
             process.waitFor()
             result.append("### ${name}${process.exitValue() == 0 ? '' : ' (missing)'}\n")
-            text.readLines().findAll { it.startsWith(' ') && pattern.matcher(it).find() }.each { result.append(it.trim()).append('\n') }
+            def method = null
+            text.readLines().each {
+                if (code && it.startsWith('  ') && !it.startsWith('   ') && it.trim().endsWith(';')) {
+                    method = it.trim()
+                } else if (it.startsWith(' ') && pattern.matcher(it).find()) {
+                    if (code && method != null) {
+                        result.append('@ ').append(method).append('\n')
+                        method = null
+                    }
+                    result.append(it.trim()).append('\n')
+                }
+            }
         }
         output.get().asFile.parentFile.mkdirs()
         output.get().asFile.text = result.toString()
