@@ -1,0 +1,6 @@
+# How each version orients nametags toward the camera (code: = bytecode lines)
+net.minecraft.client.Camera | Rot|Vector|rotation|position|forward|left|up\(
+code:net.minecraft.client.Camera | ldc|rotationYXZ|rotationDegrees|Quaternion
+code:net.minecraft.client.renderer.entity.EntityRenderer | ldc.*0\.025|cameraOrientation|scale|mulPose
+com.mojang.math.Axis | YP|XP
+com.mojang.math.Vector3f | YP|XP
