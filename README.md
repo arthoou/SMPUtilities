@@ -60,6 +60,9 @@ chat), **Players** (busca por nome real ou nickname, online e offline; info, aç
 histórico do jogador), **Chat**, **Inventories** (visualizar/editar, backups com restauração, perfis),
 **Punishments** (bans, mutes, denúncias, histórico, log da staff), **World** (dimensões e portais), **Utilities**
 (brincadeiras, anúncios, warps, mod sync) e **Settings** (toda a config, editável ao vivo).
+As ações de um jogador ficam por categoria (Punições, Ferramentas, Inventário, Nome e chat, Brincadeiras);
+inventário, baú do End, backups e perfis abertos pelo painel voltam ao painel ao apertar Esc. Textos que não
+cabem num botão são cortados com "…" e aparecem inteiros ao passar o mouse.
 Ações críticas (banir, expulsar, restaurar, excluir) pedem confirmação. O cliente só pede; o servidor
 confere a permissão de cada pedido. Há também uma tecla configurável ("Abrir painel da staff", sem tecla
 padrão).
