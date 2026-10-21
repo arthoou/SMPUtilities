@@ -9,6 +9,7 @@ import com.arthou.smputilities.client.gui.SuButton;
 import com.arthou.smputilities.client.gui.SuTextField;
 import com.arthou.smputilities.client.gui.TableView;
 import com.arthou.smputilities.client.gui.Theme;
+import com.arthou.smputilities.core.nick.NameAnimation;
 import com.arthou.smputilities.core.chat.StyledText;
 import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.network.Dto;
@@ -244,6 +245,7 @@ final class PlayersTab extends PanelTab {
         left.add(new String[] {"info.voice", tr("voice." + detail.get("voiceStatus")).getString()});
         left.add(new String[] {"info.vanished", yesNo(detail.get("vanished"))});
         left.add(new String[] {"info.afk", yesNo(detail.get("afk"))});
+        left.add(new String[] {"info.nameplate", detail.get("nameAnimation").isEmpty() ? "-" : tr("nameplate." + detail.get("nameAnimation")).getString()});
         rightColumn.add(new String[] {"info.deaths", detail.get("deaths")});
         rightColumn.add(new String[] {"info.player_kills", detail.get("playerKills")});
         rightColumn.add(new String[] {"info.mob_kills", detail.get("mobKills")});
@@ -315,6 +317,13 @@ final class PlayersTab extends PanelTab {
                     panel.action("nick_set", id, values.get(0));
                 }
             })).icon("✎"));
+        buttons.add(button(0, 0, 10, "action.nameplate", Perm.NICKNAME_OTHERS, b -> {
+            List<Dialog.Choice.Option> options = new ArrayList<>();
+            for (NameAnimation animation : NameAnimation.values()) {
+                options.add(new Dialog.Choice.Option(animation.id(), tr("nameplate." + animation.id()), SuButton.Kind.GHOST));
+            }
+            panel.choice(tr("action.nameplate"), options, choice -> panel.action("nick_animation", id, choice));
+        }).icon("✦"));
         buttons.add(onlineOnly(button(0, 0, 10, "action.gamemode", Perm.STAFF_GAMEMODE, b -> panel.choice(tr("action.gamemode"), List.of(
             new Dialog.Choice.Option("survival", Texts.translatable("gameMode.survival"), SuButton.Kind.GHOST),
             new Dialog.Choice.Option("creative", Texts.translatable("gameMode.creative"), SuButton.Kind.GHOST),

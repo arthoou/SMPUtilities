@@ -24,3 +24,4 @@ nick.default_visible_on	Nameplates are shown by default.	As placas de nome apare
 nick.default_visible_off	Nameplates are hidden by default.	As placas de nome ficam escondidas por padrão.
 nick.blocks_hide_on	Blocks now hide nameplates (clients with SMPutilities).	Blocos agora escondem as placas de nome (clientes com o SMPutilities).
 nick.blocks_hide_off	Nameplates show through blocks again.	As placas de nome voltaram a aparecer através dos blocos.
+nick.animation_set	Nameplate of %s: %s.	Placa de nome de %s: %s.

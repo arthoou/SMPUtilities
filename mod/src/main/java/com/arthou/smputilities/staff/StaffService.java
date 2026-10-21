@@ -11,6 +11,7 @@ import com.arthou.smputilities.core.chat.StyledText;
 import com.arthou.smputilities.core.config.ConfigPaths;
 import com.arthou.smputilities.core.config.SuConfig;
 import com.arthou.smputilities.core.dimension.DimensionRules;
+import com.arthou.smputilities.core.nick.NameAnimation;
 import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.core.player.PlayerRecord;
 import com.arthou.smputilities.core.portal.PortalRecord;
@@ -176,6 +177,7 @@ public final class StaffService {
         long now = System.currentTimeMillis();
         Map<String, String> values = new LinkedHashMap<>();
         values.put("nick", record.nickname);
+        values.put("nameAnimation", NicknameService.animation(id).id());
         values.put("online", String.valueOf(online != null));
         if (online != null) {
             values.put("dimension", online.level().dimension().location().toString());
@@ -734,6 +736,17 @@ public final class StaffService {
                 }
                 String error = NicknameService.set(server, id, arg(action, 0), true, actor);
                 return error == null ? Lang.tr(actor, "nick.set_other", targetName, StyledText.strip(arg(action, 0))) : "!" + Lang.tr(actor, error);
+            }
+            case "nick_animation" -> {
+                if (!Perms.has(actor, online == actor ? Perm.NICKNAME_ANIMATION : Perm.NICKNAME_OTHERS)) {
+                    return denied(actor);
+                }
+                NameAnimation animation = NameAnimation.parse(arg(action, 0));
+                if (animation == null) {
+                    return "!" + Lang.tr(actor, "nick.unknown_animation");
+                }
+                NicknameService.setAnimation(server, id, animation, actor);
+                return Lang.tr(actor, "nick.animation_set", targetName, animation.id());
             }
             case "nick_clear" -> {
                 if (!Perms.has(actor, online == actor ? Perm.NICKNAME_CHANGE : Perm.NICKNAME_OTHERS)) {
