@@ -336,7 +336,7 @@ public final class StaffCommands {
     private static int chatLock(CommandContext<CommandSourceStack> context, boolean lock) {
         SuServer.configManager().edit(config -> config.chat.globalChatEnabled = !lock);
         SuServer.get().log(Mc.player(context.getSource()), lock ? "chat.lock" : "chat.unlock", null, "", "");
-        Msg.broadcast(lock ? "chat.lock.on" : "chat.lock.off", context.getSource().getTextName());
+        Msg.broadcastStaffAware(lock ? "chat.lock.on" : "chat.lock.off", lock ? "chat.lock.on.public" : "chat.lock.off.public", context.getSource().getTextName());
         return 1;
     }
 

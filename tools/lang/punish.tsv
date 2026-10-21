@@ -11,6 +11,8 @@ punish.announce.tempban	%s was banned by %s for %s. Reason: %s	%s foi banido por
 punish.announce.kick	%s was kicked by %s. Reason: %4$s	%s foi expulso por %s. Motivo: %4$s
 punish.announce.mute	%s was muted by %s for %s. Reason: %s	%s foi silenciado por %s por %s. Motivo: %s
 punish.announce.voice_mute	%s was voice-muted by %s for %s. Reason: %s	%s teve a voz silenciada por %s por %s. Motivo: %s
+punish.announce.ban.public	%s was permanently banned. Reason: %4$s	%s foi banido permanentemente. Motivo: %4$s
+punish.announce.tempban.public	%s was banned for %3$s. Reason: %4$s	%s foi banido por %3$s. Motivo: %4$s
 punish.done.ban	Banned %s (%s).	%s foi banido (%s).
 punish.done.unban	Unbanned %s.	%s foi desbanido.
 punish.done.kick	Kicked %s.	%s foi expulso.
