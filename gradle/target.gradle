@@ -219,6 +219,7 @@ tasks.register('apiProbe') {
             result.append("### ${name}${process.exitValue() == 0 ? '' : ' (missing)'}\n")
             text.readLines().findAll { it.startsWith(' ') && pattern.matcher(it).find() }.each { result.append(it.trim()).append('\n') }
         }
+        output.get().asFile.parentFile.mkdirs()
         output.get().asFile.text = result.toString()
     }
 }
