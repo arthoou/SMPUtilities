@@ -25,12 +25,17 @@ echo "### FABRIC API (newest per MC)"
 meta https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/maven-metadata.xml > fapi.txt
 for mc in $MCS; do echo "fabric-api $mc: $(grep -E "\+$mc$" fapi.txt | sort -V | tail -1)"; done
 
-echo "### ARCHITECTURY LOOM"
-meta https://maven.architectury.dev/dev/architectury/loom/dev.architectury.loom.gradle.plugin/maven-metadata.xml | tail -8
-meta https://maven.architectury.dev/dev/architectury/architectury-loom/maven-metadata.xml | tail -8
+echo "### ARCHITECTURY LOOM (newest 12, sorted)"
+meta https://maven.architectury.dev/dev/architectury/loom/dev.architectury.loom.gradle.plugin/maven-metadata.xml | sort -V | tail -12 | tr '\n' ' '; echo
+meta https://maven.architectury.dev/dev/architectury/architectury-loom/maven-metadata.xml | sort -V | tail -12 | tr '\n' ' '; echo
+curl -fsSL https://maven.architectury.dev/dev/architectury/architectury-loom/1.17-SNAPSHOT/maven-metadata.xml | grep -oE "<(timestamp|buildNumber|value)>[^<]+" | head -6
+echo "### MODDEVGRADLE (newest 5)"
+meta https://maven.neoforged.net/releases/net/neoforged/moddev/net.neoforged.moddev.gradle.plugin/maven-metadata.xml | sort -V | tail -5 | tr '\n' ' '; echo
+echo "### FABRIC LOOM (newest 5)"
+meta https://maven.fabricmc.net/fabric-loom/fabric-loom.gradle.plugin/maven-metadata.xml | sort -V | tail -5 | tr '\n' ' '; echo
 
 echo "### VOICECHAT API"
-meta https://maven.maxhenkel.de/repository/public/de/maxhenkel/voicechat/voicechat-api/maven-metadata.xml | tail -5
+meta https://maven.maxhenkel.de/repository/public/de/maxhenkel/voicechat/voicechat-api/maven-metadata.xml | sort -V | tail -5 | tr '\n' ' '; echo
 echo "### FABRIC PERMISSIONS API"
 meta https://repo1.maven.org/maven2/me/lucko/fabric-permissions-api/maven-metadata.xml | tail -8
 echo "### MIXINEXTRAS"
