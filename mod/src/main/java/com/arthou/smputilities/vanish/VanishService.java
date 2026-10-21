@@ -14,8 +14,6 @@ import com.arthou.smputilities.server.Perms;
 import com.arthou.smputilities.server.SuServer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.protocol.game.ClientboundPlayerInfoRemovePacket;
-import net.minecraft.network.protocol.game.ClientboundPlayerInfoUpdatePacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -103,10 +101,10 @@ public final class VanishService {
             }
             boolean hidden = isHiddenFrom(viewer, target);
             if (hidden && hideTab) {
-                viewer.connection.send(new ClientboundPlayerInfoRemovePacket(List.of(target.getUUID())));
+                Mc.hideFromTabList(viewer, target);
             } else if (!hidden) {
                 // The client only spawns a player entity it has tab info for.
-                viewer.connection.send(ClientboundPlayerInfoUpdatePacket.createPlayerInitializing(List.of(target)));
+                Mc.showInTabList(viewer, target);
             }
             if (tracked instanceof SuTrackedEntity entity) {
                 entity.smputilities$update(viewer);
@@ -122,7 +120,7 @@ public final class VanishService {
         boolean hideTab = SuServer.config().vanish.hideFromTabList;
         for (ServerPlayer other : Mc.server(player).getPlayerList().getPlayers()) {
             if (other != player && isHiddenFrom(player, other) && hideTab) {
-                player.connection.send(new ClientboundPlayerInfoRemovePacket(List.of(other.getUUID())));
+                Mc.hideFromTabList(player, other);
             }
         }
         if (isVanished(player.getUUID())) {

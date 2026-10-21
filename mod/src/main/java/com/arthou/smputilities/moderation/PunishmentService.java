@@ -18,8 +18,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.players.UserBanList;
-import net.minecraft.server.players.UserBanListEntry;
 
 import java.util.Date;
 import java.util.Optional;
@@ -41,10 +39,8 @@ public final class PunishmentService {
         Punishment record = context.punishments().issue(PunishmentType.BAN, target.id(), target.name(),
             actor == null ? null : actor.getUUID(), actorName(actor), why, durationMillis, now);
 
-        UserBanList bans = server.getPlayerList().getBans();
-        GameProfile profile = target.profile();
         Date expires = record.isPermanent() ? null : new Date(record.expiresAt);
-        bans.add(new UserBanListEntry(profile, new Date(now), actorName(actor), expires, why));
+        Mc.ban(server, target.id(), target.name(), new Date(now), actorName(actor), expires, why);
 
         ServerPlayer online = server.getPlayerList().getPlayer(target.id());
         if (online != null) {
@@ -58,12 +54,7 @@ public final class PunishmentService {
     public static boolean unban(MinecraftServer server, ServerPlayer actor, Names.Target target, String reason) {
         SuServer context = SuServer.get();
         Optional<Punishment> revoked = context.punishments().revoke(PunishmentType.BAN, target.id(), actorName(actor), reason, System.currentTimeMillis());
-        UserBanList bans = server.getPlayerList().getBans();
-        GameProfile profile = target.profile();
-        boolean vanilla = bans.isBanned(profile);
-        if (vanilla) {
-            bans.remove(profile);
-        }
+        boolean vanilla = Mc.unban(server, target.id(), target.name());
         if (revoked.isPresent() || vanilla) {
             context.log(actor, "unban", target.id(), target.name(), reason == null ? "" : reason);
             return true;

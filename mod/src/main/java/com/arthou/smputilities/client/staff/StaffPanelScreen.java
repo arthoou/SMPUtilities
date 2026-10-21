@@ -188,8 +188,7 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
     }
 
     @Override
-    public void added() {
-        super.added();
+    protected void opened() {
         ClientState.listen(this);
         request("state", "");
         request("dashboard", "");

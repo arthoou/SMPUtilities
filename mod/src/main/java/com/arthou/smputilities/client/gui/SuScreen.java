@@ -32,6 +32,7 @@ public abstract class SuScreen extends Screen {
     private final List<Widget> widgets = new ArrayList<>();
     private final List<Toast> toasts = new ArrayList<>();
     private Dialog dialog;
+    private boolean wasOpened;
 
     protected SuScreen(Component title) {
         super(title);
@@ -42,8 +43,16 @@ public abstract class SuScreen extends Screen {
     /** Builds the widgets for the current size. Called on open, on resize and by {@link #rebuild}. */
     protected abstract void build();
 
+    /** Once, when the screen is shown (before the first {@link #build}). */
+    protected void opened() {
+    }
+
     @Override
     protected final void init() {
+        if (!wasOpened) {
+            wasOpened = true;
+            opened();
+        }
         widgets.clear();
         build();
         if (dialog != null) {

@@ -221,7 +221,7 @@ public final class LegacyImport {
                     record.homes.putIfAbsent(home, location(Nbt.getCompound(playerHomes, home)));
                 }
                 if (record.defaultHome.isEmpty() && defaults.contains(key)) {
-                    record.defaultHome = defaults.getString(key);
+                    record.defaultHome = Nbt.getString(defaults, key);
                 }
             });
         }
@@ -298,8 +298,8 @@ public final class LegacyImport {
         for (String key : modes.getAllKeys()) {
             UUID id = uuid(key);
             if (id != null) {
-                int mode = modes.getInt(key);
-                String language = languages.getString(key);
+                int mode = Nbt.getInt(modes, key, 0);
+                String language = Nbt.getString(languages, key);
                 context.players().update(id, record -> {
                     if (record.ttsMode == 0) {
                         record.ttsMode = mode;

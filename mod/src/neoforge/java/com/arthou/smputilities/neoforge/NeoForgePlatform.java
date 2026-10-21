@@ -6,7 +6,6 @@ import com.arthou.smputilities.core.util.SuLog;
 import com.arthou.smputilities.platform.Platform;
 import com.arthou.smputilities.server.Perms;
 import com.arthou.smputilities.server.SuServer;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.ModList;
@@ -111,11 +110,6 @@ public final class NeoForgePlatform implements Platform {
     public void refreshNames(ServerPlayer player) {
         player.refreshDisplayName();
         player.refreshTabListName();
-    }
-
-    @Override
-    public CompoundTag persistentData(ServerPlayer player) {
-        return player.getPersistentData();
     }
 
     @Override
