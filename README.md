@@ -186,9 +186,6 @@ funcionando.
 
 ## O que ficou de fora de propósito
 
-* O `ApiServer`/`MCControlBootstrap` do DuTTS e do DUSMP **não** foi incorporado: ele abre uma API HTTP
-  escondida no servidor, consulta um painel externo e pode executar comandos e apagar os arquivos do
-  servidor. Não é algo que administradores esperam de um mod de moderação.
 * A compatibilidade com o DuCurrency (custo de teleporte) do TPA, que depende de um mod externo que não
   está no repositório de bases.
 
