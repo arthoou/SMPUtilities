@@ -1,0 +1,66 @@
+setting.smputilities.language	Message language: auto (each player's client), en_us or pt_br	Idioma das mensagens: auto (o do cliente de cada jogador), en_us ou pt_br
+setting.smputilities.features.chat	Chat system (mutes, lock, spam, format, mentions)	Sistema de chat (mutes, bloqueio, spam, formato, menções)
+setting.smputilities.features.staffPanel	Staff panel	Painel da staff
+setting.smputilities.features.vanish	Vanish	Vanish
+setting.smputilities.features.inventory	Inventory views and backups	Visualização e backups de inventário
+setting.smputilities.features.profiles	Inventory profiles	Perfis de inventário
+setting.smputilities.features.nicknames	RP nicknames	Nicknames de RP
+setting.smputilities.features.tts	Text to speech and bubbles	TTS e balões
+setting.smputilities.features.troll	Staff pranks	Brincadeiras da staff
+setting.smputilities.features.modSync	Mod sync (offer files to clients)	Sincronização de mods (oferecer arquivos aos clientes)
+setting.smputilities.features.portals	Portal limits	Limites de portais
+setting.smputilities.features.dimensions	Dimension access control	Controle de acesso a dimensões
+setting.smputilities.features.teleport	TPA, homes, spawn, back, warps	TPA, homes, spawn, back, warps
+setting.smputilities.features.qol	Hat, sit, msg and ignore commands	Comandos hat, sit, msg e ignore
+setting.smputilities.features.voiceChat	Simple Voice Chat integration	Integração com o Simple Voice Chat
+setting.smputilities.chat.customFormat	QSMP format instead of vanilla <Name>	Formato QSMP em vez do vanilla <Nome>
+setting.smputilities.chat.messageFormat	Chat line format	Formato da linha de chat
+setting.smputilities.chat.joinFormat	Join line format	Formato da entrada
+setting.smputilities.chat.quitFormat	Quit line format	Formato da saída
+setting.smputilities.chat.globalChatEnabled	Public chat open to everyone	Chat público aberto a todos
+setting.smputilities.chat.cooldownSeconds	Seconds between two messages	Segundos entre duas mensagens
+setting.smputilities.chat.spam.maxMessages	Messages allowed per window	Mensagens permitidas por janela
+setting.smputilities.chat.spam.windowSeconds	Spam window in seconds	Janela anti-spam em segundos
+setting.smputilities.chat.spam.duplicateSeconds	Seconds before the same text may be repeated	Segundos para poder repetir o mesmo texto
+setting.smputilities.chat.spam.capsRatio	Uppercase share that gets lowercased (0 disables)	Proporção de maiúsculas que vira minúscula (0 desativa)
+setting.smputilities.chat.mentions.sound	Default mention sound	Som de menção padrão
+setting.smputilities.chat.mentions.requireAtSign	Only @name counts as a mention	Só @nome conta como menção
+setting.smputilities.staff.confirmCriticalActions	Ask before destructive actions	Pedir confirmação em ações destrutivas
+setting.smputilities.staff.broadcastPunishments	Announce bans (and other punishments to staff)	Anunciar banimentos (e outras punições à staff)
+setting.smputilities.staff.auditRetentionDays	Days the staff log is kept	Dias que o registro da staff é mantido
+setting.smputilities.vanish.hideFromTabList	Remove vanished staff from the tab list	Remover staff invisível da TAB
+setting.smputilities.vanish.silentJoinQuit	No join/quit lines while vanished	Sem mensagens de entrada/saída em vanish
+setting.smputilities.vanish.fakeMessagesOnToggle	Fake quit/join line when toggling vanish	Mensagem falsa de saída/entrada ao alternar
+setting.smputilities.vanish.preventMobTargeting	Mobs ignore vanished players	Mobs ignoram jogadores invisíveis
+setting.smputilities.vanish.preventItemPickup	Vanished players don't pick up items	Jogadores invisíveis não pegam itens
+setting.smputilities.vanish.persistent	Stay vanished after reconnecting	Continuar invisível após reconectar
+setting.smputilities.inventory.periodicBackupMinutes	Minutes between automatic backups (0 = off)	Minutos entre backups automáticos (0 = desligado)
+setting.smputilities.inventory.maxBackupsPerType	Backups kept per type	Backups mantidos por tipo
+setting.smputilities.inventory.maxDeathBackups	Death backups kept	Backups de morte mantidos
+setting.smputilities.inventory.backupBeforeRestore	Back up the current state before every restore	Fazer backup do estado atual antes de restaurar
+setting.smputilities.inventory.allowOfflineEdit	Allow editing offline players	Permitir editar jogadores offline
+setting.smputilities.profiles.maxProfilesPerPlayer	Profiles per player (default included)	Perfis por jogador (incluindo o padrão)
+setting.smputilities.profiles.storeLocation	Profiles remember the location	Perfis guardam a localização
+setting.smputilities.profiles.switchCooldownSeconds	Seconds between switches	Segundos entre trocas
+setting.smputilities.profiles.switchNickname	Use the profile nickname after switching	Usar o apelido do perfil após trocar
+setting.smputilities.nicknames.hideRealNames	Hide account names from non-staff	Ocultar nomes de conta de quem não é staff
+setting.smputilities.nicknames.uniqueNicknames	Nicknames must be unique	Apelidos devem ser únicos
+setting.smputilities.nicknames.maxLength	Maximum nickname length	Tamanho máximo do apelido
+setting.smputilities.nicknames.tabFormat	Tab list format ({nick}, {name})	Formato na TAB ({nick}, {name})
+setting.smputilities.tts.maxLength	Maximum TTS characters	Máximo de caracteres de TTS
+setting.smputilities.tts.echoToChat	Also show TTS lines in chat	Também mostrar TTS no chat
+setting.smputilities.tts.bubblesForAllChat	Speech bubbles for all chat	Balões para todo o chat
+setting.smputilities.tts.bubbleSeconds	Seconds a bubble stays	Segundos que o balão fica
+setting.smputilities.tts.bubbleRange	Blocks a bubble is visible from	Distância em blocos para ver o balão
+setting.smputilities.modSync.hostPort	Port of the built-in file host (0 = off)	Porta do host de arquivos (0 = desligado)
+setting.smputilities.modSync.publicHost	Address clients use for the host (empty = join address)	Endereço que os clientes usam (vazio = o de conexão)
+setting.smputilities.portals.validationIntervalMinutes	Minutes between portal checks	Minutos entre verificações de portais
+setting.smputilities.dimensions.blockEntities	Also stop items/mobs from entering blocked dimensions	Também impedir itens/mobs de entrar em dimensões bloqueadas
+setting.smputilities.teleport.maxHomes	Homes per player	Homes por jogador
+setting.smputilities.teleport.warmupSeconds	Seconds before a teleport happens	Segundos antes do teleporte
+setting.smputilities.teleport.cancelOnDamage	Cancel the warmup when hurt	Cancelar o aquecimento ao levar dano
+setting.smputilities.teleport.cancelOnMove	Cancel the warmup when moving	Cancelar o aquecimento ao se mover
+setting.smputilities.teleport.requestTimeoutSeconds	Seconds a /tpa request stays valid	Segundos que um pedido /tpa vale
+setting.smputilities.teleport.respawnAtSpawn	Respawn at /spawn	Renascer no /spawn
+setting.smputilities.teleport.rtpRadius	Random teleport radius	Raio do teleporte aleatório
+setting.smputilities.troll.maxEffectSeconds	Longest prank effect in seconds	Maior duração de efeito em segundos
