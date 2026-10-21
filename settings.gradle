@@ -1,0 +1,31 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven {
+            name = 'NeoForged'
+            url = 'https://maven.neoforged.net/releases/'
+        }
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
+}
+
+rootProject.name = 'SMPutilities'
+
+// Loader-independent logic, compiled into every platform jar.
+include 'core'
+// Optional desktop helper for TTS, embedded as a resource in the client jar.
+include 'tts-bridge'
+
+// Platform targets. Each one produces its own SMPutilities-<mc>-<loader>.jar.
+// Pass -Psu.coreOnly=true to build/test only the Minecraft-independent modules
+// (useful where the Minecraft maven repositories are not reachable).
+if (!Boolean.parseBoolean(providers.gradleProperty('su.coreOnly').getOrElse('false'))) {
+    file('platforms').eachDir { dir ->
+        if (new File(dir, 'build.gradle').exists()) {
+            include "platforms:${dir.name}"
+        }
+    }
+}
