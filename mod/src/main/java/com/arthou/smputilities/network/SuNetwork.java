@@ -2,6 +2,7 @@ package com.arthou.smputilities.network;
 
 import com.arthou.smputilities.core.config.SuConfig;
 import com.arthou.smputilities.core.modsync.ModManifest;
+import com.arthou.smputilities.core.nick.NameAnimation;
 import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.server.Names;
 import com.arthou.smputilities.server.Perms;
@@ -11,6 +12,7 @@ import com.arthou.smputilities.tts.TtsService;
 import com.arthou.smputilities.vanish.VanishService;
 import com.arthou.smputilities.core.util.SuLog;
 import com.arthou.smputilities.mc.Mc;
+import com.arthou.smputilities.nick.NicknameService;
 import com.arthou.smputilities.platform.Platform;
 import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
@@ -18,6 +20,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +36,7 @@ public final class SuNetwork {
     /** The channel id, "smputilities:main". */
     public static final String CHANNEL_PATH = "main";
     /** Clients reject messages from a server speaking another protocol version. */
-    public static final String PROTOCOL = "2";
+    public static final String PROTOCOL = "3";
     /** Serverbound messages larger than this are dropped (vanilla allows 32 KiB). */
     private static final int MAX_SERVERBOUND = 32 * 1024;
 
@@ -97,12 +100,11 @@ public final class SuNetwork {
 
     // ------------------------------------------------------------ state sync
 
-    public static long permissionMask(ServerPlayer player) {
-        long mask = 0;
+    public static BitSet permissionMask(ServerPlayer player) {
+        BitSet mask = new BitSet(Perm.values().length);
         for (Perm perm : Perm.values()) {
-            // The mask has room for 64 nodes; Perm stays below that (checked in CoreLogicTest).
-            if (perm.ordinal() < 64 && Perms.has(player, perm)) {
-                mask |= 1L << perm.ordinal();
+            if (Perms.has(player, perm)) {
+                mask.set(perm.ordinal());
             }
         }
         return mask;
@@ -144,11 +146,26 @@ public final class SuNetwork {
         return nicks;
     }
 
-    public static void syncNicknames(ServerPlayer player) {
-        syncNicknames(player, onlineNicknames(Mc.server(player)));
+    /** Nameplate animations of the players online, without the ones that have none. */
+    private static Map<UUID, String> onlineAnimations(MinecraftServer server) {
+        Map<UUID, String> animations = new HashMap<>();
+        if (SuServer.get() == null || !SuServer.config().features.nicknames) {
+            return animations;
+        }
+        for (ServerPlayer online : server.getPlayerList().getPlayers()) {
+            NameAnimation animation = NicknameService.animation(online.getUUID());
+            if (animation != NameAnimation.NONE) {
+                animations.put(online.getUUID(), animation.id());
+            }
+        }
+        return animations;
     }
 
-    private static void syncNicknames(ServerPlayer player, Map<UUID, String> nicks) {
+    public static void syncNicknames(ServerPlayer player) {
+        syncNicknames(player, onlineNicknames(Mc.server(player)), onlineAnimations(Mc.server(player)));
+    }
+
+    private static void syncNicknames(ServerPlayer player, Map<UUID, String> nicks, Map<UUID, String> animations) {
         SuServer context = SuServer.get();
         if (context == null || !hasMod(player)) {
             return;
@@ -164,13 +181,15 @@ public final class SuNetwork {
             }
         }
         boolean aboveHead = config.features.nicknames && config.nicknames.showAboveHead;
-        send(player, new Payloads.Nicknames(aboveHead ? nicks : Map.of(), real, aboveHead));
+        send(player, new Payloads.Nicknames(aboveHead ? nicks : Map.of(), real, aboveHead, animations,
+            config.features.nicknames && config.nicknames.blocksHideNameplates, config.nicknames.teamColorOverride));
     }
 
     public static void syncNicknamesToAll(MinecraftServer server) {
         Map<UUID, String> nicks = onlineNicknames(server);
+        Map<UUID, String> animations = onlineAnimations(server);
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-            syncNicknames(player, nicks);
+            syncNicknames(player, nicks, animations);
         }
     }
 

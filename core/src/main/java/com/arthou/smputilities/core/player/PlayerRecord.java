@@ -19,6 +19,8 @@ public final class PlayerRecord {
     public String lastName = "";
     /** RP nickname with optional &-codes; empty means none. */
     public String nickname = "";
+    /** Nameplate animation id (see NameAnimation); empty follows nicknames.defaultNameplateVisible. */
+    public String nameAnimation = "";
     public long firstJoin;
     public long lastSeen;
     public long lastLogin;

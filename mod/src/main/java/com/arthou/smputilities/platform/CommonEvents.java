@@ -13,6 +13,7 @@ import com.arthou.smputilities.migrate.LegacyImport;
 import com.arthou.smputilities.moderation.PunishmentService;
 import com.arthou.smputilities.modsync.ModSyncServer;
 import com.arthou.smputilities.network.SuNetwork;
+import com.arthou.smputilities.nick.HiddenNamesCommands;
 import com.arthou.smputilities.nick.NicknameService;
 import com.arthou.smputilities.portal.PortalService;
 import com.arthou.smputilities.profile.ProfileService;
@@ -68,6 +69,7 @@ public final class CommonEvents {
         StaffChat.register(dispatcher);
         WelcomeService.register(dispatcher);
         InfoCommands.register(dispatcher);
+        HiddenNamesCommands.register(dispatcher);
     }
 
     public static void serverStarting(MinecraftServer server) {

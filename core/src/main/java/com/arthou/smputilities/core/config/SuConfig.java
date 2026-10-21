@@ -186,6 +186,14 @@ public final class SuConfig {
         public String allowedPattern = "[\\p{L}\\p{N} _.'\\-]+";
         /** Format used in the tab list when hideRealNames is off. */
         public String tabFormat = "{nick}";
+        /** Like HiddenNames: a team color replaces the nickname's own color. */
+        public boolean teamColorOverride = true;
+        /** Nameplates of players without an explicit setting are shown (HiddenNames' default_visible). */
+        public boolean defaultNameplateVisible = true;
+        /** Nameplates are hidden behind blocks (HiddenNames' blocks_hide); clients with SMPutilities only. */
+        public boolean blocksHideNameplates = false;
+        /** Import names and animations from the HiddenNames mod (world/hiddennames/data.json) on first start. */
+        public boolean importHiddenNames = true;
     }
 
     public static final class Tts {

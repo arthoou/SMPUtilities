@@ -1,9 +1,11 @@
 package com.arthou.smputilities.client;
 
+import com.arthou.smputilities.core.nick.NameAnimation;
 import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.network.Dto;
 import com.arthou.smputilities.network.Payloads;
 
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -21,10 +23,13 @@ public final class ClientState {
         void changed(String what);
     }
 
-    private static long permissions;
+    private static BitSet permissions = new BitSet();
     private static boolean realNames;
     private static final Set<UUID> VANISHED = new HashSet<>();
     private static final Map<UUID, String> NICKNAMES = new HashMap<>();
+    private static final Map<UUID, NameAnimation> ANIMATIONS = new HashMap<>();
+    private static boolean blocksHideNameplates;
+    private static boolean teamColorOverride;
     private static final Map<UUID, String> REAL_NAMES = new HashMap<>();
     private static boolean showAboveHead;
     private static boolean modSync;
@@ -40,10 +45,13 @@ public final class ClientState {
     }
 
     public static void reset() {
-        permissions = 0;
+        permissions = new BitSet();
         realNames = false;
         VANISHED.clear();
         NICKNAMES.clear();
+        ANIMATIONS.clear();
+        blocksHideNameplates = false;
+        teamColorOverride = false;
         REAL_NAMES.clear();
         dashboard = null;
         DETAILS.clear();
@@ -67,6 +75,15 @@ public final class ClientState {
         REAL_NAMES.clear();
         REAL_NAMES.putAll(nicknames.realNames());
         showAboveHead = nicknames.showAboveHead();
+        ANIMATIONS.clear();
+        nicknames.animations().forEach((id, value) -> {
+            NameAnimation animation = NameAnimation.parse(value);
+            if (animation != null && animation != NameAnimation.NONE) {
+                ANIMATIONS.put(id, animation);
+            }
+        });
+        blocksHideNameplates = nicknames.blocksHide();
+        teamColorOverride = nicknames.teamOverride();
         fire("nicknames");
     }
 
@@ -92,7 +109,7 @@ public final class ClientState {
     }
 
     public static boolean has(Perm perm) {
-        return perm.ordinal() < 64 && (permissions & (1L << perm.ordinal())) != 0;
+        return permissions.get(perm.ordinal());
     }
 
     public static boolean realNames() {
@@ -105,6 +122,19 @@ public final class ClientState {
 
     public static String nickname(UUID id) {
         return showAboveHead ? NICKNAMES.get(id) : null;
+    }
+
+    /** The player's nameplate animation (HiddenNames' set); NONE when there is none. */
+    public static NameAnimation animation(UUID id) {
+        return ANIMATIONS.getOrDefault(id, NameAnimation.NONE);
+    }
+
+    public static boolean blocksHideNameplates() {
+        return blocksHideNameplates;
+    }
+
+    public static boolean teamColorOverride() {
+        return teamColorOverride;
     }
 
     public static String realName(UUID id) {

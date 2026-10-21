@@ -13,3 +13,14 @@ nick.none	You have no nickname. Use /su nick <name>.	Você não tem apelido. Use
 nick.whois	%s is %s.	%s é %s.
 realnames.on	Real names are now shown to you.	Os nomes reais agora são mostrados para você.
 realnames.off	Real names are hidden again.	Os nomes reais estão ocultos novamente.
+nick.updated_self	Your name is now %s.	Seu nome agora é %s.
+nick.updated	Name updated for %s player(s).	Nome atualizado para %s jogador(es).
+nick.unknown_animation	Unknown animation.	Animação desconhecida.
+nick.animations	Animations: %s	Animações: %s
+nick.no_animation	You can't change your nameplate animation.	Você não pode mudar a animação da sua placa de nome.
+nick.nameplate_shown	Nameplate shown for %s player(s).	Placa de nome mostrada para %s jogador(es).
+nick.nameplate_hidden	Nameplate hidden for %s player(s).	Placa de nome escondida para %s jogador(es).
+nick.default_visible_on	Nameplates are shown by default.	As placas de nome aparecem por padrão.
+nick.default_visible_off	Nameplates are hidden by default.	As placas de nome ficam escondidas por padrão.
+nick.blocks_hide_on	Blocks now hide nameplates (clients with SMPutilities).	Blocos agora escondem as placas de nome (clientes com o SMPutilities).
+nick.blocks_hide_off	Nameplates show through blocks again.	As placas de nome voltaram a aparecer através dos blocos.
