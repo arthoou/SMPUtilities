@@ -44,3 +44,16 @@ jobs:
       - run: for f in versions/*-forge/build/api.txt; do echo "======== $f"; cat "$f"; done
       - run: unzip -l "$(find ~/.gradle -name '*forge*1.21.1*.jar' | grep -v sources | head -1)" | grep -i "client/event/Render" | head -40 || true
 
+
+  nametags:
+    name: nametag hooks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew -q "-Psu.targets=1.18.2-fabric,1.20.1-fabric,1.21.1-fabric,1.21.3-fabric,1.21.8-fabric,1.21.11-fabric" -Psu.probeSpec=tools/probe/nametag-api.txt apiProbe
+      - run: for f in versions/*-fabric/build/api.txt; do echo "======== $f"; cat "$f"; done
