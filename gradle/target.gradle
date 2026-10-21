@@ -147,3 +147,26 @@ def dist = tasks.register('dist', Copy) {
 tasks.named('build') {
     finalizedBy dist
 }
+
+// ------------------------------------------------------------ api probe
+
+// Prints the members of game classes that match tools/probe/api.txt
+// (lines "class | regex"), for checking signatures across versions in CI.
+tasks.register('apiProbe') {
+    def classpath = sourceSets.main.compileClasspath
+    def spec = rootProject.file('tools/probe/api.txt')
+    doLast {
+        def javap = new File(System.getProperty('java.home'), 'bin/javap').absolutePath
+        def path = classpath.asPath
+        spec.readLines().findAll { it.trim() && !it.trim().startsWith('#') }.each { line ->
+            def parts = line.split('\\|', 2)
+            def name = parts[0].trim()
+            def pattern = java.util.regex.Pattern.compile(parts.length > 1 ? parts[1].trim() : '.')
+            def process = [javap, '-p', '-cp', path, name].execute()
+            def text = process.inputStream.text
+            process.waitFor()
+            println "### ${name}${process.exitValue() == 0 ? '' : ' (missing)'}"
+            text.readLines().findAll { it.startsWith(' ') && pattern.matcher(it).find() }.each { println "  ${it.trim()}" }
+        }
+    }
+}
