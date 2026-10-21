@@ -1,0 +1,20 @@
+# APIs used by the pranks
+net.minecraft.world.entity.Entity | kill\(|hurtServer|hurt\(|setRemainingFireTicks|igniteForSeconds|setSecondsOnFire|discard\(|setDeltaMovement|getLookAngle
+net.minecraft.world.damagesource.DamageSources | genericKill|generic\(|fellOutOfWorld|outOfWorld|lightningBolt
+net.minecraft.world.damagesource.DamageSource | GENERIC|OUT_OF_WORLD|LIGHTNING_BOLT
+net.minecraft.world.level.Level | explode\(
+net.minecraft.server.level.ServerLevel | explode\(
+net.minecraft.world.level.Level$ExplosionInteraction | NONE
+net.minecraft.world.level.Explosion$BlockInteraction | NONE
+net.minecraft.world.entity.item.FallingBlockEntity | fall\(|setHurtsEntities|dropItem|cancelDrop|disableDrop
+net.minecraft.world.entity.monster.Creeper | ignite|explosionRadius|setSwellDir
+net.minecraft.world.entity.EntityType | create\(
+net.minecraft.world.level.LevelHeightAccessor | getHeight\(|getMaxY|getMaxBuildHeight
+net.minecraft.world.level.Level | getHeight\(
+net.minecraft.world.level.levelgen.Heightmap$Types | MOTION_BLOCKING
+net.minecraft.server.network.ServerGamePacketListenerImpl | teleport\(|disconnect\(
+net.minecraft.world.level.border.WorldBorder | getMinX|getMaxX|getMinZ|getMaxZ|getCenterX
+net.minecraft.world.entity.LivingEntity | setItemSlot|getItemBySlot|setHealth|getHealth|kill
+net.minecraft.world.food.FoodData | setFoodLevel|getFoodLevel
+net.minecraft.world.entity.animal.Squid | Squid\(
+net.minecraft.world.entity.animal.Cow | Cow\(
