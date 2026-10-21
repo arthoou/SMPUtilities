@@ -2,6 +2,7 @@ package com.arthou.smputilities.voice;
 
 import com.arthou.smputilities.SmpUtilities;
 import com.arthou.smputilities.server.SuServer;
+import com.arthou.smputilities.vanish.VanishService;
 import de.maxhenkel.voicechat.api.ForgeVoicechatPlugin;
 import de.maxhenkel.voicechat.api.VoicechatConnection;
 import de.maxhenkel.voicechat.api.VoicechatPlugin;
@@ -56,6 +57,13 @@ public final class SvcPlugin implements VoicechatPlugin {
             return;
         }
         if (receiver.getPlayer().getPlayer() instanceof ServerPlayer player && VoiceChatCompat.isAvailable() && VoiceChatCompat.isDeafened(player)) {
+            event.cancel();
+            return;
+        }
+        // A vanished speaker is heard only by those who may see them.
+        VoicechatConnection sender = event.getSenderConnection();
+        if (sender != null && sender.getPlayer() != null && sender.getPlayer().getPlayer() instanceof ServerPlayer speaker
+            && receiver.getPlayer().getPlayer() instanceof ServerPlayer listener && !VanishService.canSee(listener, speaker)) {
             event.cancel();
         }
     }
