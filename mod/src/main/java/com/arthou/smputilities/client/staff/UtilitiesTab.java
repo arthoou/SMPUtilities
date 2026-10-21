@@ -15,8 +15,6 @@ import java.util.UUID;
 
 /** Staff pranks, announcements, warps and mod sync. */
 final class UtilitiesTab extends PanelTab {
-    private static final String[] TROLLS = {"explosion", "lightning", "sound", "jumpscare", "nausea", "darkness", "levitate", "slow",
-        "glow", "tiny_jump", "spin", "launch", "fake_message", "fake_join", "fake_quit"};
     private PlayerPicker picker;
     private TableView warps;
     private int contentX;
@@ -37,13 +35,13 @@ final class UtilitiesTab extends PanelTab {
         int width = right() - contentX;
         UUID target = panel.selectedPlayer;
         boolean troll = ClientState.has(Perm.STAFF_TROLL);
-        List<SuButton> buttons = new ArrayList<>();
-        for (String id : TROLLS) {
-            SuButton button = button(0, 0, 10, "troll." + id, b -> runTroll(target, id));
+        Pranks.chips(panel, contentX, top() + 12, width);
+        List<SuButton> buttons = Pranks.buttons(id -> {
+            SuButton button = button(0, 0, 10, "troll." + id, b -> Pranks.run(panel, target, id));
             button.active = troll && target != null;
-            buttons.add(button);
-        }
-        trollBottom = grid(contentX, top() + 12, width, width > 300 ? 4 : 3, 20, buttons);
+            return button;
+        });
+        trollBottom = grid(contentX, top() + 32, width, width > 300 ? 4 : 3, 20, buttons);
 
         int y = trollBottom + 14;
         List<SuButton> announce = new ArrayList<>();
@@ -66,21 +64,6 @@ final class UtilitiesTab extends PanelTab {
         warps = table(contentX, y, width, bottom() - y, List.of(column("name", 1), column("location", 2)));
         warps.emptyText = tr("warps.empty");
         fillWarps();
-    }
-
-    private void runTroll(UUID target, String id) {
-        if (target == null) {
-            return;
-        }
-        switch (id) {
-            case "sound" -> panel.form(tr("troll.sound"), List.of(fieldDef("sound", "minecraft:entity.creeper.primed")), tr("button.send"), false, null,
-                values -> panel.action("troll", target, id, values.get(0)));
-            case "fake_message" -> panel.form(tr("troll.fake_message"), List.of(fieldDef("entity", "Herobrine"), fieldDef("message", "")), tr("button.send"),
-                false, null, values -> panel.action("troll", target, id, values.get(0).trim() + " " + values.get(1)));
-            case "fake_join", "fake_quit" -> panel.form(tr("troll." + id), List.of(fieldDef("entity", "Herobrine")), tr("button.send"), false, null,
-                values -> panel.action("troll", target, id, values.get(0)));
-            default -> panel.action("troll", target, id, "");
-        }
     }
 
     private void fillWarps() {

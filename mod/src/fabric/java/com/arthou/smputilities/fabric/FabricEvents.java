@@ -51,6 +51,7 @@ public final class FabricEvents {
         //$$ CommandRegistrationCallback.EVENT.register((dispatcher, dedicated) -> CommonEvents.registerCommands(dispatcher));
         //#endif
         ServerLifecycleEvents.SERVER_STARTING.register(CommonEvents::serverStarting);
+        ServerLifecycleEvents.SERVER_STOPPING.register(CommonEvents::serverStopping);
         ServerLifecycleEvents.SERVER_STOPPED.register(CommonEvents::serverStopped);
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             CommonEvents.serverTick(server);

@@ -223,6 +223,12 @@ public final class SuConfig {
         public boolean fakeMessages = true;
         public boolean jumpscares = true;
         public boolean funnyEffects = true;
+        /** Sky, bury, glass cage and web trap; their blocks are put back afterwards. */
+        public boolean worldChanges = true;
+        /** Burn, lightning, explosion, hurt, starve, spank, free fall, anvil and doom countdown. */
+        public boolean harmful = true;
+        /** Troll kick, fake crash and fake restart disconnect the player. */
+        public boolean kicks = true;
         public int maxEffectSeconds = 15;
     }
 

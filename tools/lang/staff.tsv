@@ -20,6 +20,16 @@ silentquit.off	Quit messages of %s are shown again.	As mensagens de saída de %s
 profile.delete_confirm	This deletes profile %1$s and its items. Type /su profile delete %1$s confirm to continue.	Isso exclui o perfil %1$s e seus itens. Digite /su profile delete %1$s confirm para continuar.
 troll.done	Prank %s applied to %s.	Brincadeira %s aplicada em %s.
 troll.unknown	Unknown prank.	Brincadeira desconhecida.
+troll.bypass	%s can't be pranked.	%s não pode ser alvo de brincadeiras.
+troll.busy	%s is already in that prank.	%s já está nessa brincadeira.
+troll.switch_missing	Name another online player to swap places with %s.	Informe outro jogador online para trocar de lugar com %s.
+troll.no_room	There is no room above %s.	Não há espaço acima de %s.
+troll.garbage_off	Garbled chat turned off for %s.	Chat embaralhado desligado para %s.
+troll.kick_message	You were kicked for being too awesome.	Você foi expulso por ser incrível demais.
+troll.spanked	You have been spanked, you naughty miner!	Você levou uma palmada, minerador travesso!
+troll.restart_title	Server restarting	Reiniciando o servidor
+troll.restart_in	in %s s	em %s s
+troll.doom	Say your goodbyes...	Despeça-se...
 modsync.rescanning	Mod sync files are being rescanned.	Os arquivos de sincronização de mods estão sendo reescaneados.
 help.header	SMPutilities · /su help	SMPutilities · /su help
 help.staff	/su staff [player] - staff panel · /vanish · /su realnames · /su whois <player> · /sc [message] · /su reports · /su restart <time>|cancel	/su staff [jogador] - painel da staff · /vanish · /su realnames · /su whois <jogador> · /sc [mensagem] · /su reports · /su restart <tempo>|cancel

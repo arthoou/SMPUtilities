@@ -18,6 +18,7 @@ import com.arthou.smputilities.server.Msg;
 import com.arthou.smputilities.server.Names;
 import com.arthou.smputilities.server.Perms;
 import com.arthou.smputilities.server.SuServer;
+import com.arthou.smputilities.troll.TrollService;
 import com.arthou.smputilities.tts.TtsService;
 import com.arthou.smputilities.vanish.VanishService;
 import net.minecraft.ChatFormatting;
@@ -72,6 +73,16 @@ public final class ChatService {
         String text = SpamGuard.limitCaps(rawText, config.chat.spam.capsRatio);
         if (config.chat.history) {
             context.chatHistory().append(System.currentTimeMillis(), player.getUUID(), Names.realName(player), text);
+        }
+        // The garbled-chat prank: everyone sees nonsense instead of the line.
+        String garbled = TrollService.garble(player, text);
+        if (garbled != null) {
+            if (config.chat.customFormat) {
+                broadcastFormatted(player, garbled, Set.of());
+            } else {
+                broadcastLine(player, Texts.translatable("chat.type.text", player.getDisplayName(), garbled));
+            }
+            return true;
         }
         // A TTS line is spoken and still posted to chat below, like any message.
         boolean spoken = config.features.tts && TtsService.speak(player, text);
@@ -182,6 +193,16 @@ public final class ChatService {
                 continue;
             }
             Mc.send(recipient, showsRealNames(recipient) ? staffLine : publicLine);
+        }
+    }
+
+    private static void broadcastLine(ServerPlayer sender, Component line) {
+        MinecraftServer server = Mc.server(sender);
+        Mc.console(server, line);
+        for (ServerPlayer recipient : server.getPlayerList().getPlayers()) {
+            if (recipient.getChatVisibility() == ChatVisiblity.FULL && !isIgnoring(recipient, sender)) {
+                Mc.send(recipient, line);
+            }
         }
     }
 

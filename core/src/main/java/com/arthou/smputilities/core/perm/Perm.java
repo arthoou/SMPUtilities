@@ -30,6 +30,8 @@ public enum Perm {
     STAFF_STATS_EDIT("smputilities.staff.stats.edit", 3),
     STAFF_GAMEMODE("smputilities.staff.gamemode", 2),
     STAFF_TROLL("smputilities.staff.troll", 4),
+    /** Others' pranks do not work on these players. */
+    TROLL_BYPASS("smputilities.troll.bypass", 4),
     STAFF_LOGS("smputilities.staff.logs", 3),
     STAFF_ANNOUNCE("smputilities.staff.announce", 3),
     STAFF_TPALL("smputilities.staff.tpall", 3),
