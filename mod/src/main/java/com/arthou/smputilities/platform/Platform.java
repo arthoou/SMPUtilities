@@ -1,7 +1,6 @@
 package com.arthou.smputilities.platform;
 
 import com.arthou.smputilities.core.perm.Perm;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.nio.file.Path;
@@ -38,9 +37,6 @@ public interface Platform {
 
     /** Recomputes the display name used by chat and the tab list name. */
     void refreshNames(ServerPlayer player);
-
-    /** Data saved with the player that survives deaths (used to make profile switches crash-safe). */
-    CompoundTag persistentData(ServerPlayer player);
 
     // ---------------------------------------------------------------- network
 

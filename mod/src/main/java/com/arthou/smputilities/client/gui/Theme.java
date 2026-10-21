@@ -58,11 +58,15 @@ public final class Theme {
 
     public static int mix(int from, int to, float t) {
         float clamped = Mth.clamp(t, 0, 1);
-        int a = Mth.lerpInt(clamped, from >>> 24, to >>> 24);
-        int r = Mth.lerpInt(clamped, (from >> 16) & 0xFF, (to >> 16) & 0xFF);
-        int g = Mth.lerpInt(clamped, (from >> 8) & 0xFF, (to >> 8) & 0xFF);
-        int b = Mth.lerpInt(clamped, from & 0xFF, to & 0xFF);
+        int a = lerp(clamped, from >>> 24, to >>> 24);
+        int r = lerp(clamped, (from >> 16) & 0xFF, (to >> 16) & 0xFF);
+        int g = lerp(clamped, (from >> 8) & 0xFF, (to >> 8) & 0xFF);
+        int b = lerp(clamped, from & 0xFF, to & 0xFF);
         return a << 24 | r << 16 | g << 8 | b;
+    }
+
+    private static int lerp(float t, int from, int to) {
+        return from + Mth.floor(t * (to - from));
     }
 
     public static int withAlpha(int color, float alpha) {

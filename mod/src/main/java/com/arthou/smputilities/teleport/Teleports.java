@@ -13,7 +13,6 @@ import com.arthou.smputilities.server.Lang;
 import com.arthou.smputilities.server.Msg;
 import com.arthou.smputilities.server.Perms;
 import com.arthou.smputilities.server.SuServer;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -48,11 +47,8 @@ public final class Teleports {
     }
 
     public static ServerLevel level(MinecraftServer server, String dimension) {
-        ResourceLocation id = Ids.parse(dimension);
-        if (id == null) {
-            return null;
-        }
-        return server.getLevel(ResourceKey.create(Registries.DIMENSION, id));
+        ResourceKey<Level> key = Ids.dimension(dimension);
+        return key == null ? null : server.getLevel(key);
     }
 
     /** Immediate teleport. Saves the current position for /back when asked. */
@@ -171,7 +167,7 @@ public final class Teleports {
     }
 
     public static ResourceKey<Level> dimensionKey(String dimension) {
-        ResourceLocation id = Ids.parse(dimension);
-        return id == null ? Level.OVERWORLD : ResourceKey.create(Registries.DIMENSION, id);
+        ResourceKey<Level> key = Ids.dimension(dimension);
+        return key == null ? Level.OVERWORLD : key;
     }
 }

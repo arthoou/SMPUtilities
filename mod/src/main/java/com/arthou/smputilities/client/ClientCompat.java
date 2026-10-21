@@ -31,8 +31,10 @@ public final class ClientCompat {
         if (minecraft.getConnection() == null) {
             return;
         }
-        //#if MC>=1.19
+        //#if MC>=1.19.3
         minecraft.getConnection().sendCommand(command);
+        //#elif MC>=1.19
+        //$$ minecraft.player.commandSigned(command, null);
         //#else
         //$$ minecraft.player.chat("/" + command);
         //#endif

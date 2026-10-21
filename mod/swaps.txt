@@ -28,3 +28,4 @@ MC<1.19.3 | BuiltInRegistries => Registry
 
 # 1.21.11: net.minecraft.Util moved into the util package.
 MC>=1.21.11 | net.minecraft.Util => net.minecraft.util.Util
+MC>=1.21.11 | ResourceLocationArgument => IdentifierArgument

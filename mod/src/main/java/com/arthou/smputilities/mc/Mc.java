@@ -135,6 +135,12 @@ public final class Mc {
         //#endif
     }
 
+    /** The player's Netty channel; null for fake players without one. */
+    public static io.netty.channel.Channel channel(ServerPlayer player) {
+        net.minecraft.network.Connection connection = ((com.arthou.smputilities.mixin.PacketListenerAccessor) player.connection).smputilities$connection();
+        return connection == null ? null : ((com.arthou.smputilities.mixin.ConnectionAccessor) connection).smputilities$channel();
+    }
+
     public static int latency(ServerPlayer player) {
         //#if MC>=1.20.2
         return player.connection.latency();
@@ -296,6 +302,14 @@ public final class Mc {
         server.getPlayerList().getBans().add(new UserBanListEntry(new NameAndId(id, name), created, source, expires, reason));
         //#else
         //$$ server.getPlayerList().getBans().add(new UserBanListEntry(new GameProfile(id, name), created, source, expires, reason));
+        //#endif
+    }
+
+    public static boolean isBanned(MinecraftServer server, UUID id, String name) {
+        //#if MC>=1.21.9
+        return server.getPlayerList().getBans().isBanned(new NameAndId(id, name));
+        //#else
+        //$$ return server.getPlayerList().getBans().isBanned(new GameProfile(id, name));
         //#endif
     }
 
@@ -548,7 +562,7 @@ public final class Mc {
 
     /** Upgrades a saved player tag written by an older game version. */
     public static CompoundTag upgradePlayer(MinecraftServer server, CompoundTag tag, int fromVersion) {
-        //#if MC>=1.20.2
+        //#if MC>=1.19.4
         return DataFixTypes.PLAYER.updateToCurrentVersion(server.getFixerUpper(), tag, fromVersion);
         //#else
         //$$ return net.minecraft.nbt.NbtUtils.update(server.getFixerUpper(), DataFixTypes.PLAYER, tag, fromVersion);

@@ -9,7 +9,7 @@ import com.arthou.smputilities.core.config.SuConfig;
 import com.arthou.smputilities.core.util.SuLog;
 import com.arthou.smputilities.inventory.PlayerState;
 import com.arthou.smputilities.nick.NicknameService;
-import com.arthou.smputilities.platform.Platform;
+import com.arthou.smputilities.platform.PlayerData;
 import com.arthou.smputilities.server.Msg;
 import com.arthou.smputilities.server.Perms;
 import com.arthou.smputilities.server.SuServer;
@@ -220,7 +220,7 @@ public final class ProfileService {
             if (SuServer.config().profiles.storeCompatSlots && !incoming.compat.isEmpty()) {
                 CompatInventorySupport.apply(player, incoming.compat);
             }
-            Platform.get().persistentData(player).putString(PERSISTENT_KEY, name);
+            PlayerData.of(player).putString(PERSISTENT_KEY, name);
         } catch (RuntimeException e) {
             SuLog.error("Profile switch of " + player.getGameProfile().getName() + " failed, rolling back", e);
             PlayerState.apply(player, outgoing, parts);
@@ -315,7 +315,7 @@ public final class ProfileService {
         }
         try {
             ProfileStore.PlayerProfiles profiles = profiles(player.getUUID());
-            CompoundTag persistent = Platform.get().persistentData(player);
+            CompoundTag persistent = PlayerData.of(player);
             if (!persistent.contains(PERSISTENT_KEY)) {
                 persistent.putString(PERSISTENT_KEY, profiles.active);
                 return;
