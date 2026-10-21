@@ -2,7 +2,8 @@
   "required": true,
   "minVersion": "0.8",
   "package": "com.arthou.smputilities.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "${mixin_java}",
+  "refmap": "smputilities.refmap.json",
   "mixins": [
     "ChunkMapAccessor",
     "TrackedEntityMixin"
