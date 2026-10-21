@@ -21,7 +21,7 @@ import net.minecraftforge.client.event.RenderGuiEvent;
 //$$ import com.arthou.smputilities.client.bubble.BubbleRenderer;
 //$$ import net.minecraftforge.client.event.RenderLevelStageEvent;
 //#endif
-//#if MC>=1.21 && MC<1.21.3
+//#if MC>=1.20.5 && MC<1.21.3
 //$$ import com.mojang.blaze3d.vertex.PoseStack;
 //#endif
 //#if MC>=1.20.2
@@ -62,7 +62,9 @@ public final class ForgeClient {
         //$$     }
         //$$ });
         //#endif
-        //#if MC>=1.21 && MC<1.21.3
+        //#if MC>=1.21.3
+        // No level render event from Forge 1.21.3: see mixin.client.LevelRendererMixin.
+        //#elif MC>=1.20.5
         //$$ ForgeBus.on(RenderLevelStageEvent.class, event -> {
         //$$     if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_ENTITIES) {
         //$$         PoseStack pose = new PoseStack();
@@ -76,7 +78,7 @@ public final class ForgeClient {
         //$$         BubbleRenderer.renderWorld(event.getPoseStack());
         //$$     }
         //$$ });
-        //#elif MC<1.21.3
+        //#else
         //$$ ForgeBus.on(RenderLevelStageEvent.class, event -> {
         //$$     if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
         //$$         BubbleRenderer.renderWorld(event.getPoseStack());

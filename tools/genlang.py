@@ -1,5 +1,5 @@
 # Builds assets/smputilities/lang/{en_us,pt_br}.json from tools/lang/*.tsv (key<TAB>English<TAB>Portuguese).
-# Usage: python3 tools/genlang.py tools/lang platforms/<target>/src/main/resources/assets/smputilities/lang
+# Usage: python3 tools/genlang.py tools/lang mod/src/main/resources/assets/smputilities/lang
 import json, os, sys, collections
 src = sys.argv[1]
 out = sys.argv[2]

@@ -8,23 +8,28 @@ controle de dimensões, comandos de qualidade de vida, brincadeiras da staff e s
 
 ## Situação das versões
 
-| Minecraft | Loader | Estado |
-| --- | --- | --- |
-| 1.21.1 | NeoForge | **Implementado** — compila no CI (`SMPutilities-1.21.1-neoforge.jar`) |
-| demais (1.18.2 – 1.21.11) | Forge / Fabric / NeoForge | Ainda não — veja [Multi-loader e multi-versão](#multi-loader-e-multi-versão) |
+Um jar por versão do jogo e loader (`SMPutilities-<versão>-<loader>.jar`), todos do mesmo código:
 
-Os projetos de base (TPA, QSMP Chat Format, DUSMP, Inv Profile, InvView, Inventory Rollback Plus, DuTTS e
-Bubbles4All) são todos NeoForge 1.21.1 (o IRP também 1.21.11), por isso esse foi o primeiro alvo.
+| Minecraft | Fabric | Forge | NeoForge |
+| --- | --- | --- | --- |
+| 1.18.2 · 1.19.2 · 1.19.4 · 1.20.1 | ✔ | ✔ | — (não existe; no NeoForge 1.20.1 use o jar Forge 1.20.1) |
+| 1.20.4 · 1.20.6 · 1.21.1 · 1.21.3 · 1.21.4 · 1.21.5 · 1.21.8 · 1.21.10 · 1.21.11 | ✔ | ✔ | ✔ |
+
+Cada jar cobre a sua linha de versão (por exemplo o de 1.21.4 aceita só 1.21.4; o de 1.18.2, a 1.18.x).
+O CI compila os 35 alvos e sobe um servidor dedicado de cada um (smoke test: carrega todas as classes
+que os mixins alteram, roda comandos e desliga). Isso não substitui testar em jogo — veja
+[Limitações conhecidas](#limitações-conhecidas).
 
 ## Instalação
 
-* **Servidor:** coloque o jar em `mods/`. Nada mais é obrigatório.
+* **Servidor:** coloque o jar do seu loader/versão em `mods/`. No Fabric é preciso o Fabric API.
 * **Clientes:** opcional. Sem o mod no cliente, o jogador entra normalmente e recebe chat, mensagens,
   menus de baú, vanish, nicknames no chat/TAB, sons de menção, etc. O mod no cliente é necessário para o
-  painel da staff, nicknames acima da cabeça, balões de fala, TTS e sincronização de mods.
+  painel da staff, nicknames acima da cabeça, balões de fala, TTS e sincronização de mods. Cliente e
+  servidor precisam da mesma versão do protocolo do SMPutilities, não do mesmo loader.
 * **Integrações opcionais** (o mod funciona sem elas): Simple Voice Chat (voice mute), Curios e Cosmetic
-  Armor (inventários/backups), LuckPerms ou qualquer plugin da Permission API do NeoForge, Aether (nomes de
-  dimensão/portal).
+  Armor (inventários/backups), LuckPerms (Permission API do Forge/NeoForge; no Fabric, pelo
+  fabric-permissions-api que o LuckPerms traz), Aether (nomes de dimensão/portal).
 
 ## Arquivos
 
@@ -137,8 +142,9 @@ Todos os nós (`smputilities.staff.panel`, `smputilities.staff.ban`, `smputiliti
 `smputilities.chat.manage`, `smputilities.nickname.change`, `smputilities.portal.manage`,
 `smputilities.dimension.manage`, … — lista completa em
 [`Perm.java`](core/src/main/java/com/arthou/smputilities/core/perm/Perm.java)) são registrados na Permission
-API do NeoForge: o LuckPerms (ou outro) decide quando instalado; sem ele valem os níveis de OP padrão,
-ajustáveis em `permissions.levelOverrides`, mais concessões por jogador em `permissions.grants`. Toda ação
+API do Forge/NeoForge; no Fabric são consultados pelo fabric-permissions-api (que o LuckPerms instala).
+Com um plugin de permissões, ele decide; sem ele valem os níveis de OP padrão, ajustáveis em
+`permissions.levelOverrides`, mais concessões por jogador em `permissions.grants`. Toda ação
 administrativa vai para o log de auditoria (também visível no painel).
 
 ### Dados dos mods antigos
@@ -159,54 +165,74 @@ funcionando.
 
 * Nickname acima da cabeça só para clientes com o mod (o nome da entidade é desenhado pelo cliente).
   Sugestões de comandos e a tela de "interações sociais" do jogo ainda mostram nomes de conta.
+* Balões de fala: no Forge 1.21.9+ ainda não aparecem (o Forge não tem mais um evento de renderização de
+  mundo e o pipeline novo de entidades não foi adaptado); no Forge 1.21.3–1.21.8 usam um mixin. Nos
+  outros loaders/versões usam o evento de renderização do mundo.
 * Vanish: a contagem de jogadores na lista de servidores não é alterada.
 * Limite de portais: portais de destino gerados automaticamente pelo jogo não são contados; portais de
-  outros mods só são limitados se o mod disparar o `PortalSpawnEvent` do NeoForge (o bloqueio de
-  dimensão funciona para qualquer dimensão).
+  outros mods só são limitados se o mod disparar o `PortalSpawnEvent` do Forge/NeoForge (no Fabric, só
+  portais do Nether). O bloqueio de dimensão funciona para qualquer dimensão.
+* Antes da 1.19.4 não existem Text Displays: o `/sit` usa uma nuvem de efeito invisível. Efeitos que não
+  existem na versão (escuridão antes da 1.19) são simplesmente pulados nas brincadeiras.
+* Backups e perfis guardam o formato da versão em que foram feitos e são atualizados pelos *data fixers*
+  do jogo ao subir de versão; voltar para uma versão mais antiga não converte itens.
 * Curios/Cosmetic Armor: edição apenas com o jogador online.
 * Sincronização de mods: um jar com o mesmo nome e preso pelo Windows é deixado em
   `config/smputilities/modsync-client/pending/` para substituir manualmente.
-* **Ainda não testado em jogo** — compila no CI, mas não houve teste de execução neste ambiente
-  (sem acesso aos repositórios do Minecraft). Teste num servidor de testes antes de usar em produção.
+* **Testado no CI, não em jogo**: os 35 jars compilam e o servidor de cada um sobe, aplica os mixins e roda
+  comandos, mas a parte visual (painel, balões, HUD) e o jogo com jogadores reais precisam de teste num
+  servidor de testes antes de produção.
 
 ## Multi-loader e multi-versão
 
-A estrutura já separa o que independe do jogo:
-
 ```
-core/                    lógica pura em Java 17 (config, permissões, chat, punições, auditoria, portais,
-                         dimensões, teleporte, mod sync) — compilada dentro de cada jar, com testes
-tts-bridge/              aplicativo auxiliar de TTS (jar embutido)
-platforms/neoforge-1.21.1/   código do jogo; eventos do loader isolados em platform/
-tools/lang/              traduções (en_us, pt_br) → tools/genlang.py
+core/                         lógica pura em Java 17 (config, permissões, chat, punições, auditoria,
+                              portais, dimensões, teleporte, mod sync), com testes
+mod/src/main/java             todo o código do jogo, compartilhado por todos os alvos
+  mc/                         as chamadas que mudam entre versões (NBT, itens, textos, ids, efeitos,
+                              teleporte, permissões de OP, bans, tab list...) ficam só aqui
+  platform/                   Platform (o que cada loader fornece) e CommonEvents (todos os eventos)
+  client/gui/                 Gfx e widgets próprios: o painel desenha igual de 1.18 (PoseStack) a
+                              1.21.11 (GuiGraphics novo, eventos de input novos)
+mod/src/{fabric,forge,neoforge}/   só a ligação com cada loader (eventos, rede, permissões, mixins)
+mod/swaps.txt                 renomeações da Mojang aplicadas por versão (ResourceLocation→Identifier...)
+buildSrc/                     pré-processador: //#if MC>=1.21.5 && FABRIC ... //#else ... //#endif
+gradle/target.gradle          o build de um alvo (Architectury Loom, mapeamentos da Mojang)
+versions/<versão>-<loader>/   versões exatas de Minecraft/loader/Fabric API (tools/gen_targets.py)
+tts-bridge/                   aplicativo auxiliar de TTS (jar embutido)
+tools/                        traduções (tools/lang → genlang.py), CI (erros, smoke test), sondas de API
 ```
 
-O que **não** está pronto: os jars de Forge, Fabric e das outras versões. Entre 1.18.2 e 1.21.11 mudam
-registro, rede (payloads em 1.20.5), componentes de item (1.20.5), renderização de GUI e de mundo (1.21.2,
-1.21.6), salvamento de entidades (1.21.6+), e o NeoForge só existe a partir da 1.20.1 (de 1.18.2 a 1.19.4
-os alvos possíveis são Forge e Fabric). Cada alvo novo precisa do
-seu `platforms/<loader>-<versão>` com a camada do jogo adaptada; o CI (`.github/workflows/build.yml`) já
-gera um jar por entrada da matriz. A ordem sugerida: Fabric 1.21.1 (mesmo código de jogo, só eventos
-diferentes), depois 1.20.1 Forge/NeoForge, depois 1.21.11.
+As diferenças entre versões foram levantadas comparando as assinaturas reais das classes do jogo em
+cada versão (`tools/probe`, workflow `probe`), não de memória.
 
 ## Compilar
 
 ```sh
-./gradlew build                      # todos os alvos; jars em dist/
-./gradlew -Psu.coreOnly=true :core:test   # só a lógica pura, sem baixar o Minecraft
+./gradlew -Psu.targets=1.21.1-fabric build             # um alvo; jar em dist/
+./gradlew -Psu.targets=1.20.1-forge,1.21.11-neoforge build
+./gradlew -Psu.targets=all build                       # os 35 (cada um baixa o seu Minecraft)
+./gradlew -Psu.coreOnly=true :core:test                # só a lógica pura, sem baixar o Minecraft
+tools/smoke.sh 1.21.1-fabric                           # sobe o servidor do alvo e faz o smoke test
 ```
 
-Requer JDK 21. Ao editar traduções: `python3 tools/genlang.py tools/lang platforms/neoforge-1.21.1/src/main/resources/assets/smputilities/lang`.
+Requer JDK 21 (e JDK 17 para rodar servidores de 1.18.2 a 1.20.4). Traduções: edite `tools/lang/*.tsv`
+e rode `python3 tools/genlang.py tools/lang mod/src/main/resources/assets/smputilities/lang`.
 
 ---
 
 ### English summary
 
-SMPutilities is one mod for SMP/roleplay servers. NeoForge 1.21.1 is implemented (staff panel GUI with
-eight categories, vanilla-by-default chat with an optional QSMP format, mentions, mutes, spam protection,
-bans synced with the vanilla ban list, server-side vanish, live and offline inventory editing, automatic
-and manual backups with safe restore, Inv Profile's Quick Change plus crash-safe named profiles, RP
-nicknames, TTS with speech bubbles, portal limits, dimension access control, TPA-style QoL commands,
-harmless staff pranks, opt-in mod sync with SHA-512 verification, NeoForge Permission API nodes and an
-audit log). It imports data from the standalone mods it replaces. Other loaders and versions are not built
-yet; see the section above. It compiles in CI but has not been run in game yet.
+SMPutilities is one mod for SMP/roleplay servers: staff panel GUI with eight categories, vanilla-by-default
+chat with an optional QSMP format, mentions, mutes, spam protection, bans synced with the vanilla ban list,
+server-side vanish, live and offline inventory editing, automatic and manual backups with safe restore,
+Inv Profile's Quick Change plus crash-safe named profiles, RP nicknames, TTS with speech bubbles, portal
+limits, dimension access control, TPA-style QoL commands, harmless staff pranks, opt-in mod sync with
+SHA-512 verification, permission nodes for LuckPerms and an audit log. It imports data from the
+standalone mods it replaces.
+
+One shared code base builds 35 jars: Fabric and Forge for 1.18.2, 1.19.2, 1.19.4, 1.20.1, 1.20.4, 1.20.6,
+1.21.1, 1.21.3, 1.21.4, 1.21.5, 1.21.8, 1.21.10 and 1.21.11, and NeoForge from 1.20.4. Version differences
+live in `mod/src/main/java/.../mc` and a small source preprocessor (`//#if MC>=1.21.5`); loader glue lives
+in `mod/src/<loader>`. CI compiles every target and boots a dedicated server for each (smoke test); it has
+not been played in game yet.
