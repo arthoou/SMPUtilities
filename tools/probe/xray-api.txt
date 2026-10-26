@@ -27,3 +27,10 @@ net.minecraft.world.level.block.FireBlock | checkBurnOut|tick
 net.minecraft.world.level.block.piston.PistonBaseBlock | moveBlocks
 net.minecraft.server.network.ServerGamePacketListenerImpl | handleContainerClick|handlePlayerAction|handleUseItemOn
 net.minecraft.world.entity.player.Player | getInventory|containerMenu
+# How each version picks a palette from the bits a chunk packet carries
+code:net.minecraft.world.level.chunk.Strategy | .
+code:net.minecraft.world.level.chunk.Strategy$1 | .
+code:net.minecraft.world.level.chunk.PalettedContainer$Strategy$1 | getConfiguration|iconst|bipush|tableswitch|lookupswitch|new|invokespecial
+code:net.minecraft.world.level.chunk.PalettedContainer | createOrReuseData|getConfiguration|getConfigurationForBitCount|readByte
+net.minecraft.world.level.chunk.Configuration | .
+net.minecraft.world.level.chunk.Configuration$Simple | .
