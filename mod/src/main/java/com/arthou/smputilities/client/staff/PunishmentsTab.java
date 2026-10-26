@@ -12,9 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** Active bans and mutes, open player reports, the full punishment history and the administrative log. */
+/** Active bans and mutes, open player reports, x-ray alerts, the full punishment history and the administrative log. */
 final class PunishmentsTab extends PanelTab {
-    enum View { BANS, MUTES, REPORTS, HISTORY, LOGS }
+    enum View { BANS, MUTES, REPORTS, XRAY, HISTORY, LOGS }
 
     private static View view = View.BANS;
     private static String filter = "";
@@ -25,6 +25,7 @@ final class PunishmentsTab extends PanelTab {
             case BANS -> "bans";
             case MUTES -> "mutes";
             case REPORTS -> "reports";
+            case XRAY -> "xray";
             case HISTORY -> "history";
             case LOGS -> "logs";
         };
@@ -55,6 +56,7 @@ final class PunishmentsTab extends PanelTab {
             button.active = switch (value) {
                 case LOGS -> ClientState.has(Perm.STAFF_LOGS);
                 case REPORTS -> ClientState.has(Perm.STAFF_REPORTS);
+                case XRAY -> ClientState.has(Perm.XRAY_ALERTS);
                 default -> true;
             };
         }
@@ -72,6 +74,8 @@ final class PunishmentsTab extends PanelTab {
                 column("by", 0.8F), column("reason", 1.6F));
             case REPORTS -> List.of(column("id", 0.5F), column("date", 1.1F), column("reporter", 0.9F), column("player", 0.9F),
                 column("reason", 2.2F));
+            case XRAY -> List.of(column("id", 0.5F), column("date", 1.1F), column("player", 1), column("ore", 1.3F), column("veins", 0.6F),
+                column("where", 1.8F));
             case HISTORY -> List.of(column("id", 0.6F), column("type", 0.8F), column("player", 1), column("date", 1.1F), column("by", 0.8F),
                 column("reason", 1.4F), column("status", 1));
             case LOGS -> List.of(column("date", 1.1F), column("by", 0.9F), column("action", 1.1F), column("target", 1), column("details", 2));
@@ -85,6 +89,7 @@ final class PunishmentsTab extends PanelTab {
             case BANS -> ClientState.has(Perm.STAFF_BAN) ? List.of(new TableView.RowButton("unban", tr("action.unban"), Theme.ACCENT)) : List.of();
             case MUTES -> ClientState.has(Perm.STAFF_MUTE) ? List.of(new TableView.RowButton("unmute", tr("action.unmute"), Theme.ACCENT)) : List.of();
             case REPORTS -> reportButtons(row);
+            case XRAY -> ClientState.has(Perm.STAFF_TELEPORT) ? List.of(new TableView.RowButton("xray_tp", tr("action.report_tp"), Theme.INFO)) : List.of();
             default -> List.of();
         };
         table.onButton = (row, button) -> {
@@ -98,6 +103,8 @@ final class PunishmentsTab extends PanelTab {
                     panel.action(row.cells().get(1).equals("VOICE_MUTE") ? "voice_unmute" : "unmute", row.id());
                     panel.request("table", "mutes|");
                 });
+            } else if (button.equals("xray_tp")) {
+                panel.action(button, "", row.id());
             } else if (button.equals("report_tp") || button.equals("report_close")) {
                 panel.action(button, "", row.id());
                 panel.request("table", "reports|");

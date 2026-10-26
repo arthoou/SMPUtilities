@@ -1,6 +1,7 @@
 package com.arthou.smputilities.platform;
 
 import com.arthou.smputilities.SmpUtilities;
+import com.arthou.smputilities.antixray.XraySelfTest;
 import net.minecraft.server.MinecraftServer;
 
 import java.util.ArrayList;
@@ -31,9 +32,14 @@ public final class SmokeTest {
         "net.minecraft.server.players.PlayerList",
         "net.minecraft.server.PlayerAdvancements",
         "net.minecraft.server.MinecraftServer",
-        "net.minecraft.world.entity.monster.Creeper");
+        "net.minecraft.world.entity.monster.Creeper",
+        "net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData",
+        "net.minecraft.world.level.Level",
+        "net.minecraft.server.level.ServerPlayerGameMode",
+        "net.minecraft.server.level.ServerChunkCache",
+        "net.minecraft.server.network.PlayerChunkSender");
     /** Run as the console; command errors are logged by the game, which the CI step looks for. */
-    private static final List<String> COMMANDS = List.of("su", "su reload", "help", "su reports", "su restart", "rules", "list");
+    private static final List<String> COMMANDS = List.of("su", "su reload", "help", "su reports", "su restart", "su xray", "rules", "list");
     private static int ticks;
 
     private SmokeTest() {
@@ -65,6 +71,15 @@ public final class SmokeTest {
                 failures.add("/" + command + ": " + error);
                 SmpUtilities.LOGGER.error("Smoke test: /{} failed", command, error);
             }
+        }
+        try {
+            String xray = XraySelfTest.run(server);
+            if (xray != null) {
+                failures.add("anti-xray: " + xray);
+            }
+        } catch (Throwable error) {
+            failures.add("anti-xray: " + error);
+            SmpUtilities.LOGGER.error("Smoke test: anti-xray self test failed", error);
         }
         if (failures.isEmpty()) {
             SmpUtilities.LOGGER.info("SMPUTILITIES SMOKE OK");

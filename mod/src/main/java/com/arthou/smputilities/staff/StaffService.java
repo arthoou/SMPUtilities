@@ -1,6 +1,8 @@
 package com.arthou.smputilities.staff;
 
 import com.arthou.smputilities.mc.Mc;
+import com.arthou.smputilities.antixray.AntiXray;
+import com.arthou.smputilities.antixray.XrayAlerts;
 import com.arthou.smputilities.backup.BackupMenus;
 import com.arthou.smputilities.backup.BackupService;
 import com.arthou.smputilities.backup.PlayerSnapshot;
@@ -323,6 +325,17 @@ public final class StaffService {
                 }
                 return new Dto.Table(kind, context, List.of("id", "date", "reporter", "player", "reason", "where"), rows);
             }
+            case "xray" -> {
+                if (!Perms.has(viewer, Perm.XRAY_ALERTS)) {
+                    return null;
+                }
+                for (XrayAlerts.Alert alert : XrayAlerts.recent()) {
+                    rows.add(new Dto.Row(String.valueOf(alert.id()), List.of("#" + alert.id(), TIME.format(Instant.ofEpochMilli(alert.time())),
+                        alert.name(), alert.ore(), (alert.suspicious() ? "⚠ " : "") + alert.veins(),
+                        alert.pos().getX() + " " + alert.pos().getY() + " " + alert.pos().getZ() + " · " + alert.dimension())));
+                }
+                return new Dto.Table(kind, context, List.of("id", "date", "player", "ore", "veins", "where"), rows);
+            }
             case "chatdays" -> {
                 if (!Perms.has(viewer, Perm.CHAT_HISTORY)) {
                     return null;
@@ -604,6 +617,18 @@ public final class StaffService {
                     return "!" + Lang.tr(actor, "report.not_found", reportId);
                 }
                 return tp ? null : Lang.tr(actor, "report.closed", reportId);
+            }
+            case "xray_tp" -> {
+                if (!Perms.has(actor, Perm.XRAY_ALERTS) || !Perms.has(actor, Perm.STAFF_TELEPORT)) {
+                    return denied(actor);
+                }
+                int alertId;
+                try {
+                    alertId = Integer.parseInt(arg(action, 0));
+                } catch (NumberFormatException e) {
+                    return "!" + Lang.tr(actor, "xray.not_found", arg(action, 0));
+                }
+                return XrayAlerts.teleport(actor, alertId) ? null : "!" + Lang.tr(actor, "xray.not_found", alertId);
             }
             case "modsync_rescan" -> {
                 if (!Perms.has(actor, Perm.MODSYNC_MANAGE)) {
@@ -1016,6 +1041,10 @@ public final class StaffService {
 
     /** Some settings need to be pushed out right away. */
     public static void afterSettingChange(MinecraftServer server, String path) {
+        if (path.startsWith("antiXray.") || path.startsWith("xrayAlerts.") || path.equals("features.antiXray")
+            || path.equals("features.xrayAlerts") || path.equals("features.reload")) {
+            AntiXray.requestRebuild();
+        }
         if (path.startsWith("nicknames.") || path.equals("features.nicknames")) {
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                 com.arthou.smputilities.platform.Platform.get().refreshNames(player);

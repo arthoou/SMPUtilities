@@ -1,5 +1,6 @@
 package com.arthou.smputilities.staff;
 
+import com.arthou.smputilities.antixray.XrayAlerts;
 import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.backup.BackupMenus;
@@ -193,6 +194,7 @@ public final class StaffCommands {
                     return Msg.ok(context.getSource(), "modsync.rescanning");
                 })))
             .then(ReportService.branch())
+            .then(XrayAlerts.branch())
             .then(RestartService.branch())
             .then(Commands.literal("spectate").requires(perm(Perm.STAFF_SPECTATE))
                 .then(Commands.literal("stop").executes(context -> {

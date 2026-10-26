@@ -1,5 +1,7 @@
 package com.arthou.smputilities.platform;
 
+import com.arthou.smputilities.antixray.AntiXray;
+import com.arthou.smputilities.antixray.XrayAlerts;
 import com.arthou.smputilities.backup.BackupService;
 import com.arthou.smputilities.chat.ChatCommands;
 import com.arthou.smputilities.chat.ChatService;
@@ -85,6 +87,7 @@ public final class CommonEvents {
         RestartService.onServerStart();
         LegacyImport.run(server, context);
         ModSyncServer.onServerStart();
+        SuLog.guard("anti-xray", server, AntiXray::onServerStart);
     }
 
     /** Before the worlds are saved: pranks put back the blocks they placed. */
@@ -93,6 +96,7 @@ public final class CommonEvents {
     }
 
     public static void serverStopped(MinecraftServer server) {
+        AntiXray.onServerStop();
         ModSyncServer.onServerStop();
         BackupService.onServerStop();
         ProfileService.onServerStop();
@@ -110,6 +114,7 @@ public final class CommonEvents {
         QolCommands.tick(server);
         PortalService.tick(server);
         TrollService.tick(server);
+        AntiXray.tick(server);
         ticks++;
         if (ticks % 20 == 0) {
             PermCache.clear();
@@ -184,6 +189,7 @@ public final class CommonEvents {
         ChatService.forget(player);
         TtsService.forget(player);
         TrollService.forget(player);
+        XrayAlerts.forget(player);
         DimensionService.forget(player);
         VanishService.onLogout(player);
         ModSyncServer.onLogout(player);

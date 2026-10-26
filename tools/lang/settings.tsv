@@ -101,3 +101,9 @@ setting.smputilities.nicknames.teamColorOverride	A team color replaces the nickn
 setting.smputilities.nicknames.defaultNameplateVisible	Nameplates shown by default	Placas de nome aparecem por padrão
 setting.smputilities.nicknames.blocksHideNameplates	Blocks hide nameplates (clients with the mod)	Blocos escondem as placas de nome (clientes com o mod)
 setting.smputilities.nicknames.importHiddenNames	Import HiddenNames data on first start	Importar os dados do HiddenNames na primeira inicialização
+setting.smputilities.features.antiXray	Anti-xray: hide ores from x-ray (after AntiXray)	Anti-xray: esconder minérios do x-ray (baseado no AntiXray)
+setting.smputilities.features.xrayAlerts	X-ray alerts for staff	Alertas de x-ray para a staff
+setting.smputilities.antiXray.usePermission	Staff with smputilities.antixray.bypass see the real blocks	Staff com smputilities.antixray.bypass vê os blocos reais
+setting.smputilities.xrayAlerts.windowMinutes	Minutes in which veins are counted	Minutos em que os veios são contados
+setting.smputilities.xrayAlerts.everyVein	Tell staff about every vein of a watched ore	Avisar a staff de todo veio de minério vigiado
+setting.smputilities.xrayAlerts.sound	Sound of a suspicious x-ray alert	Som do alerta de x-ray suspeito

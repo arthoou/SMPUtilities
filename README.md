@@ -89,6 +89,29 @@ clica numa mensagem para ver inteira. `chat.historyDays` (30) define quantos dia
 vanilla (com expiração), então o bloqueio no login é o do próprio jogo e `/pardon` continua funcionando.
 Staff não pode punir quem tem nível de OP maior.
 
+### Anti-xray (base: AntiXray do DrexHD) e alertas de x-ray — `/su xray`
+O anti-xray segue o motor do [AntiXray](https://github.com/DrexHD/AntiXray) (MIT), que por sua vez é o
+anti-xray do Paper. Nos chunks enviados aos jogadores, os blocos escondidos que não encostam em nada
+transparente (ar, água, vidro…) aparecem como outra coisa, então pacote de textura de x-ray e cliente hack não
+acham nada. Os modos são os do AntiXray: `1` troca os minérios escondidos por pedra, ardósia, netherrack ou
+pedra do End; `2` enche todo bloco enterrado de minérios falsos aleatórios; `3` faz o mesmo com um bloco por
+camada (padrão do Overworld). Ao quebrar ou abrir um bloco, os blocos reais em volta (`updateRadius`) são
+enviados de novo. Os padrões são os do AntiXray: Overworld no modo 3 até a altura 256 e Nether no modo 1 até a
+128, com lava escondendo. Tudo fica em `antiXray.worlds` (ids de bloco ou `#tags`; `!` na frente tira um da
+lista). Com `antiXray.usePermission`, quem tem `smputilities.antixray.bypass` vê os blocos reais.
+
+A diferença para o AntiXray está só na forma de ligar ao jogo. O AntiXray coloca os blocos falsos nas paletas do
+próprio mundo e segura os pacotes na conexão. Aqui só o pacote muda: o chunk é lembrado quando o pacote é
+criado, e os blocos são escondidos quando a thread de rede escreve o pacote. O mundo salvo nunca é alterado, e a
+ordem dos pacotes continua a mesma. Os ganchos (pacote de chunk, envio de chunks, quebra de bloco, `setBlock`)
+são os mesmos da 1.18.2 à 1.21.11, só o formato do pacote muda (a partir da 1.21.5 o tamanho do array não vai
+mais no pacote). No CI, cada versão monta pacotes de chunk do spawn, esconde os blocos e confere o resultado.
+
+Os alertas de x-ray contam os veios de minérios valiosos que cada jogador acha (`xrayAlerts.thresholds`:
+diamante, detritos ancestrais e esmeralda por padrão). A staff com `smputilities.xray.alerts` é avisada a cada
+veio e recebe um alerta vermelho, com som, quando alguém passa do limite dentro de `xrayAlerts.windowMinutes`.
+Os avisos têm botão de teleporte, e `/su xray` e a aba **X-ray** em Punições listam os últimos 50.
+
 ### Vanish — `/vanish [on|off|<jogador>]`
 Feito no servidor: um mixin no rastreamento de entidades impede que o jogador invisível seja enviado a
 quem não tem `smputilities.staff.vanish.see` (sem posição, equipamento, sons ou partículas), remoção da
@@ -308,7 +331,7 @@ e rode `python3 tools/genlang.py tools/lang mod/src/main/resources/assets/smputi
 SMPutilities é software proprietário: Copyright (c) 2026 arthou, todos os direitos reservados ([LICENSE](LICENSE)).
 Nenhuma permissão é concedida para usar, copiar, modificar, redistribuir ou criar trabalhos derivados sem
 autorização prévia e por escrito. Componentes de terceiros mantêm as suas licenças, listadas em
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) (HiddenNames, MIT; JLayer, LGPL). O TrollBoss (GPL-3.0) serviu só
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) (HiddenNames e AntiXray, MIT; JLayer, LGPL). O TrollBoss (GPL-3.0) serviu só
 de referência de comportamento: nenhum código dele foi copiado, para não obrigar o mod a ser GPL. Os dois arquivos
 vão dentro de cada jar.
 
@@ -318,7 +341,8 @@ vão dentro de cada jar.
 
 SMPutilities is one mod for SMP/roleplay servers: staff panel GUI with eight categories, vanilla-by-default
 chat with an optional QSMP format, mentions, mutes, spam protection, bans synced with the vanilla ban list,
-server-side vanish, live and offline inventory editing, automatic and manual backups with safe restore,
+server-side vanish, an anti-xray after DrexHD's AntiXray (MIT; only outgoing chunk packets change, never the world)
+with x-ray alerts for staff, live and offline inventory editing, automatic and manual backups with safe restore,
 Inv Profile's Quick Change plus crash-safe named profiles, RP nicknames built on HiddenNames (same /hiddennames commands, nameplate
 animations, hidden nameplates, blocks hiding nameplates, team color override, data import), TTS with speech bubbles, portal
 limits, dimension access control, TPA-style QoL commands (with /tpacancel and /tpatoggle), AFK detection

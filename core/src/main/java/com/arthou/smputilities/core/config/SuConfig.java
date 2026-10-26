@@ -39,6 +39,8 @@ public final class SuConfig {
     public Announcements announcements = new Announcements();
     public Restart restart = new Restart();
     public Welcome welcome = new Welcome();
+    public AntiXray antiXray = new AntiXray();
+    public XrayAlerts xrayAlerts = new XrayAlerts();
     public Permissions permissions = new Permissions();
 
     /** Master switches. A disabled system registers no listeners or commands. */
@@ -63,6 +65,10 @@ public final class SuConfig {
         public boolean announcements = true;
         public boolean restart = true;
         public boolean welcome = true;
+        /** Hide ores from x-ray clients (after DrexHD's AntiXray); see antiXray. */
+        public boolean antiXray = true;
+        /** Tell staff when a player finds valuable ores suspiciously often; see xrayAlerts. */
+        public boolean xrayAlerts = true;
     }
 
     public static final class Chat {
@@ -367,6 +373,80 @@ public final class SuConfig {
         public List<String> motd = new ArrayList<>();
         /** Lines shown by /rules; links become clickable. */
         public List<String> rules = new ArrayList<>();
+    }
+
+    /**
+     * The anti-xray, after DrexHD's AntiXray (MIT) and Paper's anti-xray: the
+     * chunks sent to players show hidden blocks that touch no air, water,
+     * glass or other see-through block as something else, so x-ray texture
+     * packs and cheat clients find nothing. Only the packets change, never the
+     * world. Breaking or opening up blocks sends the real blocks around them
+     * again (updateRadius).
+     */
+    public static final class AntiXray {
+        /** Players with smputilities.antixray.bypass (op level 2 by default) see the real blocks. */
+        public boolean usePermission = false;
+        /** Dimension id -> settings; dimensions not listed are sent unchanged. AntiXray's defaults. */
+        public Map<String, AntiXray.World> worlds = new LinkedHashMap<>(Map.of(
+            "minecraft:overworld", World.overworld(),
+            "minecraft:the_nether", World.nether()));
+
+        public static final class World {
+            public boolean enabled = true;
+            /**
+             * 1 = hide: hidden blocks show as stone, deepslate, netherrack or end stone.
+             * 2 = obfuscate: hidden and replacement blocks all show as random hidden blocks.
+             * 3 = obfuscate, with one random block per layer (less traffic than 2).
+             */
+            public int engineMode = 3;
+            /** Only sections below this height change (rounded down to a multiple of 16). */
+            public int maxBlockHeight = 256;
+            /** Blocks around a broken or uncovered block that are sent for real again. */
+            public int updateRadius = 2;
+            /** Still lava hides what is behind it too. */
+            public boolean lavaObscures = false;
+            /** Block ids or #tags to hide; "!" in front takes one out again. Unknown ones are skipped. */
+            public List<String> hiddenBlocks = new ArrayList<>();
+            /** Engine modes 2 and 3: blocks that are shown as random hidden blocks as well. */
+            public List<String> replacementBlocks = new ArrayList<>();
+
+            static World overworld() {
+                World world = new World();
+                world.hiddenBlocks = new ArrayList<>(List.of("#c:ores", "#forge:ores", "#minecraft:coal_ores", "#minecraft:iron_ores",
+                    "#minecraft:copper_ores", "#minecraft:gold_ores", "#minecraft:redstone_ores", "#minecraft:lapis_ores",
+                    "#minecraft:diamond_ores", "#minecraft:emerald_ores", "raw_copper_block", "raw_iron_block", "raw_gold_block",
+                    "!nether_gold_ore", "!nether_quartz_ore", "!ancient_debris"));
+                world.replacementBlocks = new ArrayList<>(List.of("stone", "deepslate", "andesite", "calcite", "diorite", "dirt",
+                    "granite", "gravel", "sand", "tuff", "mossy_cobblestone", "obsidian", "clay", "infested_stone",
+                    "amethyst_block", "budding_amethyst", "chest"));
+                return world;
+            }
+
+            static World nether() {
+                World world = new World();
+                world.engineMode = 1;
+                world.maxBlockHeight = 128;
+                world.lavaObscures = true;
+                world.hiddenBlocks = new ArrayList<>(List.of("ancient_debris", "nether_quartz_ore", "nether_gold_ore", "gold_block", "gilded_blackstone"));
+                world.replacementBlocks = new ArrayList<>(List.of("netherrack"));
+                return world;
+            }
+        }
+    }
+
+    public static final class XrayAlerts {
+        /**
+         * Ores to watch (block ids or #tags) -> veins found within windowMinutes
+         * after which staff get a warning. Ores next to each other count as one vein.
+         */
+        public Map<String, Integer> thresholds = new LinkedHashMap<>(Map.of(
+            "#minecraft:diamond_ores", 4,
+            "ancient_debris", 4,
+            "#minecraft:emerald_ores", 3));
+        public int windowMinutes = 10;
+        /** Also tell staff about every vein of a watched ore, not only past the threshold. */
+        public boolean everyVein = true;
+        public String sound = "minecraft:block.note_block.bass";
     }
 
     public static final class Permissions {

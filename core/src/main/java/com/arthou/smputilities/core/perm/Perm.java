@@ -37,6 +37,9 @@ public enum Perm {
     STAFF_TPALL("smputilities.staff.tpall", 3),
     STAFF_REPORTS("smputilities.staff.reports", 2),
     STAFF_CHAT("smputilities.staff.chat", 2),
+    /** See the real blocks when antiXray.usePermission is on. */
+    ANTIXRAY_BYPASS("smputilities.antixray.bypass", 2),
+    XRAY_ALERTS("smputilities.xray.alerts", 2),
 
     ADMIN_SETTINGS("smputilities.admin.settings", 4),
     ADMIN_RELOAD("smputilities.admin.reload", 4),
