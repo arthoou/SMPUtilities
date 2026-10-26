@@ -7,16 +7,23 @@ tts.invalid_voice	Use /su tts feminine <1-3> <language> or /su tts masculine <1-
 tts.helper_error	The SMPutilities Voice Bridge returned error %s.	O SMPutilities Voice Bridge retornou erro %s.
 tts.helper_io	The SMPutilities Voice Bridge could not play this TTS.	O SMPutilities Voice Bridge não conseguiu reproduzir este TTS.
 tts.helper_missing	The SMPutilities Voice Bridge is not running.	O SMPutilities Voice Bridge não está em execução.
-tts.title	Voice studio	Estúdio de voz
-tts.subtitle	What you type, spoken into voice chat	O que você digita, falado no voice chat
+tts.title	Text to speech	Texto para fala
+tts.subtitle	Voice setup	Configurar voz
+tts.step.gender	Gender	Gênero
+tts.step.variant	Variant	Variação
+tts.step.language	Language	Idioma
+tts.step_of	STEP %s OF %s	PASSO %s DE %s
+tts.pick.gender	Choose the voice gender	Escolha o gênero da voz
+tts.pick.variant	Choose the variant	Escolha a variação
+tts.pick.language	Choose the language	Escolha o idioma
 tts.gender.feminine	Feminine	Feminina
 tts.gender.masculine	Masculine	Masculina
+tts.gender.variants	%s variants	%s variações
+tts.variant	Variant %s	Variação %s
 tts.duck	Duck %s	Pato %s
+tts.confirm	Confirm	Confirmar
+tts.cancel	Cancel	Cancelar
 tts.off	Turn voice off	Desligar voz
-tts.activate	Activate	Ativar
-tts.voice	Voice	Voz
-tts.language	Language	Idioma
-tts.summary.pick	Pick a voice and a language.	Escolha uma voz e um idioma.
 tts.status.off	Voice off	Voz desligada
 tts.status.on	On: %s	Ligada: %s
 tts.language.english	English	Inglês

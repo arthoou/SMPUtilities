@@ -5,426 +5,336 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
-/** The bridge control window: status, connection details, instructions and a live log. */
+import static com.arthou.smputilities.ttsbridge.I18n.t;
+
+/**
+ * The voice app's window: a side bar with the status and three pages. The
+ * overview shows a live voice meter, the numbers and a "ready to play"
+ * checklist with a test field; the microphone page walks through the virtual
+ * microphone setup step by step; the activity page keeps the log.
+ */
 final class BridgeWindow extends JFrame {
     private static final DateTimeFormatter CLOCK = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final int LOG_LIMIT = 500;
 
-    private final Ui.Dot dot = new Ui.Dot();
-    private final JLabel stateLabel = new JLabel("Starting…");
-    private final JLabel servedLabel = new JLabel("0");
-    private final JTextArea log = new JTextArea();
+    private final int port;
     private final Runnable onStop;
+    private final Ui.Dot dot = new Ui.Dot();
+    private final JLabel stateLabel = Ui.body(t("Starting…", "Iniciando…"), Theme.TEXT, 12, Font.BOLD);
+    private final JLabel servedValue = new JLabel("0");
+    private final JLabel lastLine = Ui.body(t("Nothing spoken yet.", "Nada falado ainda."), Theme.TEXT_DIM, 12, Font.PLAIN);
+    private final Ui.VoiceMeter meter = new Ui.VoiceMeter();
+    private final DefaultListModel<String> logModel = new DefaultListModel<>();
+    private final JList<String> logList = new JList<>(logModel);
+    private final CardLayout pages = new CardLayout();
+    private final JPanel pageHost = new JPanel(pages);
+    private final List<Ui.NavButton> nav = new ArrayList<>();
+    private final Ui.CheckRow checkBridge = new Ui.CheckRow(t("Voice app", "App de voz"));
+    private final Ui.CheckRow checkVoices = new Ui.CheckRow(t("Voices", "Vozes"));
+    private final Ui.CheckRow checkMic = new Ui.CheckRow(t("Virtual microphone", "Microfone virtual"));
+    private final Ui.CheckRow checkOutput = new Ui.CheckRow(t("Voice output", "Saída da voz"));
+    private boolean running;
 
     BridgeWindow(int port, Runnable onStop) {
-        super("SMPutilities Voice Studio");
+        super("SMPutilities Voice");
+        this.port = port;
         this.onStop = onStop;
-
         setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-        setSize(660, 640);
-        setMinimumSize(new Dimension(560, 560));
+        setSize(800, 560);
+        setMinimumSize(new Dimension(700, 500));
         setLocationRelativeTo(null);
-        getContentPane().setBackground(Theme.BG);
 
-        JPanel status = new JPanel();
-        status.setLayout(new BoxLayout(status, BoxLayout.Y_AXIS));
-        status.setBackground(Theme.BG);
-        status.setBorder(BorderFactory.createEmptyBorder(18, 22, 18, 22));
-        status.add(statusCard(port));
-        status.add(Box.createVerticalStrut(14));
-        status.add(instructionsCard());
-        status.add(Box.createVerticalStrut(14));
-        status.add(logCard());
-        status.add(Box.createVerticalStrut(16));
-        status.add(buttonRow(port));
-
-        JTabbedPane tabs = new JTabbedPane();
-        tabs.setBackground(Theme.SURFACE);
-        tabs.setForeground(Theme.TEXT);
-        tabs.setFont(Theme.ui(Font.BOLD, 12));
-        tabs.addTab("Status", scroll(status));
-        tabs.addTab("Audio & Microphone", scroll(audioPanel()));
+        pageHost.setBackground(Theme.BG);
+        pageHost.add(page(overviewPage()), "overview");
+        pageHost.add(page(microphonePage()), "microphone");
+        pageHost.add(activityPage(), "activity");
 
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(Theme.BG);
-        root.setBorder(BorderFactory.createEmptyBorder(22, 24, 20, 24));
-        root.add(header(), BorderLayout.NORTH);
-        root.add(tabs, BorderLayout.CENTER);
+        root.add(sidebar(), BorderLayout.WEST);
+        root.add(pageHost, BorderLayout.CENTER);
         setContentPane(root);
+        show(0);
+        refreshChecks();
     }
 
-    private JComponent header() {
-        JPanel panel = new JPanel(new BorderLayout(14, 0));
-        panel.setOpaque(false);
-        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 62));
+    // ------------------------------------------------------------- side bar
 
+    private JComponent sidebar() {
         JPanel bar = new JPanel();
-        bar.setBackground(Theme.ACCENT);
-        bar.setPreferredSize(new Dimension(5, 52));
+        bar.setLayout(new BoxLayout(bar, BoxLayout.Y_AXIS));
+        bar.setBackground(Theme.SIDEBAR);
+        bar.setBorder(BorderFactory.createEmptyBorder(18, 14, 16, 14));
+        bar.setPreferredSize(new Dimension(210, 0));
 
-        JPanel text = new JPanel();
-        text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
-        text.setOpaque(false);
-        JLabel title = new JLabel("SMPutilities Voice Studio");
-        title.setFont(Theme.ui(Font.BOLD, 24));
-        title.setForeground(Theme.TEXT);
-        title.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel sub = Ui.body("Local text-to-speech service for the SMPutilities mod",
-            Theme.TEXT_DIM, 12, Font.PLAIN);
-        text.add(title);
-        text.add(Box.createVerticalStrut(3));
-        text.add(sub);
+        JPanel brand = new JPanel();
+        brand.setLayout(new BoxLayout(brand, BoxLayout.X_AXIS));
+        brand.setOpaque(false);
+        brand.setAlignmentX(Component.LEFT_ALIGNMENT);
+        brand.add(new Ui.Logo(36));
+        brand.add(Box.createHorizontalStrut(10));
+        JPanel names = new JPanel();
+        names.setLayout(new BoxLayout(names, BoxLayout.Y_AXIS));
+        names.setOpaque(false);
+        names.add(Ui.body("SMPutilities", Theme.TEXT, 14, Font.BOLD));
+        names.add(Ui.body(t("Voice", "Voz"), Theme.ACCENT, 12, Font.BOLD));
+        brand.add(names);
+        brand.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        bar.add(brand);
+        bar.add(Box.createVerticalStrut(16));
 
-        panel.add(bar, BorderLayout.WEST);
-        panel.add(text, BorderLayout.CENTER);
-        return panel;
-    }
+        Ui.Card status = new Ui.Card(Theme.SURFACE, Theme.BORDER, 14);
+        status.setLayout(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        status.setBorder(BorderFactory.createEmptyBorder(9, 2, 7, 10));
+        status.setAlignmentX(Component.LEFT_ALIGNMENT);
+        status.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        status.add(dot);
+        status.add(stateLabel);
+        bar.add(status);
+        bar.add(Box.createVerticalStrut(18));
 
-    private JComponent statusCard(int port) {
-        Ui.Card card = new Ui.Card(Theme.SURFACE, Theme.BORDER, 14);
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(BorderFactory.createEmptyBorder(16, 18, 16, 18));
-        card.setAlignmentX(Component.LEFT_ALIGNMENT);
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 210));
-
-        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        top.setOpaque(false);
-        top.setAlignmentX(Component.LEFT_ALIGNMENT);
-        stateLabel.setFont(Theme.ui(Font.BOLD, 17));
-        stateLabel.setForeground(Theme.TEXT);
-        top.add(dot);
-        top.add(stateLabel);
-        card.add(top);
-        card.add(Box.createVerticalStrut(12));
-
-        int cloudVoices = RemoteTts.voiceCount();
-        boolean cloudOk = cloudVoices > 0;
-        String player = Player.backend();
-        card.add(detailRow("Endpoint", "http://127.0.0.1:" + port));
-        card.add(detailRow("Platform", Theme.osLabel()));
-        card.add(detailRow("Voice source",
-            cloudOk ? "ttstool.com  (" + cloudVoices + " voices)" : "ttstool.com unreachable",
-            cloudOk ? Theme.OK : Theme.ERR));
-        card.add(detailRow("Audio player", "none".equals(player) ? "not found" : player,
-            "none".equals(player) ? Theme.ERR : Theme.TEXT));
-        card.add(detailRow("Offline fallback", Tts.engine().label,
-            Tts.engine() == Tts.Engine.NONE ? Theme.TEXT_DIM : Theme.TEXT));
-
-        JPanel served = new JPanel(new BorderLayout());
-        served.setOpaque(false);
-        served.setAlignmentX(Component.LEFT_ALIGNMENT);
-        served.setMaximumSize(new Dimension(Integer.MAX_VALUE, 22));
-        JLabel k = Ui.body("Phrases spoken", Theme.TEXT_DIM, 12, Font.PLAIN);
-        k.setPreferredSize(new Dimension(130, 20));
-        servedLabel.setFont(Theme.mono(Font.BOLD, 12));
-        servedLabel.setForeground(Theme.ACCENT);
-        served.add(k, BorderLayout.WEST);
-        served.add(servedLabel, BorderLayout.CENTER);
-        card.add(served);
-
-        if (!cloudOk && !Tts.installHint().isBlank()) {
-            card.add(Box.createVerticalStrut(8));
-            JLabel hint = Ui.body(Tts.installHint(), Theme.ERR, 12, Font.BOLD);
-            card.add(hint);
+        String[] items = {t("Overview", "Visão geral"), t("Microphone", "Microfone"), t("Activity", "Atividade")};
+        for (int i = 0; i < items.length; i++) {
+            int index = i;
+            Ui.NavButton button = new Ui.NavButton(Ui.NavButton.Icon.values()[i], items[i]);
+            button.addActionListener(e -> show(index));
+            nav.add(button);
+            bar.add(button);
+            bar.add(Box.createVerticalStrut(4));
         }
-        return card;
-    }
 
-    private JComponent detailRow(String key, String value) {
-        return detailRow(key, value, Theme.TEXT);
-    }
-
-    private JComponent detailRow(String key, String value, Color valueColor) {
-        JPanel row = new JPanel(new BorderLayout());
-        row.setOpaque(false);
-        row.setAlignmentX(Component.LEFT_ALIGNMENT);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
-        JLabel k = Ui.body(key, Theme.TEXT_DIM, 12, Font.PLAIN);
-        k.setPreferredSize(new Dimension(130, 20));
-        JLabel v = new JLabel(value);
-        v.setFont(Theme.mono(Font.PLAIN, 12));
-        v.setForeground(valueColor);
-        row.add(k, BorderLayout.WEST);
-        row.add(v, BorderLayout.CENTER);
-        return row;
-    }
-
-    private JComponent instructionsCard() {
-        Ui.Card card = new Ui.Card(Theme.SURFACE, Theme.BORDER, 14);
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(BorderFactory.createEmptyBorder(16, 18, 16, 18));
-        card.setAlignmentX(Component.LEFT_ALIGNMENT);
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 190));
-
-        card.add(Ui.heading("How to use"));
-        card.add(Box.createVerticalStrut(10));
-
-        String[] steps = {
-            "Leave this window open (or hidden) while you play. Closing it only hides it.",
-            "The bridge starts automatically with Minecraft — you never launch it by hand.",
-            "In game, text-to-speech messages are sent here and spoken by your system voice.",
-            "Use “Test voice” below to confirm your speakers and speech engine work.",
-            "Quitting Minecraft stops the bridge automatically."
-        };
-        for (int i = 0; i < steps.length; i++) {
-            card.add(step(i + 1, steps[i]));
-            card.add(Box.createVerticalStrut(6));
-        }
-        return card;
-    }
-
-    private JComponent step(int number, String text) {
-        JPanel row = new JPanel(new BorderLayout(10, 0));
-        row.setOpaque(false);
-        row.setAlignmentX(Component.LEFT_ALIGNMENT);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
-        JLabel index = new JLabel(String.valueOf(number));
-        index.setFont(Theme.mono(Font.BOLD, 12));
-        index.setForeground(Theme.ACCENT);
-        index.setPreferredSize(new Dimension(16, 18));
-        index.setHorizontalAlignment(SwingConstants.RIGHT);
-        JLabel label = Ui.body(text, Theme.TEXT, 12, Font.PLAIN);
-        row.add(index, BorderLayout.WEST);
-        row.add(label, BorderLayout.CENTER);
-        return row;
-    }
-
-    private JComponent logCard() {
-        Ui.Card card = new Ui.Card(Theme.SURFACE, Theme.BORDER, 14);
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(BorderFactory.createEmptyBorder(16, 18, 16, 18));
-        card.setAlignmentX(Component.LEFT_ALIGNMENT);
-        card.setPreferredSize(new Dimension(Integer.MAX_VALUE, 168));
-
-        card.add(Ui.heading("Activity"));
-        card.add(Box.createVerticalStrut(10));
-
-        log.setEditable(false);
-        log.setLineWrap(true);
-        log.setWrapStyleWord(true);
-        log.setFont(Theme.mono(Font.PLAIN, 11));
-        log.setForeground(Theme.TEXT_DIM);
-        log.setBackground(Theme.SURFACE_ALT);
-        log.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
-
-        JScrollPane scroll = new JScrollPane(log);
-        scroll.setBorder(BorderFactory.createLineBorder(Theme.BORDER));
-        scroll.getViewport().setBackground(Theme.SURFACE_ALT);
-        scroll.setAlignmentX(Component.LEFT_ALIGNMENT);
-        card.add(scroll);
-        return card;
-    }
-
-    private JComponent buttonRow(int port) {
-        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        row.setOpaque(false);
-        row.setAlignmentX(Component.LEFT_ALIGNMENT);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 46));
-
-        Ui.PillButton test = new Ui.PillButton("Test voice", true);
-        test.addActionListener(e -> {
-            try {
-                Tts.speak("SMPutilities voice bridge is working.", "Amazon US English (Ivy)", "default");
-                append("Test phrase sent via " + Tts.lastSource());
-            } catch (Exception exception) {
-                append("Test failed: " + exception.getMessage());
-            }
-        });
-
-        Ui.PillButton copy = new Ui.PillButton("Copy endpoint", false);
-        copy.addActionListener(e -> {
-            Toolkit.getDefaultToolkit().getSystemClipboard()
-                .setContents(new StringSelection("http://127.0.0.1:" + port), null);
-            append("Endpoint copied to clipboard");
-        });
-
-        Ui.PillButton hide = new Ui.PillButton("Hide window", false);
+        bar.add(Box.createVerticalGlue());
+        JLabel endpoint = Ui.body("127.0.0.1:" + port, Theme.TEXT_DIM, 11, Font.PLAIN);
+        endpoint.setFont(Theme.mono(Font.PLAIN, 11));
+        bar.add(endpoint);
+        bar.add(Box.createVerticalStrut(10));
+        Ui.PillButton hide = new Ui.PillButton(t("Hide", "Ocultar"), Ui.PillButton.Kind.GHOST);
         hide.addActionListener(e -> setVisible(false));
-
-        Ui.PillButton stop = new Ui.PillButton("Stop bridge", false);
-        stop.setForeground(Theme.ERR);
+        Ui.PillButton stop = new Ui.PillButton(t("Stop", "Parar"), Ui.PillButton.Kind.DANGER);
         stop.addActionListener(e -> onStop.run());
-
-        row.add(test);
-        row.add(copy);
-        row.add(hide);
-        row.add(stop);
-        return row;
+        bar.add(Ui.row(hide, stop));
+        return bar;
     }
 
-    private static JScrollPane scroll(JComponent content) {
-        JScrollPane pane = new JScrollPane(content,
-            ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    private void show(int index) {
+        pages.show(pageHost, new String[] {"overview", "microphone", "activity"}[index]);
+        for (int i = 0; i < nav.size(); i++) {
+            nav.get(i).setCurrent(i == index);
+        }
+    }
+
+    private static JComponent page(JComponent content) {
+        JScrollPane pane = new JScrollPane(content, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         pane.setBorder(null);
         pane.getViewport().setBackground(Theme.BG);
         pane.getVerticalScrollBar().setUnitIncrement(16);
+        Ui.styleScrollBar(pane.getVerticalScrollBar());
         return pane;
     }
 
-    /** Lets the user send the synthesized voice into a virtual cable, so the
-     *  game picks it up as a microphone (the Linux answer to VB-Cable). */
-    private JComponent audioPanel() {
+    private static JPanel column() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBackground(Theme.BG);
-        panel.setBorder(BorderFactory.createEmptyBorder(18, 22, 18, 22));
+        panel.setBorder(BorderFactory.createEmptyBorder(22, 24, 22, 24));
+        return panel;
+    }
+
+    private static void title(JPanel page, String title, String subtitle) {
+        page.add(Ui.body(title, Theme.TEXT, 22, Font.BOLD));
+        page.add(Box.createVerticalStrut(4));
+        page.add(Ui.body(subtitle, Theme.TEXT_DIM, 12, Font.PLAIN));
+        page.add(Box.createVerticalStrut(18));
+    }
+
+    // ------------------------------------------------------------- overview
+
+    private JComponent overviewPage() {
+        JPanel page = column();
+        title(page, t("Overview", "Visão geral"),
+            t("Speaks what you type in Minecraft into your microphone.", "Fala no seu microfone o que você digita no Minecraft."));
+
+        Ui.Card live = Ui.section(null);
+        live.add(meter);
+        live.add(Box.createVerticalStrut(8));
+        live.add(lastLine);
+        page.add(live);
+        page.add(Box.createVerticalStrut(12));
+
+        int voices = RemoteTts.voiceCount();
+        String player = Player.backend();
+        JPanel tiles = new JPanel(new GridLayout(1, 3, 10, 0));
+        tiles.setOpaque(false);
+        tiles.setAlignmentX(Component.LEFT_ALIGNMENT);
+        tiles.setMaximumSize(new Dimension(Integer.MAX_VALUE, 72));
+        tiles.add(Ui.tile(t("phrases spoken", "falas"), servedValue));
+        tiles.add(Ui.tile(t("cloud voices", "vozes na nuvem"), new JLabel(voices > 0 ? String.valueOf(voices) : t("offline", "offline"))));
+        tiles.add(Ui.tile(t("audio player", "reprodutor"), new JLabel("none".equals(player) ? t("missing", "faltando") : player)));
+        page.add(tiles);
+        page.add(Box.createVerticalStrut(12));
+
+        Ui.Card checks = Ui.section(t("Ready to play", "Pronto para jogar"));
+        checks.add(checkBridge);
+        checks.add(Box.createVerticalStrut(6));
+        checks.add(checkVoices);
+        checks.add(Box.createVerticalStrut(6));
+        checks.add(checkMic);
+        checks.add(Box.createVerticalStrut(6));
+        checks.add(checkOutput);
+        checks.add(Box.createVerticalStrut(10));
+        Ui.PillButton setup = new Ui.PillButton(t("Set up the microphone", "Configurar o microfone"), false);
+        setup.addActionListener(e -> show(1));
+        checks.add(Ui.row(setup));
+        page.add(checks);
+        page.add(Box.createVerticalStrut(12));
+
+        Ui.Card test = Ui.section(t("Try it", "Testar"));
+        JTextField sample = new JTextField(t("SMPutilities voice is working.", "A voz do SMPutilities está funcionando."));
+        sample.setFont(Theme.ui(Font.PLAIN, 13));
+        sample.setForeground(Theme.TEXT);
+        sample.setCaretColor(Theme.ACCENT);
+        sample.setBackground(Theme.SURFACE_ALT);
+        sample.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Theme.BORDER), BorderFactory.createEmptyBorder(7, 10, 7, 10)));
+        sample.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        sample.setAlignmentX(Component.LEFT_ALIGNMENT);
+        Ui.PillButton speak = new Ui.PillButton(t("Speak", "Falar"), true);
+        speak.addActionListener(e -> {
+            String text = sample.getText().isBlank() ? "SMPutilities" : sample.getText();
+            meter.pulse();
+            new Thread(() -> {
+                try {
+                    Tts.speak(text, "Amazon US English (Ivy)", "default");
+                    append(t("Test spoken via ", "Teste falado via ") + Tts.lastSource());
+                } catch (Exception exception) {
+                    append(t("Test failed: ", "O teste falhou: ") + exception.getMessage());
+                }
+            }, "smputilities-voice-test").start();
+        });
+        test.add(sample);
+        test.add(Box.createVerticalStrut(10));
+        test.add(Ui.row(speak));
+        page.add(test);
+        return page;
+    }
+
+    /** Re-reads what the checklist shows; cheap enough to call after every audio change. */
+    private void refreshChecks() {
+        checkBridge.set(running, running ? t("Listening for the game on ", "Esperando o jogo em ") + "127.0.0.1:" + port
+            : t("Not running", "Parado"));
+        int voices = RemoteTts.voiceCount();
+        checkVoices.set(voices > 0 || Tts.engine() != Tts.Engine.NONE, voices > 0
+            ? "ttstool.com · " + voices + t(" voices", " vozes")
+            : t("Cloud voices unreachable; offline: ", "Vozes na nuvem fora do ar; offline: ") + Tts.engine().label);
+        if (Audio.canCreateCable()) {
+            boolean mic = Audio.cableExists() && Audio.micExists();
+            checkMic.set(mic, mic ? Audio.MIC_DESCRIPTION : t("Not created yet: open Microphone", "Ainda não criado: abra Microfone"));
+        } else if (Tts.WINDOWS) {
+            boolean cable = Audio.sinks().stream().anyMatch(device -> device.toString().contains("CABLE Input"));
+            checkMic.set(cable, cable ? "VB-Cable" : t("Install VB-Cable (vb-audio.com/Cable)", "Instale o VB-Cable (vb-audio.com/Cable)"));
+        } else {
+            checkMic.set(false, t("Not available on this system", "Não disponível neste sistema"));
+        }
+        String output = Config.outputSink();
+        boolean toCable = !output.isBlank() && (output.equals(Audio.CABLE_SINK) || output.contains("CABLE Input"));
+        checkOutput.set(toCable, toCable ? t("Into the virtual microphone", "No microfone virtual")
+            : t("Plays on your speakers: pick the cable", "Toca nos alto-falantes: escolha o cabo"));
+    }
+
+    // ----------------------------------------------------------- microphone
+
+    private JComponent microphonePage() {
+        JPanel page = column();
+        title(page, t("Microphone", "Microfone"),
+            t("Four steps so the game hears the voice as your microphone.", "Quatro passos para o jogo ouvir a voz como o seu microfone."));
 
         if (!Audio.available()) {
-            Ui.Card card = new Ui.Card(Theme.SURFACE, Theme.BORDER, 14);
-            card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-            card.setBorder(BorderFactory.createEmptyBorder(16, 18, 16, 18));
-            card.setAlignmentX(Component.LEFT_ALIGNMENT);
-            card.add(Ui.heading("Not available"));
-            card.add(Box.createVerticalStrut(10));
+            Ui.Card card = Ui.section(t("Not available", "Não disponível"));
             card.add(Ui.body(Tts.WINDOWS
-                ? "On Windows, install VB-Cable and pick \"CABLE Input\" as the voice output below."
-                : "PulseAudio / PipeWire tools were not found on this system.",
+                ? t("Install VB-Cable, then pick \"CABLE Input\" as the voice output here.", "Instale o VB-Cable e escolha \"CABLE Input\" como saída da voz aqui.")
+                : t("PulseAudio / PipeWire tools were not found on this system.", "As ferramentas do PulseAudio / PipeWire não foram encontradas."),
                 Theme.TEXT, 12, Font.PLAIN));
-            panel.add(card);
-            return panel;
+            page.add(card);
+            return page;
         }
 
-        // --- virtual cable (Linux) or VB-Cable guidance (Windows) ---
-        if (!Audio.canCreateCable()) {
-            Ui.Card vb = new Ui.Card(Theme.SURFACE, Theme.BORDER, 14);
-            vb.setLayout(new BoxLayout(vb, BoxLayout.Y_AXIS));
-            vb.setBorder(BorderFactory.createEmptyBorder(16, 18, 16, 18));
-            vb.setAlignmentX(Component.LEFT_ALIGNMENT);
-            vb.setMaximumSize(new Dimension(Integer.MAX_VALUE, 150));
-            vb.add(Ui.heading("Virtual cable"));
-            vb.add(Box.createVerticalStrut(10));
-            vb.add(Ui.body("Windows needs a driver to create a virtual microphone, so this",
-                Theme.TEXT_DIM, 12, Font.PLAIN));
-            vb.add(Ui.body("app cannot make one. Install VB-Cable once, then pick",
-                Theme.TEXT_DIM, 12, Font.PLAIN));
-            vb.add(Ui.body("\"CABLE Input\" below as the voice output.", Theme.TEXT_DIM, 12, Font.PLAIN));
-            vb.add(Box.createVerticalStrut(8));
-            JLabel link = Ui.body("vb-audio.com/Cable", Theme.ACCENT, 12, Font.BOLD);
-            vb.add(link);
-            panel.add(vb);
-            panel.add(Box.createVerticalStrut(14));
-        }
-
-        Ui.Card cableCard = new Ui.Card(Theme.SURFACE, Theme.BORDER, 14);
-        cableCard.setLayout(new BoxLayout(cableCard, BoxLayout.Y_AXIS));
-        cableCard.setBorder(BorderFactory.createEmptyBorder(16, 18, 16, 18));
-        cableCard.setAlignmentX(Component.LEFT_ALIGNMENT);
-        cableCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 170));
-        cableCard.add(Ui.heading("Virtual cable"));
-        cableCard.add(Box.createVerticalStrut(10));
-        cableCard.add(Ui.body("Creates a virtual audio device. The voice is played into it,",
-            Theme.TEXT_DIM, 12, Font.PLAIN));
-        cableCard.add(Ui.body("and the game hears it as a microphone.", Theme.TEXT_DIM, 12, Font.PLAIN));
-        cableCard.add(Box.createVerticalStrut(10));
-
-        JLabel cableState = new JLabel();
-        cableState.setFont(Theme.mono(Font.BOLD, 12));
-        cableState.setAlignmentX(Component.LEFT_ALIGNMENT);
-        cableCard.add(cableState);
-        cableCard.add(Box.createVerticalStrut(12));
-
-        JPanel cableButtons = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        cableButtons.setOpaque(false);
-        cableButtons.setAlignmentX(Component.LEFT_ALIGNMENT);
-        Ui.PillButton create = new Ui.PillButton("Create cable", true);
-        Ui.PillButton remove = new Ui.PillButton("Remove cable", false);
-        cableButtons.add(create);
-        cableButtons.add(remove);
-        cableCard.add(cableButtons);
+        // 1. the virtual microphone
+        Ui.Card first = step(1, t("Create the virtual microphone", "Crie o microfone virtual"));
+        JLabel cableState = Ui.body(" ", Theme.TEXT_DIM, 12, Font.BOLD);
+        Ui.PillButton create = new Ui.PillButton(t("Create", "Criar"), true);
+        Ui.PillButton remove = new Ui.PillButton(t("Remove", "Remover"), false);
         if (Audio.canCreateCable()) {
-            panel.add(cableCard);
-            panel.add(Box.createVerticalStrut(14));
+            first.add(Ui.body(t("A virtual cable and a microphone fed by it.", "Um cabo virtual e um microfone ligado a ele."), Theme.TEXT_DIM, 12, Font.PLAIN));
+            first.add(Box.createVerticalStrut(8));
+            first.add(cableState);
+            first.add(Box.createVerticalStrut(10));
+            first.add(Ui.row(create, remove));
+        } else {
+            first.add(Ui.body(t("Windows needs a driver for a virtual microphone: install VB-Cable once.",
+                "O Windows precisa de um driver para ter um microfone virtual: instale o VB-Cable uma vez."), Theme.TEXT_DIM, 12, Font.PLAIN));
+            first.add(Box.createVerticalStrut(8));
+            first.add(Ui.link("vb-audio.com/Cable", "https://vb-audio.com/Cable/"));
         }
+        page.add(first);
+        page.add(Box.createVerticalStrut(12));
 
-        // --- output device ---
-        Ui.Card deviceCard = new Ui.Card(Theme.SURFACE, Theme.BORDER, 14);
-        deviceCard.setLayout(new BoxLayout(deviceCard, BoxLayout.Y_AXIS));
-        deviceCard.setBorder(BorderFactory.createEmptyBorder(16, 18, 16, 18));
-        deviceCard.setAlignmentX(Component.LEFT_ALIGNMENT);
-        deviceCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 150));
-        deviceCard.add(Ui.heading("Where the voice is played"));
-        deviceCard.add(Box.createVerticalStrut(10));
-
-        JComboBox<Audio.Device> devices = new JComboBox<>();
-        devices.setFont(Theme.ui(Font.PLAIN, 12));
-        devices.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        devices.setAlignmentX(Component.LEFT_ALIGNMENT);
-        deviceCard.add(devices);
-        deviceCard.add(Box.createVerticalStrut(10));
+        // 2. where the voice is played
+        Ui.Card second = step(2, t("Send the voice into it", "Mande a voz para ele"));
+        second.add(Ui.body(Audio.canCreateCable() ? t("Pick \"SMPutilities TTS Cable\".", "Escolha \"SMPutilities TTS Cable\".")
+            : t("Pick \"CABLE Input\".", "Escolha \"CABLE Input\"."), Theme.TEXT_DIM, 12, Font.PLAIN));
+        second.add(Box.createVerticalStrut(8));
+        JComboBox<Audio.Device> devices = combo();
+        second.add(devices);
+        second.add(Box.createVerticalStrut(6));
         JLabel saved = Ui.body(" ", Theme.OK, 11, Font.PLAIN);
-        deviceCard.add(saved);
-        panel.add(deviceCard);
-        panel.add(Box.createVerticalStrut(14));
+        second.add(saved);
+        page.add(second);
+        page.add(Box.createVerticalStrut(12));
 
-        // --- hear it yourself ---
-        Ui.Card monitorCard = new Ui.Card(Theme.SURFACE, Theme.BORDER, 14);
-        monitorCard.setLayout(new BoxLayout(monitorCard, BoxLayout.Y_AXIS));
-        monitorCard.setBorder(BorderFactory.createEmptyBorder(16, 18, 16, 18));
-        monitorCard.setAlignmentX(Component.LEFT_ALIGNMENT);
-        monitorCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 160));
-        monitorCard.add(Ui.heading("Hear it yourself"));
-        monitorCard.add(Box.createVerticalStrut(10));
-        monitorCard.add(Ui.body("Also play the voice on your headphones, while the game",
+        // 3. hear it yourself
+        Ui.Card third = step(3, t("Hear it yourself (optional)", "Ouça também (opcional)"));
+        third.add(Ui.body(t("Also plays it on your headphones while the game hears it.", "Também toca nos seus fones enquanto o jogo ouve."),
             Theme.TEXT_DIM, 12, Font.PLAIN));
-        monitorCard.add(Ui.body("keeps receiving it as a microphone.", Theme.TEXT_DIM, 12, Font.PLAIN));
-        monitorCard.add(Box.createVerticalStrut(10));
-
-        JComboBox<Audio.Device> monitors = new JComboBox<>();
-        monitors.setFont(Theme.ui(Font.PLAIN, 12));
-        monitors.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        monitors.setAlignmentX(Component.LEFT_ALIGNMENT);
-        monitorCard.add(monitors);
-        monitorCard.add(Box.createVerticalStrut(8));
+        third.add(Box.createVerticalStrut(8));
+        JComboBox<Audio.Device> monitors = combo();
+        third.add(monitors);
+        third.add(Box.createVerticalStrut(6));
         JLabel monitorState = Ui.body(" ", Theme.OK, 11, Font.PLAIN);
-        monitorCard.add(monitorState);
-        panel.add(monitorCard);
-        panel.add(Box.createVerticalStrut(14));
+        third.add(monitorState);
+        page.add(third);
+        page.add(Box.createVerticalStrut(12));
 
-        // --- what to pick in game ---
-        Ui.Card gameCard = new Ui.Card(Theme.SURFACE, Theme.BORDER, 14);
-        gameCard.setLayout(new BoxLayout(gameCard, BoxLayout.Y_AXIS));
-        gameCard.setBorder(BorderFactory.createEmptyBorder(16, 18, 16, 18));
-        gameCard.setAlignmentX(Component.LEFT_ALIGNMENT);
-        gameCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 160));
-        gameCard.add(Ui.heading("In the game"));
-        gameCard.add(Box.createVerticalStrut(10));
-        gameCard.add(Ui.body("Open your voice chat settings and choose this microphone:",
+        // 4. what to pick in the voice chat
+        Ui.Card fourth = step(4, t("Choose it in the voice chat", "Escolha no voice chat"));
+        fourth.add(Ui.body(t("In Simple Voice Chat (or Discord), set the microphone to:", "No Simple Voice Chat (ou Discord), escolha o microfone:"),
             Theme.TEXT_DIM, 12, Font.PLAIN));
-        gameCard.add(Box.createVerticalStrut(6));
-        JLabel monitor = new JLabel(Audio.canCreateCable() ? Audio.MIC_DESCRIPTION : "CABLE Output (VB-Audio Virtual Cable)");
-        monitor.setFont(Theme.mono(Font.BOLD, 12));
-        monitor.setForeground(Theme.ACCENT);
-        monitor.setAlignmentX(Component.LEFT_ALIGNMENT);
-        gameCard.add(monitor);
-        gameCard.add(Box.createVerticalStrut(10));
-        JPanel gameButtons = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
-        gameButtons.setOpaque(false);
-        gameButtons.setAlignmentX(Component.LEFT_ALIGNMENT);
-        Ui.PillButton copyMonitor = new Ui.PillButton("Copy name", false);
-        copyMonitor.addActionListener(e -> Toolkit.getDefaultToolkit().getSystemClipboard()
-            .setContents(new StringSelection(monitor.getText()), null));
-        Ui.PillButton refresh = new Ui.PillButton("Refresh", false);
-        gameButtons.add(copyMonitor);
-        gameButtons.add(refresh);
-        gameCard.add(gameButtons);
-        panel.add(gameCard);
+        fourth.add(Box.createVerticalStrut(6));
+        JLabel micName = Ui.body(Audio.canCreateCable() ? Audio.MIC_DESCRIPTION : "CABLE Output (VB-Audio Virtual Cable)", Theme.ACCENT, 13, Font.BOLD);
+        micName.setFont(Theme.mono(Font.BOLD, 13));
+        fourth.add(micName);
+        fourth.add(Box.createVerticalStrut(10));
+        Ui.PillButton copyName = new Ui.PillButton(t("Copy name", "Copiar nome"), false);
+        copyName.addActionListener(e -> Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(micName.getText()), null));
+        Ui.PillButton refresh = new Ui.PillButton(t("Refresh", "Atualizar"), false);
+        fourth.add(Ui.row(copyName, refresh));
+        page.add(fourth);
 
         boolean[] populating = {false};
         Runnable reload = () -> {
             boolean exists = Audio.cableExists() && (!Audio.canCreateCable() || Audio.micExists());
-            cableState.setText(exists ? "Cable is active" : "Cable not created yet");
+            cableState.setText(exists ? t("Microphone ready", "Microfone pronto") : t("Not created yet", "Ainda não criado"));
             cableState.setForeground(exists ? Theme.OK : Theme.TEXT_DIM);
             create.setEnabled(!exists);
             remove.setEnabled(exists);
 
-            // Populating fires the action listener; without this guard the first
-            // added item would overwrite the saved choice with "system default".
+            // Filling the boxes fires their listeners; without this guard the
+            // first item would overwrite the saved choice with "system default".
             populating[0] = true;
             try {
                 devices.removeAllItems();
-                devices.addItem(new Audio.Device("", "System default device"));
+                devices.addItem(new Audio.Device("", t("System default device", "Dispositivo padrão do sistema")));
                 String current = Config.outputSink();
                 Audio.Device match = null;
                 for (Audio.Device device : Audio.sinks()) {
@@ -442,10 +352,10 @@ final class BridgeWindow extends JFrame {
                     if (current.isBlank()) {
                         Config.setOutputSink(match.name());
                     }
-                    saved.setText("Saved: " + match);
+                    saved.setText(t("Saved: ", "Salvo: ") + match);
                 }
                 monitors.removeAllItems();
-                monitors.addItem(new Audio.Device("", "Off  (only the game hears it)"));
+                monitors.addItem(new Audio.Device("", t("Off (only the game hears it)", "Desligado (só o jogo ouve)")));
                 String activeMonitor = Audio.canCreateCable() ? Audio.loopbackDestination() : Config.monitorSink();
                 if (activeMonitor == null) {
                     activeMonitor = "";
@@ -462,98 +372,169 @@ final class BridgeWindow extends JFrame {
                 }
                 if (monitorMatch != null) {
                     monitors.setSelectedItem(monitorMatch);
-                    monitorState.setText("Playing on: " + monitorMatch);
+                    monitorState.setText(t("Playing on: ", "Tocando em: ") + monitorMatch);
                     monitorState.setForeground(Theme.OK);
                 } else {
-                    monitorState.setText("Not playing on your speakers");
+                    monitorState.setText(t("Not playing on your speakers", "Não toca nos seus alto-falantes"));
                     monitorState.setForeground(Theme.TEXT_DIM);
                 }
             } finally {
                 populating[0] = false;
             }
+            refreshChecks();
         };
 
         devices.addActionListener(e -> {
-            if (populating[0]) {
-                return;
-            }
             Audio.Device selected = (Audio.Device) devices.getSelectedItem();
-            if (selected == null) {
+            if (populating[0] || selected == null) {
                 return;
             }
             Config.setOutputSink(selected.name());
-            saved.setText("Saved: " + selected);
-            append("Voice output set to " + selected);
+            saved.setText(t("Saved: ", "Salvo: ") + selected);
+            append(t("Voice output set to ", "Saída da voz: ") + selected);
+            refreshChecks();
         });
 
         monitors.addActionListener(e -> {
-            if (populating[0]) {
-                return;
-            }
             Audio.Device selected = (Audio.Device) monitors.getSelectedItem();
-            if (selected == null) {
+            if (populating[0] || selected == null) {
                 return;
             }
             Config.setMonitorSink(selected.name());
-            if (!Audio.canCreateCable()) {
-                // Windows plays on both devices directly, no loopback needed.
-                boolean off = selected.name().isBlank();
-                monitorState.setText(off ? "Not playing on your speakers" : "Playing on: " + selected);
-                monitorState.setForeground(off ? Theme.TEXT_DIM : Theme.OK);
-                append(off ? "Monitoring off" : "Also playing the voice on " + selected);
-                return;
-            }
-            if (selected.name().isBlank()) {
-                Audio.removeLoopback();
-                monitorState.setText("Not playing on your speakers");
-                monitorState.setForeground(Theme.TEXT_DIM);
-                append("Monitoring off");
-            } else {
-                String error = Audio.createLoopback(selected.name());
-                if (error == null) {
-                    monitorState.setText("Playing on: " + selected);
-                    monitorState.setForeground(Theme.OK);
-                    append("Also playing the voice on " + selected);
+            boolean off = selected.name().isBlank();
+            String error = null;
+            if (Audio.canCreateCable()) {
+                if (off) {
+                    Audio.removeLoopback();
                 } else {
-                    monitorState.setText("Failed: " + error);
-                    monitorState.setForeground(Theme.ERR);
-                    append("Could not start monitoring: " + error);
+                    error = Audio.createLoopback(selected.name());
                 }
             }
+            if (error != null) {
+                monitorState.setText(t("Failed: ", "Falhou: ") + error);
+                monitorState.setForeground(Theme.ERR);
+                append(t("Could not start monitoring: ", "Não foi possível ouvir também: ") + error);
+                return;
+            }
+            monitorState.setText(off ? t("Not playing on your speakers", "Não toca nos seus alto-falantes") : t("Playing on: ", "Tocando em: ") + selected);
+            monitorState.setForeground(off ? Theme.TEXT_DIM : Theme.OK);
+            append(off ? t("Monitoring off", "Escuta desligada") : t("Also playing the voice on ", "Também tocando a voz em ") + selected);
         });
 
         create.addActionListener(e -> {
             String error = Audio.createCable();
-            append(error == null ? "Virtual cable created" : "Could not create cable: " + error);
+            append(error == null ? t("Virtual microphone created", "Microfone virtual criado")
+                : t("Could not create the cable: ", "Não foi possível criar o cabo: ") + error);
             reload.run();
         });
         remove.addActionListener(e -> {
             Audio.removeLoopback();
             Audio.removeCable();
-            append("Virtual cable removed");
+            append(t("Virtual microphone removed", "Microfone virtual removido"));
             reload.run();
         });
         refresh.addActionListener(e -> reload.run());
-
         reload.run();
-        return panel;
+        return page;
     }
 
-    void setRunning(boolean running) {
+    /** A numbered step card. */
+    private static Ui.Card step(int number, String title) {
+        Ui.Card card = Ui.section(null);
+        JPanel head = new JPanel();
+        head.setLayout(new BoxLayout(head, BoxLayout.X_AXIS));
+        head.setOpaque(false);
+        head.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel badge = new JLabel(String.valueOf(number), SwingConstants.CENTER) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(Theme.ACCENT);
+                g2.fillOval(0, 0, getWidth() - 1, getHeight() - 1);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+        badge.setFont(Theme.ui(Font.BOLD, 12));
+        badge.setForeground(Theme.ON_ACCENT);
+        Dimension size = new Dimension(22, 22);
+        badge.setPreferredSize(size);
+        badge.setMaximumSize(size);
+        head.add(badge);
+        head.add(Box.createHorizontalStrut(10));
+        head.add(Ui.body(title, Theme.TEXT, 14, Font.BOLD));
+        head.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
+        card.add(head);
+        card.add(Box.createVerticalStrut(10));
+        return card;
+    }
+
+    private static JComboBox<Audio.Device> combo() {
+        JComboBox<Audio.Device> box = new JComboBox<>();
+        box.setFont(Theme.ui(Font.PLAIN, 12));
+        box.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
+        box.setAlignmentX(Component.LEFT_ALIGNMENT);
+        Ui.styleCombo(box);
+        return box;
+    }
+
+    // ------------------------------------------------------------- activity
+
+    private JComponent activityPage() {
+        JPanel page = column();
+        title(page, t("Activity", "Atividade"), t("Everything the voice app did, newest at the bottom.", "Tudo o que o app de voz fez, o mais novo embaixo."));
+        logList.setFont(Theme.mono(Font.PLAIN, 11));
+        logList.setForeground(Theme.TEXT_DIM);
+        logList.setBackground(Theme.SURFACE);
+        logList.setSelectionBackground(Theme.SURFACE_ALT);
+        logList.setSelectionForeground(Theme.TEXT);
+        logList.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
+        JScrollPane scroll = new JScrollPane(logList);
+        scroll.setBorder(BorderFactory.createLineBorder(Theme.BORDER));
+        scroll.getViewport().setBackground(Theme.SURFACE);
+        scroll.setAlignmentX(Component.LEFT_ALIGNMENT);
+        Ui.styleScrollBar(scroll.getVerticalScrollBar());
+        page.add(scroll);
+        page.add(Box.createVerticalStrut(12));
+        Ui.PillButton copy = new Ui.PillButton(t("Copy address", "Copiar endereço"), false);
+        copy.addActionListener(e -> Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection("http://127.0.0.1:" + port), null));
+        Ui.PillButton clear = new Ui.PillButton(t("Clear", "Limpar"), false);
+        clear.addActionListener(e -> logModel.clear());
+        page.add(Ui.row(copy, clear));
+        return page;
+    }
+
+    // ------------------------------------------------------------- updates
+
+    void setRunning(boolean value) {
         SwingUtilities.invokeLater(() -> {
-            dot.setColor(running ? Theme.OK : Theme.ERR);
-            stateLabel.setText(running ? "Running" : "Stopped");
+            running = value;
+            dot.setColor(value ? Theme.OK : Theme.ERR);
+            stateLabel.setText(value ? t("Running", "Funcionando") : t("Stopped", "Parado"));
+            refreshChecks();
         });
     }
 
     void setServed(int count) {
-        SwingUtilities.invokeLater(() -> servedLabel.setText(String.valueOf(count)));
+        SwingUtilities.invokeLater(() -> {
+            servedValue.setText(String.valueOf(count));
+            meter.pulse();
+        });
     }
 
     void append(String line) {
         SwingUtilities.invokeLater(() -> {
-            log.append("[" + LocalTime.now().format(CLOCK) + "]  " + line + "\n");
-            log.setCaretPosition(log.getDocument().getLength());
+            logModel.addElement("[" + LocalTime.now().format(CLOCK) + "]  " + line);
+            while (logModel.size() > LOG_LIMIT) {
+                logModel.remove(0);
+            }
+            logList.ensureIndexIsVisible(logModel.size() - 1);
+            if (line.startsWith("Spoke: ")) {
+                lastLine.setText("“" + line.substring(7) + "”");
+                lastLine.setForeground(Theme.TEXT);
+                meter.pulse();
+            }
         });
     }
 }

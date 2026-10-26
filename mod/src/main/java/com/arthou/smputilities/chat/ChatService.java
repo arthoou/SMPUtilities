@@ -84,8 +84,12 @@ public final class ChatService {
             }
             return true;
         }
-        // A TTS line is spoken and still posted to chat below, like any message.
-        boolean spoken = config.features.tts && TtsService.speak(player, text);
+        // A TTS player's line is spoken; it reaches the chat only with tts.showInChat.
+        boolean tts = config.features.tts && TtsService.isActive(player);
+        boolean spoken = tts && TtsService.speak(player, text);
+        if (tts && !config.tts.showInChat) {
+            return true;
+        }
         if (!spoken && config.tts.bubbles && config.tts.bubblesForAllChat) {
             TtsService.sendBubble(player, text, false);
         }

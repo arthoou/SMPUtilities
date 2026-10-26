@@ -296,7 +296,7 @@ final class Audio {
 
     private static String prettify(String name) {
         if (name.equals(CABLE_SINK)) {
-            return "SMPutilities TTS Cable  (use this one)";
+            return "SMPutilities TTS Cable  " + I18n.t("(use this one)", "(use este)");
         }
         String pretty = name
             .replaceFirst("^alsa_output\\.", "")

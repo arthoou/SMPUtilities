@@ -283,24 +283,26 @@ public final class VoiceBridge {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g.setColor(Theme.ACCENT);
             g.fillRoundRect(0, 0, size, size, 5, 5);
-            g.setColor(Theme.BG);
-            g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 11));
-            g.drawString("D", 4, 12);
+            g.setColor(Theme.ON_ACCENT);
+            // three bars of a voice meter
+            g.fillRect(3, 6, 2, 4);
+            g.fillRect(7, 3, 2, 10);
+            g.fillRect(11, 5, 2, 6);
             g.dispose();
 
             PopupMenu menu = new PopupMenu();
-            MenuItem open = new MenuItem("Open SMPutilities Voice Bridge");
+            MenuItem open = new MenuItem(I18n.t("Open SMPutilities Voice", "Abrir SMPutilities Voz"));
             open.addActionListener(e -> {
                 frame.setVisible(true);
                 frame.toFront();
             });
-            MenuItem quit = new MenuItem("Stop bridge");
+            MenuItem quit = new MenuItem(I18n.t("Stop", "Parar"));
             quit.addActionListener(e -> shutdown());
             menu.add(open);
             menu.addSeparator();
             menu.add(quit);
 
-            TrayIcon trayIcon = new TrayIcon(icon, "SMPutilities Voice Bridge", menu);
+            TrayIcon trayIcon = new TrayIcon(icon, "SMPutilities Voice", menu);
             trayIcon.setImageAutoSize(true);
             trayIcon.addMouseListener(new MouseAdapter() {
                 @Override

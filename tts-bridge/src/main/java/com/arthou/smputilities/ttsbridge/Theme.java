@@ -5,22 +5,25 @@ import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.util.Locale;
 
-/** Dark surface with the voice studio's violet accent (the same as the in-game studio). */
+/** Midnight surfaces with a teal accent: the voice app's own look. */
 final class Theme {
-    static final Color BG          = new Color(0x11, 0x13, 0x18);
-    static final Color SURFACE     = new Color(0x1A, 0x1D, 0x24);
-    static final Color SURFACE_ALT = new Color(0x22, 0x26, 0x2F);
-    static final Color BORDER      = new Color(0x2E, 0x33, 0x3E);
+    static final Color BG          = new Color(0x0C, 0x10, 0x1C);
+    static final Color SIDEBAR     = new Color(0x09, 0x0C, 0x16);
+    static final Color SURFACE     = new Color(0x14, 0x19, 0x2B);
+    static final Color SURFACE_ALT = new Color(0x1B, 0x22, 0x3A);
+    static final Color BORDER      = new Color(0x26, 0x2F, 0x4D);
 
-    static final Color ACCENT       = new Color(0xB1, 0x8C, 0xFF);
-    static final Color ACCENT_SOFT  = new Color(0xCD, 0xB6, 0xFF);
-    static final Color ACCENT_DEEP  = new Color(0x7E, 0x5B, 0xD6);
-    static final Color ACCENT_GHOST = new Color(0xB1, 0x8C, 0xFF, 0x22);
+    static final Color ACCENT       = new Color(0x2D, 0xD4, 0xBF);
+    static final Color ACCENT_SOFT  = new Color(0x7C, 0xE7, 0xD8);
+    static final Color ACCENT_DEEP  = new Color(0x16, 0x8F, 0x80);
+    static final Color ACCENT_GHOST = new Color(0x2D, 0xD4, 0xBF, 0x22);
+    static final Color ON_ACCENT    = new Color(0x04, 0x1F, 0x1B);
 
-    static final Color TEXT        = new Color(0xF2, 0xF3, 0xF6);
-    static final Color TEXT_DIM    = new Color(0x9A, 0xA1, 0xB0);
-    static final Color OK          = new Color(0x5C, 0xD6, 0x7A);
-    static final Color ERR         = new Color(0xFF, 0x6B, 0x5F);
+    static final Color TEXT        = new Color(0xEE, 0xF2, 0xFA);
+    static final Color TEXT_DIM    = new Color(0x8C, 0x96, 0xB2);
+    static final Color OK          = new Color(0x4A, 0xDE, 0x80);
+    static final Color WARN        = new Color(0xFB, 0xBF, 0x24);
+    static final Color ERR         = new Color(0xF8, 0x71, 0x71);
 
     private Theme() {
     }

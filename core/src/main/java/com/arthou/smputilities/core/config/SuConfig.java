@@ -202,6 +202,8 @@ public final class SuConfig {
 
     public static final class Tts {
         public int maxLength = 300;
+        /** Also post a TTS player's lines in chat; off, they are only spoken (and shown as bubbles), as in DuTTS. */
+        public boolean showInChat = false;
         public boolean bubbles = true;
         /** Show speech bubbles for regular chat too, not only TTS. */
         public boolean bubblesForAllChat = false;

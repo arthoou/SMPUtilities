@@ -12,44 +12,57 @@ import com.arthou.smputilities.tts.TtsPresets.VoiceLanguage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 
 import java.util.function.Consumer;
 
 /**
- * /su tts: the voice studio. One page: the five voices (named after their
- * speaker) on the left, the languages on the right, a live waveform in the
- * voice's color on top, and Activate / Turn off at the bottom.
+ * /su tts menu: a small setup with the steps in a side bar (gender, then
+ * variation, then language). Confirm sends the choice; the button at the
+ * bottom of the side bar turns the voice off.
  */
 public final class TtsMenuScreen extends SuScreen {
-    private static final int[] MODES = {TtsPresets.MODE_FEMININE_1, TtsPresets.MODE_FEMININE_2, TtsPresets.MODE_FEMININE_3,
-        TtsPresets.MODE_MASCULINE_1, TtsPresets.MODE_MASCULINE_2};
+    private static final int GENDER_FEMININE = 0;
+    private static final int GENDER_MASCULINE = 1;
+    private static final int[] VARIANTS = {3, 2};
+
+    private static final int STEP_GENDER = 0;
+    private static final int STEP_VARIANT = 1;
+    private static final int STEP_LANGUAGE = 2;
+    private static final int STEP_COUNT = 3;
+    private static final int STEP_SPACING = 38;
+
     private static final int FEMININE = 0xFFFF8FC8;
     private static final int MASCULINE = 0xFF7FB6FF;
-    /** The studio's own accent, so it does not look like the staff panel. */
-    private static final int STUDIO = 0xFFB18CFF;
-    private static final int HEADER = 46;
-    private static final int BARS = 34;
 
     private final int currentMode;
     private final int currentLanguage;
-    private final long openedAt = Util.getMillis();
 
-    private int mode;
+    private int gender = -1;
+    private int variant = -1;
     private int language = -1;
+    private int step = STEP_GENDER;
 
     private int panelLeft;
     private int panelTop;
     private int panelWidth;
     private int panelHeight;
-    private int splitX;
+    private int sideWidth;
 
     private TtsMenuScreen(int currentMode, int currentLanguage) {
         super(Texts.translatable("tts.title"));
         this.currentMode = currentMode;
         this.currentLanguage = currentLanguage;
-        this.mode = currentMode >= TtsPresets.MODE_FEMININE_1 && currentMode <= TtsPresets.MODE_MASCULINE_2 ? currentMode : 0;
+
+        if (currentMode >= TtsPresets.MODE_FEMININE_1 && currentMode <= TtsPresets.MODE_FEMININE_3) {
+            gender = GENDER_FEMININE;
+            variant = currentMode;
+        } else if (currentMode >= TtsPresets.MODE_MASCULINE_1 && currentMode <= TtsPresets.MODE_MASCULINE_2) {
+            gender = GENDER_MASCULINE;
+            variant = currentMode - TtsPresets.MODE_FEMININE_3;
+        }
         if (currentMode > 0 && currentLanguage >= 0 && currentLanguage < VoiceLanguage.values().length) {
             language = currentLanguage;
         }
@@ -61,64 +74,143 @@ public final class TtsMenuScreen extends SuScreen {
 
     @Override
     protected void build() {
-        panelWidth = Math.min(420, width - 20);
-        panelHeight = Math.min(232, height - 20);
+        panelWidth = Math.min(400, width - 20);
+        panelHeight = Math.min(236, height - 20);
         panelLeft = (width - panelWidth) / 2;
         panelTop = (height - panelHeight) / 2;
-        int inner = panelWidth - 28;
-        splitX = panelLeft + 14 + inner * 2 / 5;
-        int bodyTop = panelTop + HEADER + 22;
+        sideWidth = Math.max(104, Math.min(132, panelWidth / 3));
 
-        // voices
-        int voiceWidth = splitX - panelLeft - 14 - 8;
-        int rowHeight = Math.max(18, Math.min(22, (panelTop + panelHeight - 40 - bodyTop) / MODES.length - 2));
-        for (int i = 0; i < MODES.length; i++) {
-            int value = MODES[i];
-            VoiceRow row = new VoiceRow(panelLeft + 14, bodyTop + i * (rowHeight + 2), voiceWidth, rowHeight, value, button -> {
-                mode = value;
+        // --- side bar: the three steps, then "turn off" at the bottom ---
+        boolean[] reachable = {true, gender >= 0, gender >= 0 && variant > 0};
+        for (int i = 0; i < STEP_COUNT; i++) {
+            int index = i;
+            StepButton item = new StepButton(panelLeft + 6, stepY(i), sideWidth - 12, 32, index, button -> {
+                step = index;
                 rebuild();
             });
-            row.selected = mode == value;
-            addWidget(row);
+            item.active = reachable[i];
+            addWidget(item);
         }
 
-        // languages
-        VoiceLanguage[] languages = VoiceLanguage.values();
-        int languagesLeft = splitX + 8;
-        int columnWidth = (panelLeft + panelWidth - 14 - languagesLeft - 6) / 2;
-        int languageHeight = Math.max(18, Math.min(22, (panelTop + panelHeight - 40 - bodyTop) / 4 - 3));
-        for (int i = 0; i < languages.length; i++) {
-            int value = i;
-            LanguageRow row = new LanguageRow(languagesLeft + (i % 2) * (columnWidth + 6), bodyTop + (i / 2) * (languageHeight + 3), columnWidth,
-                languageHeight, languages[i], button -> {
-                    language = value;
-                    rebuild();
-                });
-            row.selected = language == i;
-            addWidget(row);
-        }
-
-        // footer
-        int footerY = panelTop + panelHeight - 28;
-        int right = panelLeft + panelWidth - 14;
-        int buttonWidth = Math.min(92, (panelWidth - 28) / 4);
-        FlatButton activate = new FlatButton(right - buttonWidth, footerY, buttonWidth, 20, Texts.translatable("tts.activate"), button -> confirm());
-        activate.kind = Kind.PRIMARY;
-        activate.active = mode > 0 && language >= 0;
-        addWidget(activate);
-        FlatButton off = new FlatButton(right - buttonWidth * 2 - 6, footerY, buttonWidth, 20, Texts.translatable("tts.off"), button -> turnOff());
+        FlatButton off = new FlatButton(panelLeft + 8, panelTop + panelHeight - 30, sideWidth - 16, 20,
+            Texts.translatable("tts.off"), button -> turnOff());
         off.kind = Kind.DANGER;
         off.active = currentMode > 0;
         addWidget(off);
+
+        // --- content: options of the current step ---
+        int contentLeft = contentLeft();
+        int contentWidth = contentRight() - contentLeft;
+        int optionsTop = panelTop + 56;
+
+        switch (step) {
+            case STEP_GENDER -> {
+                int cardWidth = (contentWidth - 8) / 2;
+                for (int g = 0; g < 2; g++) {
+                    int value = g;
+                    OptionCard card = new OptionCard(contentLeft + g * (cardWidth + 8), optionsTop, cardWidth, 70,
+                        genderName(g), button -> pickGender(value));
+                    card.big = g == GENDER_MASCULINE ? "♂" : "♀";
+                    card.bigColor = g == GENDER_MASCULINE ? MASCULINE : FEMININE;
+                    card.subtitle = Texts.translatable("tts.gender.variants", VARIANTS[g]);
+                    card.selected = gender == g;
+                    addWidget(card);
+                }
+            }
+            case STEP_VARIANT -> {
+                int count = VARIANTS[gender];
+                int cardWidth = (contentWidth - 8 * (count - 1)) / count;
+                for (int v = 1; v <= count; v++) {
+                    int value = v;
+                    OptionCard card = new OptionCard(contentLeft + (v - 1) * (cardWidth + 8), optionsTop, cardWidth, 70,
+                        Texts.literal(speakerName(modeFor(gender, v))), button -> pickVariant(value));
+                    card.big = Integer.toString(v);
+                    card.bigColor = gender == GENDER_MASCULINE ? MASCULINE : FEMININE;
+                    card.subtitle = Texts.translatable("tts.variant", v);
+                    card.selected = variant == v;
+                    addWidget(card);
+                }
+            }
+            default -> {
+                VoiceLanguage[] languages = VoiceLanguage.values();
+                int columnWidth = (contentWidth - 8) / 2;
+                for (int i = 0; i < languages.length; i++) {
+                    int value = i;
+                    LanguageRow row = new LanguageRow(contentLeft + (i % 2) * (columnWidth + 8), optionsTop + (i / 2) * 25,
+                        columnWidth, 21, languages[i], button -> pickLanguage(value));
+                    row.selected = language == i;
+                    addWidget(row);
+                }
+            }
+        }
+
+        // --- footer ---
+        int buttonWidth = Math.min(86, (contentWidth - 8) / 2);
+        int footerY = panelTop + panelHeight - 30;
+        int right = contentRight();
+        FlatButton confirm = new FlatButton(right - buttonWidth, footerY, buttonWidth, 20,
+            Texts.translatable("tts.confirm"), button -> confirm());
+        confirm.kind = Kind.PRIMARY;
+        confirm.active = isComplete();
+        addWidget(confirm);
+        addWidget(new FlatButton(right - buttonWidth * 2 - 6, footerY, buttonWidth, 20,
+            Texts.translatable("tts.cancel"), button -> onClose()));
+    }
+
+    private int stepY(int index) {
+        return panelTop + 50 + index * STEP_SPACING;
+    }
+
+    private int contentLeft() {
+        return panelLeft + sideWidth + 14;
+    }
+
+    private int contentRight() {
+        return panelLeft + panelWidth - 14;
     }
 
     // ------------------------------------------------------------- actions
 
-    private void confirm() {
-        if (mode > 0 && language >= 0) {
-            ClientNetwork.send(new Payloads.TtsSelect(mode, language));
-            onClose();
+    private void pickGender(int value) {
+        if (gender != value) {
+            gender = value;
+            if (variant > VARIANTS[value]) {
+                variant = -1;
+            }
         }
+        step = STEP_VARIANT;
+        rebuild();
+    }
+
+    private void pickVariant(int value) {
+        variant = value;
+        step = STEP_LANGUAGE;
+        rebuild();
+    }
+
+    private void pickLanguage(int value) {
+        language = value;
+        rebuild();
+    }
+
+    private boolean isComplete() {
+        return gender >= 0 && variant > 0 && language >= 0;
+    }
+
+    private boolean isDone(int index) {
+        return switch (index) {
+            case STEP_GENDER -> gender >= 0;
+            case STEP_VARIANT -> variant > 0;
+            default -> language >= 0;
+        };
+    }
+
+    private void confirm() {
+        if (!isComplete()) {
+            return;
+        }
+        ClientNetwork.send(new Payloads.TtsSelect(modeFor(gender, variant), language));
+        onClose();
     }
 
     private void turnOff() {
@@ -128,16 +220,8 @@ public final class TtsMenuScreen extends SuScreen {
 
     // -------------------------------------------------------------- labels
 
-    private static boolean masculine(int mode) {
-        return mode == TtsPresets.MODE_MASCULINE_1 || mode == TtsPresets.MODE_MASCULINE_2;
-    }
-
-    private static int variant(int mode) {
-        return masculine(mode) ? mode - TtsPresets.MODE_FEMININE_3 : mode;
-    }
-
-    private static int voiceColor(int mode) {
-        return mode <= 0 ? Theme.TEXT_OFF : masculine(mode) ? MASCULINE : FEMININE;
+    private static int modeFor(int gender, int variant) {
+        return gender == GENDER_MASCULINE ? TtsPresets.MODE_FEMININE_3 + variant : variant;
     }
 
     /** "Amazon US English (Ivy)" -> "Ivy", "RHVoice ... (Letícia-F123)" -> "Letícia". */
@@ -151,6 +235,36 @@ public final class TtsMenuScreen extends SuScreen {
         return dash > 0 ? name.substring(0, dash) : name;
     }
 
+    private static Component genderName(int gender) {
+        return Texts.translatable(gender == GENDER_MASCULINE ? "tts.gender.masculine" : "tts.gender.feminine");
+    }
+
+    private Component stepName(int index) {
+        return Texts.translatable(switch (index) {
+            case STEP_GENDER -> "tts.step.gender";
+            case STEP_VARIANT -> "tts.step.variant";
+            default -> "tts.step.language";
+        });
+    }
+
+    private Component stepValue(int index) {
+        return switch (index) {
+            case STEP_GENDER -> gender >= 0 ? genderName(gender) : null;
+            case STEP_VARIANT -> variant > 0
+                ? Texts.translatable("tts.variant", variant).append(" · " + speakerName(modeFor(gender, variant)))
+                : null;
+            default -> language >= 0 ? TtsPresets.languageComponent(VoiceLanguage.values()[language]) : null;
+        };
+    }
+
+    private Component stepTitle() {
+        return Texts.translatable(switch (step) {
+            case STEP_GENDER -> "tts.pick.gender";
+            case STEP_VARIANT -> "tts.pick.variant";
+            default -> "tts.pick.language";
+        });
+    }
+
     private Component status() {
         if (currentMode <= 0) {
             return Texts.translatable("tts.status.off");
@@ -160,71 +274,66 @@ public final class TtsMenuScreen extends SuScreen {
         return Texts.translatable("tts.status.on", TtsPresets.selectionComponent(currentMode, active));
     }
 
-    private Component summary() {
-        if (mode <= 0 || language < 0) {
-            return Texts.translatable("tts.summary.pick");
-        }
-        return Texts.literal(speakerName(mode) + " · ").append(TtsPresets.languageComponent(VoiceLanguage.values()[language]));
-    }
-
     // ------------------------------------------------------------ painting
 
     @Override
     protected void renderBack(Gfx graphics, int mouseX, int mouseY, float partialTick) {
+
         int right = panelLeft + panelWidth;
         int bottom = panelTop + panelHeight;
+
+        // soft shadow, panel, side bar
         for (int i = 6; i >= 1; i--) {
             Theme.roundRect(graphics, panelLeft - i, panelTop - i + 2, right + i, bottom + i + 2, (0x12 - i) << 24);
         }
         Theme.roundRect(graphics, panelLeft - 1, panelTop - 1, right + 1, bottom + 1, Theme.BORDER);
         Theme.roundRect(graphics, panelLeft, panelTop, right, bottom, Theme.PANEL_BG);
+        graphics.fill(panelLeft + 1, panelTop, panelLeft + sideWidth, panelTop + 1, Theme.SIDEBAR_BG);
+        graphics.fill(panelLeft, panelTop + 1, panelLeft + sideWidth, bottom - 1, Theme.SIDEBAR_BG);
+        graphics.fill(panelLeft + 1, bottom - 1, panelLeft + sideWidth, bottom, Theme.SIDEBAR_BG);
+        graphics.fill(panelLeft + sideWidth, panelTop, panelLeft + sideWidth + 1, bottom, Theme.BORDER);
+        graphics.fillGradient(panelLeft + sideWidth + 1, panelTop, right - 1, panelTop + 46, 0x1A6AF06B, 0x006AF06B);
 
-        // header: waveform in the chosen voice's color behind the title
-        int color = mode > 0 ? voiceColor(mode) : STUDIO;
-        graphics.fillGradient(panelLeft + 1, panelTop + 1, right - 1, panelTop + HEADER, Theme.withAlpha(color, 0.16F), Theme.withAlpha(color, 0.02F));
-        waveform(graphics, panelLeft + 12, panelTop + 8, panelWidth - 24, HEADER - 14, color);
-        graphics.drawString(font, title.copy().withStyle(ChatFormatting.BOLD), panelLeft + 14, panelTop + 12, Theme.TEXT, false);
-        graphics.drawString(font, Theme.clip(font, Texts.translatable("tts.subtitle"), panelWidth / 2), panelLeft + 14, panelTop + 24, Theme.TEXT_DIM, false);
+        // side bar header: logo badge + name
+        int logoX = panelLeft + 10;
+        int logoY = panelTop + 12;
+        Theme.roundRect(graphics, logoX, logoY, logoX + 20, logoY + 20, Theme.ACCENT);
+        graphics.drawString(font, "♪", logoX + 7, logoY + 6, 0xFF0B1A0C, false);
+        graphics.drawString(font, title.copy().withStyle(ChatFormatting.BOLD), logoX + 26, logoY + 2, Theme.TEXT, false);
+        graphics.drawString(font, Theme.clip(font, Texts.translatable("tts.subtitle"), sideWidth - 42), logoX + 26, logoY + 12, Theme.TEXT_DIM, false);
 
-        boolean on = currentMode > 0;
-        FormattedCharSequence pill = Theme.clip(font, status(), panelWidth / 2 - 30);
-        int pillWidth = font.width(pill) + 18;
-        int pillX = right - 14 - pillWidth;
-        Theme.roundRect(graphics, pillX, panelTop + 10, right - 14, panelTop + 24, on ? Theme.withAlpha(voiceColor(currentMode), 0.22F) : 0x33454B57);
-        graphics.fill(pillX + 6, panelTop + 15, pillX + 10, panelTop + 19, on ? voiceColor(currentMode) : Theme.TEXT_DIM);
-        graphics.drawString(font, pill, pillX + 13, panelTop + 13, on ? Theme.TEXT : Theme.TEXT_DIM, false);
-        graphics.fill(panelLeft + 1, panelTop + HEADER, right - 1, panelTop + HEADER + 1, Theme.BORDER);
-
-        // column titles and divider
-        int titlesY = panelTop + HEADER + 8;
-        graphics.drawString(font, Texts.translatable("tts.voice").withStyle(ChatFormatting.BOLD), panelLeft + 14, titlesY, STUDIO, false);
-        graphics.drawString(font, Texts.translatable("tts.language").withStyle(ChatFormatting.BOLD), splitX + 8, titlesY, STUDIO, false);
-        graphics.fill(splitX, titlesY, splitX + 1, bottom - 36, Theme.BORDER);
-
-        // footer: what will be activated
-        graphics.fill(panelLeft + 14, bottom - 36, right - 14, bottom - 35, Theme.BORDER);
-        int buttonWidth = Math.min(92, (panelWidth - 28) / 4);
-        int summaryWidth = panelWidth - 28 - buttonWidth * 2 - 16;
-        graphics.drawString(font, Theme.clip(font, summary(), summaryWidth), panelLeft + 14, bottom - 22, mode > 0 && language >= 0 ? Theme.TEXT : Theme.TEXT_DIM,
-            false);
-    }
-
-    /** Bars that rise and fall like speech; flat and grey while nothing is chosen. */
-    private void waveform(Gfx graphics, int x, int y, int width, int height, int color) {
-        float time = (Util.getMillis() - openedAt) / 1000F;
-        int barWidth = Math.max(2, width / (BARS * 2));
-        int gap = (width - barWidth * BARS) / Math.max(1, BARS - 1);
-        int middle = y + height / 2;
-        boolean speaking = mode > 0;
-        for (int i = 0; i < BARS; i++) {
-            float wave = speaking
-                ? (float) (Math.abs(Math.sin(time * 3.1 + i * 0.55)) * 0.6 + Math.abs(Math.sin(time * 5.3 + i * 1.7)) * 0.4)
-                : 0.08F;
-            int half = Math.max(1, Math.round(wave * height / 2F));
-            int bx = x + i * (barWidth + gap);
-            graphics.fill(bx, middle - half, bx + barWidth, middle + half, Theme.withAlpha(color, speaking ? 0.28F : 0.18F));
+        // stepper connectors between the step badges
+        for (int i = 0; i < STEP_COUNT - 1; i++) {
+            int lineX = panelLeft + 6 + 6 + 6;
+            int top = stepY(i) + 8 + 14;
+            int end = stepY(i + 1) + 8;
+            graphics.fill(lineX, top + 2, lineX + 1, end - 2, isDone(i) ? Theme.ACCENT_DARK : Theme.BORDER);
         }
+
+        // content header
+        int contentLeft = contentLeft();
+        int contentRight = contentRight();
+        Component progress = Texts.translatable("tts.step_of", step + 1, STEP_COUNT);
+        graphics.drawString(font, progress.copy().withStyle(ChatFormatting.BOLD), contentLeft, panelTop + 12, Theme.ACCENT, false);
+        graphics.drawString(font, Theme.clip(font, stepTitle().copy().withStyle(ChatFormatting.BOLD), contentRight - contentLeft), contentLeft, panelTop + 26, Theme.TEXT, false);
+
+        // status pill, top right
+        boolean on = currentMode > 0;
+        FormattedCharSequence pill = Theme.clip(font, status(), Math.max(20, contentRight - contentLeft - font.width(progress) - 30));
+        int pillWidth = font.width(pill) + 18;
+        int pillX = contentRight - pillWidth;
+        Theme.roundRect(graphics, pillX, panelTop + 9, contentRight, panelTop + 23, on ? 0x332F7A3A : 0x33454B57);
+        graphics.fill(pillX + 6, panelTop + 14, pillX + 10, panelTop + 18, on ? Theme.ACCENT : Theme.TEXT_DIM);
+        graphics.drawString(font, pill, pillX + 13, panelTop + 12, on ? Theme.ACCENT : Theme.TEXT_DIM, false);
+
+        graphics.fill(contentLeft, panelTop + 42, contentRight, panelTop + 43, Theme.BORDER);
+        graphics.fill(contentLeft, panelTop + panelHeight - 38, contentRight, panelTop + panelHeight - 37, Theme.BORDER);
     }
+
+
+
+
+
 
     /** Small flag for each voice language, painted with plain fills (16x11). */
     private static void flag(Gfx g, int x, int y, VoiceLanguage language) {
@@ -326,9 +435,9 @@ public final class TtsMenuScreen extends SuScreen {
             int textColor;
             switch (kind) {
                 case PRIMARY -> {
-                    background = active ? Theme.mix(STUDIO, 0xFFCDB6FF, t) : Theme.CARD;
+                    background = active ? Theme.mix(Theme.ACCENT, 0xFF9AF79B, t) : Theme.CARD;
                     border = active ? background : Theme.BORDER;
-                    textColor = active ? 0xFF14101C : Theme.TEXT_OFF;
+                    textColor = active ? 0xFF0B1A0C : Theme.TEXT_OFF;
                 }
                 case DANGER -> {
                     background = active ? Theme.mix(0x00FF625F, 0x40FF625F, t) : 0x00000000;
@@ -348,15 +457,14 @@ public final class TtsMenuScreen extends SuScreen {
         }
     }
 
-    /** One voice: gender mark in its color, the speaker's name, its number. */
-    private final class VoiceRow extends AnimatedButton {
-        private final int voice;
-        boolean selected;
+    /** One step of the side bar: badge (number or check), name, chosen value. */
+    private final class StepButton extends AnimatedButton {
+        private final int index;
 
         @SuppressWarnings("unchecked")
-        VoiceRow(int x, int y, int width, int height, int voice, Consumer<VoiceRow> action) {
-            super(x, y, width, height, Texts.literal(speakerName(voice)), (Consumer<AnimatedButton>) (Consumer<?>) action);
-            this.voice = voice;
+        StepButton(int x, int y, int width, int height, int index, Consumer<StepButton> action) {
+            super(x, y, width, height, stepName(index), (Consumer<AnimatedButton>) (Consumer<?>) action);
+            this.index = index;
         }
 
         @Override
@@ -366,18 +474,83 @@ public final class TtsMenuScreen extends SuScreen {
             int y = getY();
             int w = getWidth();
             int h = getHeight();
-            int color = voiceColor(voice);
-            int background = selected ? Theme.withAlpha(color, 0.18F) : Theme.mix(Theme.CARD, Theme.CARD_HOVER, t);
-            int border = selected ? color : Theme.mix(Theme.BORDER, Theme.BORDER_HOVER, t);
+            boolean current = step == index;
+            boolean done = isDone(index);
+
+            if (current) {
+                Theme.roundRect(graphics, x, y, x + w, y + h, Theme.CARD);
+                graphics.fill(x, y + 4, x + 2, y + h - 4, Theme.ACCENT);
+            } else if (t > 0.01F) {
+                Theme.roundRect(graphics, x, y, x + w, y + h, Theme.mix(0x00232A34, Theme.CARD_HOVER, t));
+            }
+
+            // badge
+            int bx = x + 6;
+            int by = y + 8;
+            if (done && !current) {
+                Theme.roundRect(graphics, bx, by, bx + 14, by + 14, Theme.ACCENT_DARK);
+                graphics.drawString(font, "✔", bx + 4, by + 3, Theme.ACCENT, false);
+            } else if (current) {
+                Theme.roundRect(graphics, bx, by, bx + 14, by + 14, Theme.ACCENT);
+                graphics.drawString(font, Integer.toString(index + 1), bx + 5, by + 3, 0xFF0B1A0C, false);
+            } else {
+                Theme.roundBox(graphics, bx, by, 14, 14, Theme.SIDEBAR_BG, active ? 0xFF3C4452 : Theme.BORDER);
+                graphics.drawString(font, Integer.toString(index + 1), bx + 5, by + 3, active ? Theme.TEXT_DIM : Theme.TEXT_OFF, false);
+            }
+
+            int textX = bx + 20;
+            int textWidth = x + w - textX - 4;
+            int nameColor = !active ? Theme.TEXT_OFF : current ? Theme.TEXT : Theme.mix(Theme.TEXT_DIM, Theme.TEXT, t);
+            Component value = stepValue(index);
+            if (value == null) {
+                graphics.drawString(font, Theme.clip(font, getMessage(), textWidth), textX, y + (h - 8) / 2, nameColor, false);
+            } else {
+                graphics.drawString(font, Theme.clip(font, getMessage(), textWidth), textX, y + 6, nameColor, false);
+                graphics.drawString(font, Theme.clip(font, value, textWidth), textX, y + 18, active ? Theme.ACCENT : Theme.TEXT_OFF, false);
+            }
+        }
+    }
+
+    /** Big card for gender and variation: large glyph, title, subtitle. */
+    private final class OptionCard extends AnimatedButton {
+        String big = "";
+        int bigColor = Theme.TEXT;
+        Component subtitle;
+        boolean selected;
+
+        @SuppressWarnings("unchecked")
+        OptionCard(int x, int y, int width, int height, Component message, Consumer<OptionCard> action) {
+            super(x, y, width, height, message, (Consumer<AnimatedButton>) (Consumer<?>) action);
+        }
+
+        @Override
+        protected void renderWidget(Gfx graphics, int mouseX, int mouseY, float partialTick) {
+            float t = hover();
+            int x = getX();
+            int y = getY();
+            int w = getWidth();
+            int h = getHeight();
+            int background = selected ? Theme.CARD_SELECTED : Theme.mix(Theme.CARD, Theme.CARD_HOVER, t);
+            int border = selected ? Theme.ACCENT : Theme.mix(Theme.BORDER, 0xFF3C4452, t);
             Theme.roundBox(graphics, x, y, w, h, background, border);
-            Theme.roundRect(graphics, x + 4, y + 3, x + 4 + (h - 6), y + h - 3, Theme.withAlpha(color, selected ? 0.9F : 0.35F));
-            String mark = masculine(voice) ? "♂" : "♀";
-            graphics.drawString(font, mark, x + 4 + (h - 6 - font.width(mark)) / 2, y + (h - 8) / 2, selected ? 0xFF14101C : color, false);
-            String number = (masculine(voice) ? "M" : "F") + variant(voice);
-            int textX = x + h + 4;
-            graphics.drawString(font, Theme.clip(font, getMessage().copy().withStyle(ChatFormatting.BOLD), w - h - 30), textX, y + (h - 8) / 2,
-                selected ? Theme.TEXT : Theme.mix(Theme.TEXT_DIM, Theme.TEXT, t), false);
-            graphics.drawString(font, number, x + w - 6 - font.width(number), y + (h - 8) / 2, selected ? color : Theme.TEXT_OFF, false);
+            if (selected) {
+                graphics.drawString(font, "✔", x + w - 11, y + 4, Theme.ACCENT, false);
+            }
+
+            // glyph at 2x, lifted a little on hover
+            int lift = Math.round(t * 2);
+            graphics.push();
+            graphics.translate(x + w / 2.0F - font.width(big), y + 9 - lift);
+            graphics.scale(2.0F);
+            graphics.drawString(font, big, 0, 0, bigColor, false);
+            graphics.pop();
+
+            FormattedCharSequence title = Theme.clip(font, getMessage().copy().withStyle(ChatFormatting.BOLD), w - 8);
+            graphics.drawString(font, title, x + (w - font.width(title)) / 2, y + 36, Theme.TEXT, false);
+            if (subtitle != null) {
+                FormattedCharSequence sub = Theme.clip(font, subtitle, w - 8);
+                graphics.drawString(font, sub, x + (w - font.width(sub)) / 2, y + 50, selected ? Theme.ACCENT : Theme.TEXT_DIM, false);
+            }
         }
     }
 
@@ -399,14 +572,14 @@ public final class TtsMenuScreen extends SuScreen {
             int y = getY();
             int w = getWidth();
             int h = getHeight();
-            int background = selected ? Theme.withAlpha(STUDIO, 0.18F) : Theme.mix(Theme.CARD, Theme.CARD_HOVER, t);
-            int border = selected ? STUDIO : Theme.mix(Theme.BORDER, Theme.BORDER_HOVER, t);
+            int background = selected ? Theme.CARD_SELECTED : Theme.mix(Theme.CARD, Theme.CARD_HOVER, t);
+            int border = selected ? Theme.ACCENT : Theme.mix(Theme.BORDER, 0xFF3C4452, t);
             Theme.roundBox(graphics, x, y, w, h, background, border);
             flag(graphics, x + 6, y + (h - 11) / 2, voiceLanguage);
             int textX = x + 28;
             graphics.drawString(font, Theme.clip(font, getMessage(), w - 44), textX, y + (h - 8) / 2, selected ? Theme.TEXT : Theme.mix(Theme.TEXT_DIM, Theme.TEXT, t), false);
             if (selected) {
-                graphics.drawString(font, "✔", x + w - 12, y + (h - 8) / 2, STUDIO, false);
+                graphics.drawString(font, "✔", x + w - 12, y + (h - 8) / 2, Theme.ACCENT, false);
             }
         }
     }

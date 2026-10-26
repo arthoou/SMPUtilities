@@ -20,10 +20,11 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Text to speech (DuTTS, integrated). A player with a TTS voice selected
- * chats as usual; the server also sends the text to that player's own client,
- * whose local helper speaks it into a virtual microphone, and shows a speech
- * bubble above their head to everyone nearby with the client mod.
+ * Text to speech (DuTTS, integrated). What a player with a TTS voice selected
+ * types is sent to their own client, whose local helper speaks it into a
+ * virtual microphone, and shown as a speech bubble above their head to
+ * everyone nearby with the client mod. As in DuTTS the line does not reach
+ * the chat, unless tts.showInChat is on.
  */
 public final class TtsService {
     /** When each player's typing bubble was last relayed. Server thread only. */
@@ -40,8 +41,8 @@ public final class TtsService {
 
     /**
      * Voices a TTS player's chat line: their own client speaks it into the
-     * virtual microphone and nearby players see it as a bubble. The line
-     * itself still goes to chat like any other message.
+     * virtual microphone and nearby players see it as a bubble. Whether the
+     * line also goes to chat is up to the caller (tts.showInChat).
      *
      * @return whether the line was spoken (it then has its bubble)
      */
