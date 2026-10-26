@@ -697,6 +697,13 @@ public final class StaffService {
                 //#else
                 //$$ server.getCommands().performCommand(server.createCommandSourceStack(), command);
                 //#endif
+                if (name.equals("whitelist_add") || name.equals("whitelist_remove")) {
+                    // The command only tells the console when the name is unknown, so look at the list itself.
+                    boolean listed = java.util.Arrays.stream(server.getPlayerList().getWhiteListNames()).anyMatch(player::equalsIgnoreCase);
+                    if (listed != name.equals("whitelist_add")) {
+                        return "!" + Lang.tr(actor, "whitelist.failed", player);
+                    }
+                }
                 context.log(actor, name.replace('_', '.'), null, player, "");
                 return Lang.tr(actor, "whitelist.done." + name.substring("whitelist_".length()), player);
             }

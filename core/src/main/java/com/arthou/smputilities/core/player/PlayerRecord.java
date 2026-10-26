@@ -30,6 +30,8 @@ public final class PlayerRecord {
     /** Set while the player is jailed. */
     public Jailing jailed;
     public boolean frozen;
+    /** Had smputilities.maintenance.bypass at their last login, so a permission plugin's grant lets them in during maintenance. */
+    public boolean maintenanceBypass;
 
     public List<StaffNote> notes = new ArrayList<>();
     /** Free RP statistics editable by staff, e.g. "Reputação" -> "12". */

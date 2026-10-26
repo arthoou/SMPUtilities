@@ -114,7 +114,8 @@ botões para limpar itens, orbes de XP ou mobs hostis (mobs com nome ou persiste
 
 **Manutenção** — `/su maintenance on [mensagem]|off` ou o botão no painel (`smputilities.admin.maintenance`):
 só quem tem `smputilities.maintenance.bypass` (OP 2 por padrão) entra, e quem está online sem permissão é
-expulso (`maintenance.kickOnline`). A mesma aba liga e desliga a whitelist vanilla e adiciona ou tira nomes
+expulso (`maintenance.kickOnline`). Na hora do login vale o nível de OP, `permissions.grants` e o que o plugin de
+permissões disse no último login do jogador (o LuckPerms só é consultado com o jogador já dentro). A mesma aba liga e desliga a whitelist vanilla e adiciona ou tira nomes
 (`smputilities.staff.whitelist`), usando os comandos do próprio jogo.
 
 ### Discord

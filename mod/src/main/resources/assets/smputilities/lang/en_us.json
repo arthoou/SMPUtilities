@@ -1038,6 +1038,7 @@
   "whitelist.done.off": "The whitelist is off.",
   "whitelist.done.on": "The whitelist is on.",
   "whitelist.done.remove": "%s was removed from the whitelist.",
+  "whitelist.failed": "Couldn't change the whitelist for %s (is the name right?).",
   "xray.header": "Latest x-ray alerts (%s):",
   "xray.none": "There are no x-ray alerts yet.",
   "xray.not_found": "X-ray alert #%s not found.",

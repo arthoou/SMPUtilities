@@ -30,11 +30,26 @@ public final class MaintenanceService {
         if (!config.maintenance.enabled || SuServer.get() == null) {
             return null;
         }
-        // No ServerPlayer exists yet: decide by config grants and op level.
+        // No ServerPlayer exists yet: decide by config grants and op level, or by what the
+        // permission plugin said at their last login (checked again in onLogin).
         if (PermissionRules.fallback(config, Perm.MAINTENANCE_BYPASS, id, name, Mc.opLevel(server, id, name))) {
             return null;
         }
+        if (SuServer.get().players().find(id).map(record -> record.maintenanceBypass).orElse(false)) {
+            return null;
+        }
         return Msg.styled(config.maintenance.message);
+    }
+
+    /** Remembers whether the player may join during maintenance; kicks them if they got in without it. Returns false when kicked. */
+    public static boolean onLogin(ServerPlayer player) {
+        boolean bypass = Perms.has(player, Perm.MAINTENANCE_BYPASS);
+        SuServer.get().players().update(player.getUUID(), record -> record.maintenanceBypass = bypass);
+        if (SuServer.config().maintenance.enabled && !bypass) {
+            player.connection.disconnect(Msg.styled(SuServer.config().maintenance.message));
+            return false;
+        }
+        return true;
     }
 
     public static LiteralArgumentBuilder<CommandSourceStack> branch() {

@@ -15,6 +15,7 @@ whitelist.done.add	%s was added to the whitelist.	%s foi adicionado à whitelist
 whitelist.done.remove	%s was removed from the whitelist.	%s foi removido da whitelist.
 whitelist.done.on	The whitelist is on.	A whitelist está ligada.
 whitelist.done.off	The whitelist is off.	A whitelist está desligada.
+whitelist.failed	Couldn't change the whitelist for %s (is the name right?).	Não deu para mudar a whitelist para %s (o nome está certo?).
 chat.filter.blocked	Your message was not sent: it has a blocked word or link.	Sua mensagem não foi enviada: ela tem uma palavra ou link bloqueado.
 chat.filter.staff_blocked	[Filter] Blocked from %1$s: %2$s	[Filtro] Bloqueado de %1$s: %2$s
 chat.filter.staff_censored	[Filter] Censored from %1$s: %2$s	[Filtro] Censurado de %1$s: %2$s

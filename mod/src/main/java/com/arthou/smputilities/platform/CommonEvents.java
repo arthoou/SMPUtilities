@@ -34,6 +34,7 @@ import com.arthou.smputilities.smp.ReportService;
 import com.arthou.smputilities.smp.RestartService;
 import com.arthou.smputilities.smp.StaffChat;
 import com.arthou.smputilities.smp.WelcomeService;
+import com.arthou.smputilities.staff.MaintenanceService;
 import com.arthou.smputilities.staff.StaffCommands;
 import com.arthou.smputilities.staff.StaffService;
 import com.arthou.smputilities.teleport.TeleportCommands;
@@ -165,7 +166,7 @@ public final class CommonEvents {
             record.lastSeen = now;
             record.joinCount++;
         });
-        if (!AltService.onLogin(player)) {
+        if (!MaintenanceService.onLogin(player) || !AltService.onLogin(player)) {
             return;
         }
         PresenceFilter.install(player);
