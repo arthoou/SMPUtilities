@@ -44,7 +44,7 @@ else
     (cd "$run" && SMPUTILITIES_SMOKE=1 timeout 900 bash run.sh nogui) > smoke.log 2>&1
     status=$?
 fi
-grep -E "SMPUTILITIES SMOKE|Mixin|mixin|Exception|Error|Caused by" smoke.log | grep -vE "^\s+at |DEBUG|unsupported|is disabled|(No|0) (errors|exceptions)" | head -60
+grep -E "SMPUTILITIES SMOKE|Anti-xray self test|Mixin|mixin|Exception|Error|Caused by" smoke.log | grep -vE "^\s+at |DEBUG|unsupported|is disabled|(No|0) (errors|exceptions)" | head -60
 if ! grep -q "SMPUTILITIES SMOKE OK" smoke.log; then
     echo "== smoke test failed (exit $status)"
     tail -80 smoke.log

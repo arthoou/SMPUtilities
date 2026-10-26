@@ -28,6 +28,7 @@ public final class XraySelfTest {
         }
         int changed = 0;
         int checked = 0;
+        int rest = 0;
         boolean gameReader = true;
         for (int cx = -1; cx <= 1; cx++) {
             for (int cz = -1; cz <= 1; cz++) {
@@ -38,9 +39,13 @@ public final class XraySelfTest {
                 int count = chunk.getSectionsCount();
                 ChunkCodec.Section[] before = ChunkCodec.parse(raw, count, AntiXray.lengthPrefix());
                 ChunkCodec.Section[] after = ChunkCodec.parse(sent, count, AntiXray.lengthPrefix());
-                if (after[count - 1].end != sent.length) {
-                    return "chunk " + cx + "," + cz + ": " + (sent.length - after[count - 1].end) + " bytes left after the sections";
+                // Some versions size the buffer a little larger than the sections; the client skips the rest.
+                int rawRest = raw.length - before[count - 1].end;
+                int sentRest = sent.length - after[count - 1].end;
+                if (rawRest != sentRest || !java.util.Arrays.equals(raw, before[count - 1].end, raw.length, sent, after[count - 1].end, sent.length)) {
+                    return "chunk " + cx + "," + cz + ": the " + rawRest + " bytes after the sections changed (" + sentRest + " now)";
                 }
+                rest = Math.max(rest, rawRest);
                 FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.wrappedBuffer(sent));
                 for (int s = 0; s < count; s++) {
                     int[] original = ChunkCodec.decode(raw, before[s]);
@@ -73,8 +78,8 @@ public final class XraySelfTest {
                 }
             }
         }
-        SmpUtilities.LOGGER.info("Anti-xray self test: {} sections, {} blocks hidden, game reader {}", checked, changed,
-            gameReader ? "used" : "not available on this server");
+        SmpUtilities.LOGGER.info("Anti-xray self test: {} sections, {} blocks hidden, game reader {}, up to {} spare bytes", checked, changed,
+            gameReader ? "used" : "not available on this server", rest);
         return null;
     }
 }
