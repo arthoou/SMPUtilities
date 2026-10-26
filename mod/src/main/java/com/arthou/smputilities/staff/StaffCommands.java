@@ -1,6 +1,7 @@
 package com.arthou.smputilities.staff;
 
 import com.arthou.smputilities.antixray.XrayAlerts;
+import com.arthou.smputilities.blocklog.BlockLogCommands;
 import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.backup.BackupMenus;
@@ -195,6 +196,7 @@ public final class StaffCommands {
                 })))
             .then(ReportService.branch())
             .then(XrayAlerts.branch())
+            .then(BlockLogCommands.branch())
             .then(RestartService.branch())
             .then(Commands.literal("spectate").requires(perm(Perm.STAFF_SPECTATE))
                 .then(Commands.literal("stop").executes(context -> {

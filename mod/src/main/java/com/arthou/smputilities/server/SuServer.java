@@ -1,6 +1,7 @@
 package com.arthou.smputilities.server;
 
 import com.arthou.smputilities.core.audit.AuditLog;
+import com.arthou.smputilities.core.blocklog.BlockLog;
 import com.arthou.smputilities.core.chat.ChatHistory;
 import com.arthou.smputilities.core.config.ConfigManager;
 import com.arthou.smputilities.core.config.SuConfig;
@@ -39,6 +40,7 @@ public final class SuServer {
     private final ReportStore reports;
     private final AuditLog audit;
     private final ChatHistory chatHistory;
+    private final BlockLog blockLog;
 
     private SuServer(MinecraftServer server) {
         this.server = server;
@@ -50,6 +52,7 @@ public final class SuServer {
         this.reports = new ReportStore(dataDir.resolve("reports.json"));
         this.audit = new AuditLog(dataDir.resolve("logs"));
         this.chatHistory = new ChatHistory(dataDir.resolve("chat"), ZoneId.systemDefault());
+        this.blockLog = new BlockLog(dataDir.resolve("blocklog"), ZoneId.systemDefault());
     }
 
     public static synchronized SuServer start(MinecraftServer server) {
@@ -62,6 +65,7 @@ public final class SuServer {
         created.reports.load();
         created.audit.prune(config().staff.auditRetentionDays);
         created.chatHistory.prune(config().chat.historyDays);
+        created.blockLog.prune(config().blockLog.days);
         instance = created;
         SuLog.info("SMPutilities data folder: " + created.dataDir);
         return created;
@@ -77,6 +81,7 @@ public final class SuServer {
             current.reports.save();
             current.audit.close();
             current.chatHistory.close();
+            current.blockLog.close();
         }
         instance = null;
     }
@@ -141,6 +146,10 @@ public final class SuServer {
 
     public ChatHistory chatHistory() {
         return chatHistory;
+    }
+
+    public BlockLog blockLog() {
+        return blockLog;
     }
 
     /** Records an administrative action with the acting player (null for console). */

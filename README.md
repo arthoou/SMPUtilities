@@ -112,6 +112,25 @@ diamante, detritos ancestrais e esmeralda por padrão). A staff com `smputilitie
 veio e recebe um alerta vermelho, com som, quando alguém passa do limite dentro de `xrayAlerts.windowMinutes`.
 Os avisos têm botão de teleporte, e `/su xray` e a aba **X-ray** em Punições listam os últimos 50.
 
+### Registro de blocos e baús (estilo CoreProtect) — `/su log`
+Toda mudança de bloco feita enquanto o servidor processa uma ação de um jogador fica registrada com quem fez,
+quando e onde. Isso inclui quebrar, colocar, balde, isqueiro, enxada, pá e machado. Explosões entram como
+`#explosion`. Mudanças que não trocam o bloco (abrir porta, alavanca, plantação crescendo) ficam de fora. Baús,
+barris, fornalhas, funis, caixas de shulker etc. são comparados quando o jogador fecha o que abriu: o que entrou
+e o que saiu ficam registrados, item por item. Tudo vai para o disco, em
+`<mundo>/smputilities/blocklog/<dimensão>/<região>/<dia>.log`, numa thread separada; nada fica na memória, e os
+dias mais velhos que `blockLog.days` (30) são apagados.
+
+* `/su log inspect` liga o inspetor: bater ou clicar com o direito num bloco mostra o histórico dele, sem quebrar
+  nem abrir.
+* `/su log lookup u:<jogadores> t:<tempo> r:<raio|#world> a:<break|place|explode|container>` busca mudanças (por
+  padrão num raio de 10 em volta de quem busca), 10 por página, com botão de teleporte.
+* `/su log rollback …` desfaz o que a busca achar (exige `t:`): cada bloco volta a como era antes da primeira
+  mudança, com o conteúdo de baús e placas, mas só se ninguém mexeu nele depois. Itens tirados de baús voltam e
+  itens colocados saem. É feito aos poucos (`blockLog.changesPerTick` por tick, até `blockLog.maxChanges`).
+  `/su log restore …` refaz, e `/su log undo` volta o último rollback.
+* Permissões: `smputilities.staff.blocklog` (inspecionar e buscar, OP 2) e `smputilities.staff.rollback` (OP 3).
+
 ### Vanish — `/vanish [on|off|<jogador>]`
 Feito no servidor: um mixin no rastreamento de entidades impede que o jogador invisível seja enviado a
 quem não tem `smputilities.staff.vanish.see` (sem posição, equipamento, sons ou partículas), remoção da
@@ -342,7 +361,8 @@ vão dentro de cada jar.
 SMPutilities is one mod for SMP/roleplay servers: staff panel GUI with eight categories, vanilla-by-default
 chat with an optional QSMP format, mentions, mutes, spam protection, bans synced with the vanilla ban list,
 server-side vanish, an anti-xray after DrexHD's AntiXray (MIT; only outgoing chunk packets change, never the world)
-with x-ray alerts for staff, live and offline inventory editing, automatic and manual backups with safe restore,
+with x-ray alerts for staff, a CoreProtect-style block and container log with inspect, lookup, rollback, restore and
+undo, live and offline inventory editing, automatic and manual backups with safe restore,
 Inv Profile's Quick Change plus crash-safe named profiles, RP nicknames built on HiddenNames (same /hiddennames commands, nameplate
 animations, hidden nameplates, blocks hiding nameplates, team color override, data import), TTS with speech bubbles, portal
 limits, dimension access control, TPA-style QoL commands (with /tpacancel and /tpatoggle), AFK detection

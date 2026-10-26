@@ -40,6 +40,10 @@ public enum Perm {
     /** See the real blocks when antiXray.usePermission is on. */
     ANTIXRAY_BYPASS("smputilities.antixray.bypass", 2),
     XRAY_ALERTS("smputilities.xray.alerts", 2),
+    /** Inspect blocks and look changes up in the block log. */
+    STAFF_BLOCKLOG("smputilities.staff.blocklog", 2),
+    /** Roll changes back and restore them. */
+    STAFF_ROLLBACK("smputilities.staff.rollback", 3),
 
     ADMIN_SETTINGS("smputilities.admin.settings", 4),
     ADMIN_RELOAD("smputilities.admin.reload", 4),

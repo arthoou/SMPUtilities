@@ -41,6 +41,7 @@ public final class SuConfig {
     public Welcome welcome = new Welcome();
     public AntiXray antiXray = new AntiXray();
     public XrayAlerts xrayAlerts = new XrayAlerts();
+    public BlockLog blockLog = new BlockLog();
     public Permissions permissions = new Permissions();
 
     /** Master switches. A disabled system registers no listeners or commands. */
@@ -69,6 +70,8 @@ public final class SuConfig {
         public boolean antiXray = true;
         /** Tell staff when a player finds valuable ores suspiciously often; see xrayAlerts. */
         public boolean xrayAlerts = true;
+        /** Log who breaks and places blocks and moves items in containers, with lookups and rollbacks; see blockLog. */
+        public boolean blockLog = true;
     }
 
     public static final class Chat {
@@ -447,6 +450,19 @@ public final class SuConfig {
         /** Also tell staff about every vein of a watched ore, not only past the threshold. */
         public boolean everyVein = true;
         public String sound = "minecraft:block.note_block.bass";
+    }
+
+    public static final class BlockLog {
+        /** Days of changes kept on disk. */
+        public int days = 30;
+        /** Log what players put into and take out of containers. */
+        public boolean containers = true;
+        /** Log blocks destroyed by explosions (as "#explosion"). */
+        public boolean explosions = true;
+        /** Most block and item changes one rollback or restore may make. */
+        public int maxChanges = 100_000;
+        /** Changes made per tick while a rollback runs. */
+        public int changesPerTick = 500;
     }
 
     public static final class Permissions {

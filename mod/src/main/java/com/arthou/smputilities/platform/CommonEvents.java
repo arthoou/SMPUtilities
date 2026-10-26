@@ -3,6 +3,8 @@ package com.arthou.smputilities.platform;
 import com.arthou.smputilities.antixray.AntiXray;
 import com.arthou.smputilities.antixray.XrayAlerts;
 import com.arthou.smputilities.backup.BackupService;
+import com.arthou.smputilities.blocklog.BlockLogCommands;
+import com.arthou.smputilities.blocklog.BlockLogService;
 import com.arthou.smputilities.chat.ChatCommands;
 import com.arthou.smputilities.chat.ChatService;
 import com.arthou.smputilities.chat.PresenceFilter;
@@ -97,6 +99,7 @@ public final class CommonEvents {
 
     public static void serverStopped(MinecraftServer server) {
         AntiXray.onServerStop();
+        BlockLogService.onServerStop();
         ModSyncServer.onServerStop();
         BackupService.onServerStop();
         ProfileService.onServerStop();
@@ -115,6 +118,8 @@ public final class CommonEvents {
         PortalService.tick(server);
         TrollService.tick(server);
         AntiXray.tick(server);
+        BlockLogService.tick();
+        BlockLogCommands.tick(server);
         ticks++;
         if (ticks % 20 == 0) {
             PermCache.clear();
@@ -190,6 +195,7 @@ public final class CommonEvents {
         TtsService.forget(player);
         TrollService.forget(player);
         XrayAlerts.forget(player);
+        BlockLogService.forget(player);
         DimensionService.forget(player);
         VanishService.onLogout(player);
         ModSyncServer.onLogout(player);
@@ -264,6 +270,9 @@ public final class CommonEvents {
 
     /** Right click on a block. @return true to cancel */
     public static boolean useBlock(ServerPlayer player, ServerLevel level, BlockPos pos, ItemStack stack) {
+        if (BlockLogService.inspect(player, level, pos)) {
+            return true;
+        }
         return PortalService.onEyeUse(player, level, pos, stack);
     }
 
