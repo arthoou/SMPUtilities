@@ -100,7 +100,7 @@ final class ServerTab extends PanelTab {
                 panel.request("table", "whitelist|");
             }
         }).active = manageWhitelist;
-        whitelist = table(right, lower + 56, rightWidth, bottom() - lower - 80, List.of(column("name", 1)));
+        whitelist = table(right, lower + 56, rightWidth, Math.max(20, bottom() - lower - 80), List.of(column("name", 1)));
         whitelist.remember("server.whitelist");
         whitelist.emptyText = tr(manageWhitelist ? "whitelist.empty" : "no_permission");
         whitelist.buttons = row -> manageWhitelist ? List.of(new TableView.RowButton("remove", tr("button.remove"), Theme.DANGER)) : List.of();
