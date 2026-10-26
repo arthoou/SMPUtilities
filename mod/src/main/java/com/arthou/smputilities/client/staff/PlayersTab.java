@@ -127,7 +127,7 @@ final class PlayersTab extends PanelTab {
             return "";
         }
         return detail.id() + detail.get("online") + detail.get("mute") + detail.get("voiceMute") + detail.get("ban") + detail.get("vanished")
-            + detail.get("voiceDeafened") + detail.get("silentJoin") + detail.get("silentQuit") + detail.get("nick") + detail.customStats() + detail.notes().size();
+            + detail.get("voiceDeafened") + detail.get("silentJoin") + detail.get("silentQuit") + detail.get("frozen") + detail.get("jailed") + detail.get("nick") + detail.customStats() + detail.notes().size();
     }
 
     private List<Dto.Row> rows() {
@@ -256,6 +256,13 @@ final class PlayersTab extends PanelTab {
         rightColumn.add(new String[] {"info.records", detail.get("records") + " · " + tr("info.warnings", detail.get("warnings")).getString()});
         rightColumn.add(new String[] {"info.backups", detail.get("backups")});
         rightColumn.add(new String[] {"info.reports", detail.get("reports").isEmpty() ? "-" : detail.get("reports")});
+        if (ClientState.has(Perm.STAFF_ALTS)) {
+            rightColumn.add(new String[] {"info.alts", detail.get("alts").isEmpty() ? "-" : detail.get("alts")});
+        }
+        if (Boolean.parseBoolean(detail.get("frozen")) || !detail.get("jailed").isEmpty()) {
+            left.add(new String[] {"info.restrained", (Boolean.parseBoolean(detail.get("frozen")) ? tr("info.frozen").getString() + " " : "")
+                + (detail.get("jailed").isEmpty() ? "" : tr("info.jailed", detail.get("jailed")).getString())});
+        }
         drawColumn(graphics, left, splitX, y, columnWidth - 6);
         drawColumn(graphics, rightColumn, splitX + columnWidth, y, columnWidth);
     }
@@ -341,6 +348,23 @@ final class PlayersTab extends PanelTab {
             : button(0, 0, 10, "action.voice_mute", Perm.STAFF_VOICE_MUTE, b -> punishForm("voice_mute", "action.voice_mute", id, name)).kind(SuButton.Kind.WARN).icon("♫"));
         buttons.add(button(0, 0, 10, detail != null && Boolean.parseBoolean(detail.get("voiceDeafened")) ? "action.undeafen" : "action.deafen",
             Perm.STAFF_VOICE_MUTE, b -> panel.action("voice_deafen", id)).icon("☊"));
+        boolean frozen = detail != null && Boolean.parseBoolean(detail.get("frozen"));
+        buttons.add(onlineOnly(button(0, 0, 10, frozen ? "action.unfreeze" : "action.freeze", Perm.STAFF_FREEZE,
+            b -> panel.action("freeze", id)).kind(frozen ? SuButton.Kind.GHOST : SuButton.Kind.WARN).icon("❄"), online));
+        if (detail != null && !detail.get("jailed").isEmpty()) {
+            buttons.add(button(0, 0, 10, "action.unjail", Perm.STAFF_JAIL, b -> panel.confirm(tr("action.unjail"), tr("confirm.unjail", name), false,
+                () -> panel.action("unjail", id))).icon("✓"));
+        } else {
+            String jails = detail == null ? "" : detail.get("jails");
+            SuButton jail = button(0, 0, 10, "action.jail", Perm.STAFF_JAIL, b -> panel.form(tr("action.jail"),
+                List.of(fieldDef("jail", jails.split(",")[0]), fieldDef("duration", ""), fieldDef("reason", "")), tr("action.jail"), true,
+                tr("jail.note", name, jails), values -> panel.action("jail", id, values.get(0).trim(), values.get(1).trim(), values.get(2)))).kind(SuButton.Kind.DANGER).icon("▦");
+            if (jails.isEmpty()) {
+                jail.active = false;
+                jail.tooltip(tr("jail.none_set"));
+            }
+            buttons.add(jail);
+        }
         return buttons;
     }
 

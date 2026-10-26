@@ -38,6 +38,7 @@ public final class StaffPanelScreen extends SuScreen implements ClientState.List
         new TabInfo("punishments", "⚖", PunishmentsTab::new, Perm.STAFF_HISTORY),
         new TabInfo("world", "◎", WorldTab::new, Perm.STAFF_PANEL),
         new TabInfo("utilities", "✦", UtilitiesTab::new, Perm.STAFF_PANEL),
+        new TabInfo("server", "⚡", ServerTab::new, Perm.STAFF_PANEL),
         new TabInfo("settings", "⚙", SettingsTab::new, Perm.ADMIN_SETTINGS));
 
     private static final int SIDEBAR = 116;

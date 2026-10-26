@@ -3,6 +3,7 @@ package com.arthou.smputilities.mixin;
 import com.arthou.smputilities.antixray.AntiXray;
 import com.arthou.smputilities.antixray.XrayAlerts;
 import com.arthou.smputilities.blocklog.BlockLogService;
+import com.arthou.smputilities.moderation.FreezeJailService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
@@ -43,7 +44,8 @@ public abstract class PlayerGameModeMixin {
     //#else
     //$$ private void smputilities$inspect(BlockPos pos, ServerboundPlayerActionPacket.Action action, Direction direction, int maxBuildHeight, CallbackInfo ci) {
     //#endif
-        if (action == ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK && BlockLogService.inspect(player, level, pos)) {
+        if (FreezeJailService.isFrozen(player)
+            || action == ServerboundPlayerActionPacket.Action.START_DESTROY_BLOCK && BlockLogService.inspect(player, level, pos)) {
             player.connection.send(new ClientboundBlockUpdatePacket(level, pos));
             ci.cancel();
         }

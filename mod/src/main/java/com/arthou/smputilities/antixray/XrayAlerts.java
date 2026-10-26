@@ -3,6 +3,7 @@ package com.arthou.smputilities.antixray;
 import com.arthou.smputilities.core.config.SuConfig;
 import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.core.teleport.Location;
+import com.arthou.smputilities.discord.DiscordBridge;
 import com.arthou.smputilities.mc.Ids;
 import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.mc.Texts;
@@ -174,6 +175,9 @@ public final class XrayAlerts {
             }
         }
         Mc.console(server, Texts.literal(text(Lang.EN, alert, where, config)));
+        if (alert.suspicious()) {
+            DiscordBridge.xray(text(DiscordBridge.language(), alert, where, config));
+        }
     }
 
     private static String text(String language, Alert alert, String where, SuConfig.XrayAlerts config) {

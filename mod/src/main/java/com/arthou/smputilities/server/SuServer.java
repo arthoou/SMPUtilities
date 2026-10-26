@@ -156,5 +156,6 @@ public final class SuServer {
     public void log(ServerPlayer actor, String action, UUID target, String targetName, String details) {
         audit.record(actor == null ? null : actor.getUUID(), actor == null ? "Console" : Mc.name(actor),
             action, target, targetName, details);
+        com.arthou.smputilities.discord.DiscordBridge.staffAction(actor == null ? "Console" : Mc.name(actor), action, targetName, details);
     }
 }

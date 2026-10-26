@@ -80,6 +80,9 @@ public final class Teleports {
      * @param key cooldown key ("home", "spawn", "tpa", ...)
      */
     public static boolean schedule(ServerPlayer player, String key, int cooldownSeconds, Supplier<Location> destination, boolean saveBack, Runnable after) {
+        if (com.arthou.smputilities.moderation.FreezeJailService.blocksTeleport(player)) {
+            return false;
+        }
         SuConfig.Teleport config = SuServer.config().teleport;
         long now = System.currentTimeMillis();
         if (!Perms.has(player, Perm.TELEPORT_BYPASS_COOLDOWN)) {

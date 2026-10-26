@@ -54,12 +54,13 @@ Tudo é indexado por UUID; trocar de nome ou de nickname nunca perde dados.
 ## Sistemas
 
 ### Painel da staff — `/su staff [jogador]`
-Interface própria (fundo escuro translúcido, barra lateral, destaque verde, animações curtas), com oito
+Interface própria (fundo escuro translúcido, barra lateral, destaque verde, animações curtas), com nove
 categorias: **Dashboard** (jogadores, TPS, MSPT, memória, uptime, bans/mutes ativos, controles rápidos do
 chat), **Players** (busca por nome real ou nickname, online e offline; info, ações, notas/estatísticas e
 histórico do jogador), **Chat**, **Inventories** (visualizar/editar, backups com restauração, perfis),
-**Punishments** (bans, mutes, denúncias, histórico, log da staff), **World** (dimensões e portais), **Utilities**
-(brincadeiras, anúncios, warps, mod sync) e **Settings** (toda a config, editável ao vivo).
+**Punishments** (bans, mutes, denúncias, alertas de x-ray, histórico, log da staff), **World** (dimensões e
+portais), **Utilities** (brincadeiras, anúncios, warps, mod sync), **Server** (desempenho, limpeza de lag,
+manutenção e whitelist) e **Settings** (toda a config, editável ao vivo).
 As ações de um jogador ficam por categoria (Punições, Ferramentas, Inventário, Nome e chat, Brincadeiras);
 inventário, baú do End, backups e perfis abertos pelo painel voltam ao painel ao apertar Esc. Textos que não
 cabem num botão são cortados com "…" e aparecem inteiros ao passar o mouse.
@@ -88,6 +89,41 @@ clica numa mensagem para ver inteira. `chat.historyDays` (30) define quantos dia
 `/su warn`, `/su history`. Durações: `30m`, `2h`, `7d`, `1mo`, `perm`. Banimentos vão também para a ban list
 vanilla (com expiração), então o bloqueio no login é o do próprio jogo e `/pardon` continua funcionando.
 Staff não pode punir quem tem nível de OP maior.
+
+* **Congelar** — `/su freeze <jogador>` (ou o botão no painel, `smputilities.staff.freeze`): o jogador não anda,
+  não quebra nem usa blocos e não se teleporta até ser descongelado. Continua congelado se sair e voltar; a staff
+  é avisada quando um jogador congelado sai.
+* **Prisão** — `/su jail set <nome>` marca uma prisão onde você está; `/su jail put <jogador> <prisão> [tempo]
+  [motivo]` prende (online ou offline), `/su jail release <jogador>` solta, `/su jail list|remove`. O preso não
+  passa de `jail.radius` blocos da prisão e não se teleporta; quando o tempo acaba ele volta para onde estava
+  (`smputilities.staff.jail`).
+* **Contas alternativas** — o mod guarda os últimos IPs de cada jogador (`alts.maxIps`). Quem entra com um IP já
+  usado por outra conta gera um aviso para a staff com `smputilities.staff.alts` (vermelho se a outra conta está
+  banida); `alts.blockBannedAlts` recusa a entrada nesse caso. `/su alts <jogador>` e a ficha do jogador no
+  painel mostram as contas.
+* **Filtro do chat** — `chat.filter.words` (separadas por vírgula; `=palavra` só pega a palavra inteira) com
+  `chat.filter.mode` `censor` (troca por `***`) ou `block` (não envia). Pega variações com números e acentos
+  (`p4l4vr4`). `chat.filter.blockAdvertising` barra IPs e convites do Discord. A staff vê o que foi pego;
+  quem tem `smputilities.chat.bypass.filter` passa direto.
+
+### Servidor: desempenho, manutenção e whitelist
+A aba **Server** do painel mostra TPS, MSPT e, por dimensão, chunks carregados, entidades, itens no chão, orbes
+de XP e mobs hostis, mais os 15 chunks com mais entidades (com o tipo mais comum e botão de teleporte). Há
+botões para limpar itens, orbes de XP ou mobs hostis (mobs com nome ou persistentes ficam), com
+`smputilities.staff.lag`.
+
+**Manutenção** — `/su maintenance on [mensagem]|off` ou o botão no painel (`smputilities.admin.maintenance`):
+só quem tem `smputilities.maintenance.bypass` (OP 2 por padrão) entra, e quem está online sem permissão é
+expulso (`maintenance.kickOnline`). A mesma aba liga e desliga a whitelist vanilla e adiciona ou tira nomes
+(`smputilities.staff.whitelist`), usando os comandos do próprio jogo.
+
+### Discord
+Dois webhooks opcionais (`discord.webhookUrl` e `discord.staffWebhookUrl`; só endereços
+`https://discord.com/api/webhooks/…` são aceitos). O público recebe chat, entradas e saídas (quem está em vanish
+não aparece), mortes e início/parada do servidor; o da staff recebe ações da staff, denúncias, alertas
+suspeitos de x-ray e contas alternativas. Cada tipo liga e desliga em `discord.*`. As mensagens saem por uma
+thread separada, juntas a cada 2 segundos, respeitando o limite do Discord, e nunca marcam @everyone nem
+cargos.
 
 ### Anti-xray (base: AntiXray do DrexHD) e alertas de x-ray — `/su xray`
 O anti-xray segue o motor do [AntiXray](https://github.com/DrexHD/AntiXray) (MIT), que por sua vez é o
@@ -358,11 +394,12 @@ vão dentro de cada jar.
 
 ### English summary
 
-SMPutilities is one mod for SMP/roleplay servers: staff panel GUI with eight categories, vanilla-by-default
+SMPutilities is one mod for SMP/roleplay servers: staff panel GUI with nine categories, vanilla-by-default
 chat with an optional QSMP format, mentions, mutes, spam protection, bans synced with the vanilla ban list,
 server-side vanish, an anti-xray after DrexHD's AntiXray (MIT; only outgoing chunk packets change, never the world)
 with x-ray alerts for staff, a CoreProtect-style block and container log with inspect, lookup, rollback, restore and
-undo, live and offline inventory editing, automatic and manual backups with safe restore,
+undo, freeze and jails, alt detection by IP, a chat word and advertising filter, Discord webhooks, maintenance mode,
+a server tab with lag numbers, entity hotspots, clean-ups and the whitelist, live and offline inventory editing, automatic and manual backups with safe restore,
 Inv Profile's Quick Change plus crash-safe named profiles, RP nicknames built on HiddenNames (same /hiddennames commands, nameplate
 animations, hidden nameplates, blocks hiding nameplates, team color override, data import), TTS with speech bubbles, portal
 limits, dimension access control, TPA-style QoL commands (with /tpacancel and /tpatoggle), AFK detection

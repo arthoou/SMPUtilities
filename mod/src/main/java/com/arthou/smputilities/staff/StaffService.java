@@ -3,6 +3,8 @@ package com.arthou.smputilities.staff;
 import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.antixray.AntiXray;
 import com.arthou.smputilities.antixray.XrayAlerts;
+import com.arthou.smputilities.moderation.AltService;
+import com.arthou.smputilities.moderation.FreezeJailService;
 import com.arthou.smputilities.backup.BackupMenus;
 import com.arthou.smputilities.backup.BackupService;
 import com.arthou.smputilities.backup.PlayerSnapshot;
@@ -22,6 +24,7 @@ import com.arthou.smputilities.core.portal.PortalRegistry;
 import com.arthou.smputilities.core.punish.Punishment;
 import com.arthou.smputilities.core.punish.PunishmentType;
 import com.arthou.smputilities.core.report.Report;
+import com.arthou.smputilities.core.teleport.Location;
 import com.arthou.smputilities.core.util.Durations;
 import com.arthou.smputilities.inventory.InventoryViews;
 import com.arthou.smputilities.inventory.PlayerState;
@@ -223,6 +226,11 @@ public final class StaffService {
         values.put("vanished", String.valueOf(VanishService.isVanished(id)));
         values.put("afk", String.valueOf(online != null && AfkService.isAfk(online)));
         values.put("reports", String.valueOf(context.reports().openAgainst(id)));
+        values.put("alts", Perms.has(viewer, Perm.STAFF_ALTS) ? AltService.altsOf(id) : "");
+        values.put("frozen", String.valueOf(record.frozen));
+        values.put("jailed", record.jailed == null ? "" : record.jailed.jail + (record.jailed.until > 0
+            ? " · " + Durations.format(Math.max(0, record.jailed.until - now)) : "") + (record.jailed.reason.isEmpty() ? "" : " · " + record.jailed.reason));
+        values.put("jails", String.join(",", FreezeJailService.jailNames()));
         values.put("silentJoin", String.valueOf(record.silentJoin));
         values.put("silentQuit", String.valueOf(record.silentQuit));
         values.put("warnings", String.valueOf(context.punishments().history(id).stream().filter(p -> p.type == PunishmentType.WARN).count()));
@@ -324,6 +332,25 @@ public final class StaffService {
                         report.reporterName, report.targetName, report.reason, report.where == null ? "" : report.where.shortText())));
                 }
                 return new Dto.Table(kind, context, List.of("id", "date", "reporter", "player", "reason", "where"), rows);
+            }
+            case "lag" -> {
+                return Perms.has(viewer, Perm.STAFF_LAG) ? LagService.overview(Mc.server(viewer)) : null;
+            }
+            case "hotspots" -> {
+                return Perms.has(viewer, Perm.STAFF_LAG) ? LagService.hotspots(Mc.server(viewer)) : null;
+            }
+            case "whitelist" -> {
+                if (!Perms.has(viewer, Perm.STAFF_WHITELIST)) {
+                    return null;
+                }
+                MinecraftServer minecraft = Mc.server(viewer);
+                for (String entry : minecraft.getPlayerList().getWhiteListNames()) {
+                    rows.add(new Dto.Row(entry, List.of(entry)));
+                }
+                rows.sort(java.util.Comparator.comparing(row -> row.id().toLowerCase(java.util.Locale.ROOT)));
+                // The context carries the switches the tab shows above the list.
+                return new Dto.Table(kind, minecraft.getPlayerList().isUsingWhitelist() + "|" + SuServer.config().maintenance.enabled,
+                    List.of("name"), rows);
             }
             case "xray" -> {
                 if (!Perms.has(viewer, Perm.XRAY_ALERTS)) {
@@ -618,6 +645,69 @@ public final class StaffService {
                 }
                 return tp ? null : Lang.tr(actor, "report.closed", reportId);
             }
+            case "lag_clear" -> {
+                if (!Perms.has(actor, Perm.STAFF_LAG)) {
+                    return denied(actor);
+                }
+                String what = arg(action, 0);
+                int removed = LagService.clear(server, what);
+                context.log(actor, "lag.clear." + what, null, "", String.valueOf(removed));
+                return Lang.tr(actor, "lag.cleared", removed);
+            }
+            case "lag_tp" -> {
+                if (!Perms.has(actor, Perm.STAFF_LAG) || !Perms.has(actor, Perm.STAFF_TELEPORT)) {
+                    return denied(actor);
+                }
+                String[] parts = arg(action, 0).split(" ");
+                if (parts.length != 3) {
+                    return null;
+                }
+                try {
+                    int x = Integer.parseInt(parts[1]);
+                    int z = Integer.parseInt(parts[2]);
+                    net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> key = com.arthou.smputilities.mc.Ids.dimension(parts[0]);
+                    net.minecraft.server.level.ServerLevel level = key == null ? null : server.getLevel(key);
+                    if (level == null) {
+                        return null;
+                    }
+                    int y = level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING, x, z);
+                    Teleports.teleport(actor, new Location(parts[0], x + 0.5, y, z + 0.5, actor.getYRot(), actor.getXRot()), true);
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+                return null;
+            }
+            case "whitelist_add", "whitelist_remove", "whitelist_on", "whitelist_off" -> {
+                if (!Perms.has(actor, Perm.STAFF_WHITELIST)) {
+                    return denied(actor);
+                }
+                String player = arg(action, 0).trim();
+                if ((name.equals("whitelist_add") || name.equals("whitelist_remove")) && !player.matches("[A-Za-z0-9_]{1,16}")) {
+                    return "!" + Lang.tr(actor, "whitelist.bad_name", player);
+                }
+                String command = switch (name) {
+                    case "whitelist_add" -> "whitelist add " + player;
+                    case "whitelist_remove" -> "whitelist remove " + player;
+                    case "whitelist_on" -> "whitelist on";
+                    default -> "whitelist off";
+                };
+                // The game's own command: it looks the name up, saves the list and, when turned on, kicks who is not listed.
+                //#if MC>=1.19
+                server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), command);
+                //#else
+                //$$ server.getCommands().performCommand(server.createCommandSourceStack(), command);
+                //#endif
+                context.log(actor, name.replace('_', '.'), null, player, "");
+                return Lang.tr(actor, "whitelist.done." + name.substring("whitelist_".length()), player);
+            }
+            case "maintenance_on", "maintenance_off" -> {
+                if (!Perms.has(actor, Perm.ADMIN_MAINTENANCE)) {
+                    return denied(actor);
+                }
+                boolean on = name.equals("maintenance_on");
+                MaintenanceService.set(server, actor, on, arg(action, 0).isBlank() ? null : arg(action, 0));
+                return Lang.tr(actor, on ? "maintenance.on" : "maintenance.off");
+            }
             case "xray_tp" -> {
                 if (!Perms.has(actor, Perm.XRAY_ALERTS) || !Perms.has(actor, Perm.STAFF_TELEPORT)) {
                     return denied(actor);
@@ -711,6 +801,35 @@ public final class StaffService {
                     InventoryViews.openCosmetic(actor, online);
                 }
                 return null;
+            }
+            case "freeze" -> {
+                if (!Perms.has(actor, Perm.STAFF_FREEZE) || online == null) {
+                    return online == null ? "!" + Lang.tr(actor, "inventory.online_only", shown) : denied(actor);
+                }
+                if (!canPunish(actor, online)) {
+                    return "!" + Lang.tr(actor, "punish.cannot_target");
+                }
+                return Lang.tr(actor, FreezeJailService.toggleFreeze(actor, online) ? "freeze.on" : "freeze.off", shown);
+            }
+            case "jail" -> {
+                if (!Perms.has(actor, Perm.STAFF_JAIL)) {
+                    return denied(actor);
+                }
+                if (online != null && !canPunish(actor, online)) {
+                    return "!" + Lang.tr(actor, "punish.cannot_target");
+                }
+                Long duration = arg(action, 1).isBlank() ? Long.valueOf(0) : Durations.parse(arg(action, 1));
+                if (duration == null) {
+                    return "!" + Lang.tr(actor, "punish.invalid_duration", arg(action, 1));
+                }
+                String error = FreezeJailService.jail(server, actor, id, targetName, arg(action, 0).trim(), Math.max(0, duration), arg(action, 2));
+                return error != null ? "!" + Lang.tr(actor, error, arg(action, 0)) : Lang.tr(actor, "jail.done", shown, arg(action, 0).trim());
+            }
+            case "unjail" -> {
+                if (!Perms.has(actor, Perm.STAFF_JAIL)) {
+                    return denied(actor);
+                }
+                return FreezeJailService.release(server, id, actor) ? Lang.tr(actor, "jail.released_staff", shown) : "!" + Lang.tr(actor, "jail.not_jailed", shown);
             }
             case "ban" -> {
                 if (!Perms.has(actor, Perm.STAFF_BAN)) {
@@ -1044,6 +1163,9 @@ public final class StaffService {
         if (path.startsWith("antiXray.") || path.startsWith("xrayAlerts.") || path.equals("features.antiXray")
             || path.equals("features.xrayAlerts") || path.equals("features.reload")) {
             AntiXray.requestRebuild();
+        }
+        if (path.startsWith("discord.") || path.equals("features.reload")) {
+            com.arthou.smputilities.discord.DiscordBridge.reload();
         }
         if (path.startsWith("nicknames.") || path.equals("features.nicknames")) {
             for (ServerPlayer player : server.getPlayerList().getPlayers()) {

@@ -41,7 +41,7 @@ public final class SmokeTest {
         "net.minecraft.world.level.Explosion",
         "net.minecraft.world.level.ServerExplosion");
     /** Run as the console; command errors are logged by the game, which the CI step looks for. */
-    private static final List<String> COMMANDS = List.of("su", "su reload", "help", "su reports", "su restart", "su xray", "su log lookup t:1h r:#world", "rules", "list");
+    private static final List<String> COMMANDS = List.of("su", "su reload", "help", "su reports", "su restart", "su xray", "su log lookup t:1h r:#world", "su maintenance", "su jail list", "rules", "list");
     private static int ticks;
 
     private SmokeTest() {

@@ -42,6 +42,10 @@ public final class SuConfig {
     public AntiXray antiXray = new AntiXray();
     public XrayAlerts xrayAlerts = new XrayAlerts();
     public BlockLog blockLog = new BlockLog();
+    public Alts alts = new Alts();
+    public Discord discord = new Discord();
+    public Maintenance maintenance = new Maintenance();
+    public Jail jail = new Jail();
     public Permissions permissions = new Permissions();
 
     /** Master switches. A disabled system registers no listeners or commands. */
@@ -72,6 +76,12 @@ public final class SuConfig {
         public boolean xrayAlerts = true;
         /** Log who breaks and places blocks and moves items in containers, with lookups and rollbacks; see blockLog. */
         public boolean blockLog = true;
+        /** Tell staff when a player joins from an IP another account used; see alts. */
+        public boolean alts = true;
+        /** Blocked words and advertising in chat; see chat.filter. */
+        public boolean chatFilter = true;
+        /** Freeze and jail players (/su freeze, /su jail). */
+        public boolean freezeJail = true;
     }
 
     public static final class Chat {
@@ -101,8 +111,20 @@ public final class SuConfig {
         public boolean history = true;
         /** Days of chat history kept (0 keeps everything). */
         public int historyDays = 30;
+        public Filter filter = new Filter();
         public Spam spam = new Spam();
         public Mentions mentions = new Mentions();
+    }
+
+    public static final class Filter {
+        /** Words to catch: matched inside words, or whole words only with "=" in front ("=ass"). */
+        public List<String> words = new ArrayList<>();
+        /** "censor" sends the line with the words as ***, "block" does not send it. */
+        public String mode = "censor";
+        /** Also block IPv4 addresses and Discord invites. */
+        public boolean blockAdvertising = false;
+        /** Show staff what was caught. */
+        public boolean notifyStaff = true;
     }
 
     public static final class Spam {
@@ -463,6 +485,46 @@ public final class SuConfig {
         public int maxChanges = 100_000;
         /** Changes made per tick while a rollback runs. */
         public int changesPerTick = 500;
+    }
+
+    public static final class Alts {
+        public boolean notifyStaff = true;
+        /** Refuse players who share an IP with a banned account (ban evasion). */
+        public boolean blockBannedAlts = false;
+        /** IPs remembered per player. */
+        public int maxIps = 10;
+    }
+
+    public static final class Discord {
+        /** Webhook for the public channel: chat, joins and quits, deaths, server start and stop. Empty = off. */
+        public String webhookUrl = "";
+        /** Webhook for the staff channel: staff actions, reports, x-ray alerts, alts. Empty = off. */
+        public String staffWebhookUrl = "";
+        /** Name the messages are posted as; empty = the webhook's own name. */
+        public String username = "";
+        public boolean chat = true;
+        public boolean joinQuit = true;
+        public boolean deaths = true;
+        public boolean serverStatus = true;
+        public boolean staffActions = true;
+        public boolean reports = true;
+        public boolean xrayAlerts = true;
+        public boolean altAlerts = true;
+    }
+
+    public static final class Maintenance {
+        /** Only players with smputilities.maintenance.bypass can join. */
+        public boolean enabled = false;
+        public String message = "&cThe server is under maintenance. Come back soon!";
+        /** Kick players without the bypass when maintenance starts. */
+        public boolean kickOnline = true;
+    }
+
+    public static final class Jail {
+        /** Jail name -> location, set with /su jail set <name>. */
+        public Map<String, com.arthou.smputilities.core.teleport.Location> jails = new LinkedHashMap<>();
+        /** Jailed players are brought back when they walk further than this from the jail. */
+        public int radius = 6;
     }
 
     public static final class Permissions {

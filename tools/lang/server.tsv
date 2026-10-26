@@ -1,0 +1,109 @@
+alts.notice	%1$s shares an IP with: %2$s	%1$s compartilha IP com: %2$s
+alts.refused	An account that shares your connection is banned.	Uma conta que usa a mesma conexão que você está banida.
+alts.header	%1$s · recent IPs: %2$s	%1$s · IPs recentes: %2$s
+alts.none	No other account used these IPs.	Nenhuma outra conta usou esses IPs.
+discord.started	🟢 The server is online.	🟢 O servidor está online.
+discord.stopped	🔴 The server stopped.	🔴 O servidor foi desligado.
+discord.join	➕ **%s** joined the server.	➕ **%s** entrou no servidor.
+discord.quit	➖ **%s** left the server.	➖ **%s** saiu do servidor.
+maintenance.on	Maintenance mode is on: only staff can join.	Modo manutenção ligado: só a staff pode entrar.
+maintenance.off	Maintenance mode is off.	Modo manutenção desligado.
+maintenance.status.on	Maintenance mode is on. Use /su maintenance off to end it.	O modo manutenção está ligado. Use /su maintenance off para encerrar.
+maintenance.status.off	Maintenance mode is off. Use /su maintenance on [message] to start it.	O modo manutenção está desligado. Use /su maintenance on [mensagem] para ligar.
+whitelist.bad_name	"%s" is not a valid player name.	"%s" não é um nome de jogador válido.
+whitelist.done.add	%s was added to the whitelist.	%s foi adicionado à whitelist.
+whitelist.done.remove	%s was removed from the whitelist.	%s foi removido da whitelist.
+whitelist.done.on	The whitelist is on.	A whitelist está ligada.
+whitelist.done.off	The whitelist is off.	A whitelist está desligada.
+chat.filter.blocked	Your message was not sent: it has a blocked word or link.	Sua mensagem não foi enviada: ela tem uma palavra ou link bloqueado.
+chat.filter.staff_blocked	[Filter] Blocked from %1$s: %2$s	[Filtro] Bloqueado de %1$s: %2$s
+chat.filter.staff_censored	[Filter] Censored from %1$s: %2$s	[Filtro] Censurado de %1$s: %2$s
+freeze.on	%s is frozen.	%s foi congelado.
+freeze.off	%s is no longer frozen.	%s não está mais congelado.
+freeze.you	You were frozen by staff. Don't log out: wait for instructions.	Você foi congelado pela staff. Não saia: aguarde instruções.
+freeze.you_off	You are no longer frozen.	Você não está mais congelado.
+freeze.still	You are still frozen. Wait for staff.	Você continua congelado. Aguarde a staff.
+freeze.no_teleport	You can't teleport while frozen.	Você não pode se teleportar congelado.
+freeze.logged_out	%s logged out while frozen.	%s saiu do servidor enquanto estava congelado.
+jail.done	%1$s was sent to jail %2$s.	%1$s foi mandado para a prisão %2$s.
+jail.list	Jails: %s	Prisões: %s
+jail.none	No jail was set. Use /su jail set <name> where you stand.	Nenhuma prisão foi definida. Use /su jail set <nome> onde você está.
+jail.not_jailed	%s is not in jail.	%s não está preso.
+jail.released	You were released from jail.	Você foi solto da prisão.
+jail.released_staff	%s was released from jail.	%s foi solto da prisão.
+jail.removed	Jail %s removed.	Prisão %s removida.
+jail.set	Jail %s set here.	Prisão %s definida aqui.
+jail.still	You are still in jail. Reason: %s	Você continua preso. Motivo: %s
+jail.unknown	There is no jail called %s.	Não existe prisão chamada %s.
+jail.you	You were jailed. Reason: %1$s · time: %2$s	Você foi preso. Motivo: %1$s · tempo: %2$s
+jail.no_teleport	You can't teleport out of jail.	Você não pode se teleportar para fora da prisão.
+lag.cleared	Removed %s entities.	%s entidades removidas.
+inventory.offline_busy	Another staff member is editing this offline inventory; it opens read-only.	Outro membro da staff está editando esse inventário offline; ele abre só para leitura.
+panel.smputilities.tab.server	Server	Servidor
+panel.smputilities.tab.server.hint	Performance, lag clean-up, maintenance and whitelist	Desempenho, limpeza de lag, manutenção e whitelist
+panel.smputilities.section.performance	Performance	Desempenho
+panel.smputilities.section.hotspots	Busiest chunks	Chunks mais cheios
+panel.smputilities.section.access	Access	Acesso
+panel.smputilities.lag.server	Server	Servidor
+panel.smputilities.col.tps	TPS	TPS
+panel.smputilities.col.mspt	MSPT	MSPT
+panel.smputilities.col.chunks	Chunks	Chunks
+panel.smputilities.col.entities	Entities	Entidades
+panel.smputilities.col.items	Items	Itens
+panel.smputilities.col.orbs_hostile	XP / hostile	XP / hostis
+panel.smputilities.col.top	Most common	Mais comum
+panel.smputilities.button.clear_items	Clear items	Limpar itens
+panel.smputilities.button.clear_xp	Clear XP orbs	Limpar orbes de XP
+panel.smputilities.button.clear_hostile	Clear hostile mobs	Limpar mobs hostis
+panel.smputilities.confirm.clear_items	Remove every dropped item in all dimensions?	Remover todos os itens no chão em todas as dimensões?
+panel.smputilities.confirm.clear_xp	Remove every XP orb in all dimensions?	Remover todos os orbes de XP em todas as dimensões?
+panel.smputilities.confirm.clear_hostile	Remove hostile mobs in all dimensions? Named and persistent mobs stay.	Remover mobs hostis em todas as dimensões? Mobs com nome ou persistentes ficam.
+panel.smputilities.toggle.maintenance	Maintenance mode	Modo manutenção
+panel.smputilities.toggle.whitelist	Whitelist	Whitelist
+panel.smputilities.button.maintenance_on	Turn on	Ligar
+panel.smputilities.maintenance.note	Players without staff permission are kicked and can't join until it ends. Leave the message empty to use the configured one.	Jogadores sem permissão de staff são expulsos e não entram até acabar. Deixe a mensagem vazia para usar a configurada.
+panel.smputilities.field.maintenance_message	Message	Mensagem
+panel.smputilities.field.maintenance_message.hint	optional, & colors	opcional, cores com &
+panel.smputilities.confirm.whitelist_on	Turn the whitelist on? Players not on it are kicked.	Ligar a whitelist? Quem não estiver nela é expulso.
+panel.smputilities.confirm.whitelist_remove	Remove %s from the whitelist?	Remover %s da whitelist?
+panel.smputilities.button.whitelist_add	Add to whitelist	Adicionar à whitelist
+panel.smputilities.whitelist.note	The player's exact Minecraft name.	O nome exato do jogador no Minecraft.
+panel.smputilities.whitelist.empty	The whitelist is empty.	A whitelist está vazia.
+panel.smputilities.action.freeze	Freeze	Congelar
+panel.smputilities.action.unfreeze	Unfreeze	Descongelar
+panel.smputilities.action.jail	Jail	Prender
+panel.smputilities.action.unjail	Release	Soltar
+panel.smputilities.confirm.unjail	Release %s from jail?	Soltar %s da prisão?
+panel.smputilities.field.jail	Jail	Prisão
+panel.smputilities.field.jail.hint	jail name	nome da prisão
+panel.smputilities.jail.note	Jail for %1$s: %2$s. Duration: 30m, 2h, 7d or empty until released.	Prisão para %1$s: %2$s. Duração: 30m, 2h, 7d ou vazio até ser solto.
+panel.smputilities.jail.none_set	Set a jail first: /su jail set <name>	Defina uma prisão antes: /su jail set <nome>
+panel.smputilities.info.alts	Shared IP	IP compartilhado
+panel.smputilities.info.restrained	Restrained	Contido
+panel.smputilities.info.frozen	Frozen	Congelado
+panel.smputilities.info.jailed	Jail: %s	Prisão: %s
+setting.smputilities.features.alts	Alt detection by IP	Detecção de contas alternativas por IP
+setting.smputilities.features.chatFilter	Chat filter (words and advertising)	Filtro do chat (palavras e divulgação)
+setting.smputilities.features.freezeJail	Freeze and jail	Congelar e prisão
+setting.smputilities.chat.filter.words	Blocked words, comma separated; "=word" matches only the whole word	Palavras bloqueadas, separadas por vírgula; "=palavra" só pega a palavra inteira
+setting.smputilities.chat.filter.mode	censor (replace with ***) or block (don't send)	censor (troca por ***) ou block (não envia)
+setting.smputilities.chat.filter.blockAdvertising	Block IP addresses and Discord invites	Bloquear endereços IP e convites do Discord
+setting.smputilities.chat.filter.notifyStaff	Tell staff what the filter caught	Avisar a staff do que o filtro pegou
+setting.smputilities.alts.notifyStaff	Tell staff when a player shares an IP with another account	Avisar a staff quando um jogador compartilha IP com outra conta
+setting.smputilities.alts.blockBannedAlts	Refuse players who share an IP with a banned account	Recusar jogadores que compartilham IP com uma conta banida
+setting.smputilities.alts.maxIps	Recent IPs kept per player	IPs recentes guardados por jogador
+setting.smputilities.discord.webhookUrl	Discord webhook for the public channel (empty = off)	Webhook do Discord para o canal público (vazio = desligado)
+setting.smputilities.discord.staffWebhookUrl	Discord webhook for the staff channel (empty = off)	Webhook do Discord para o canal da staff (vazio = desligado)
+setting.smputilities.discord.username	Name shown on Discord messages (empty = the webhook's)	Nome mostrado nas mensagens do Discord (vazio = o do webhook)
+setting.smputilities.discord.chat	Send chat to Discord	Enviar o chat para o Discord
+setting.smputilities.discord.joinQuit	Send joins and quits to Discord	Enviar entradas e saídas para o Discord
+setting.smputilities.discord.deaths	Send deaths to Discord	Enviar mortes para o Discord
+setting.smputilities.discord.serverStatus	Send server start and stop to Discord	Enviar início e parada do servidor para o Discord
+setting.smputilities.discord.staffActions	Send staff actions to the staff webhook	Enviar ações da staff para o webhook da staff
+setting.smputilities.discord.reports	Send reports to the staff webhook	Enviar denúncias para o webhook da staff
+setting.smputilities.discord.xrayAlerts	Send suspicious x-ray alerts to the staff webhook	Enviar alertas suspeitos de x-ray para o webhook da staff
+setting.smputilities.discord.altAlerts	Send alt alerts to the staff webhook	Enviar alertas de contas alternativas para o webhook da staff
+setting.smputilities.maintenance.enabled	Maintenance mode: only staff can join	Modo manutenção: só a staff entra
+setting.smputilities.maintenance.message	Message shown to players kept out by maintenance (& colors)	Mensagem para quem fica de fora na manutenção (cores com &)
+setting.smputilities.maintenance.kickOnline	Kick online players without permission when maintenance starts	Expulsar jogadores sem permissão quando a manutenção começa
+setting.smputilities.jail.radius	How far a jailed player may walk from the jail	Até onde um jogador preso pode andar a partir da prisão

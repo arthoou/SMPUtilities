@@ -5,6 +5,7 @@ import com.arthou.smputilities.core.perm.Perm;
 import com.arthou.smputilities.core.report.Report;
 import com.arthou.smputilities.core.teleport.Cooldowns;
 import com.arthou.smputilities.core.util.Durations;
+import com.arthou.smputilities.discord.DiscordBridge;
 import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.server.Lang;
@@ -94,6 +95,7 @@ public final class ReportService {
             }
         }
         Mc.console(source.getServer(), Texts.literal(Lang.format(Lang.EN, "report.notice", report.id, report.reporterName, report.targetName, report.reason)));
+        DiscordBridge.report(report.id, report.reporterName, report.targetName, report.reason);
         return 1;
     }
 

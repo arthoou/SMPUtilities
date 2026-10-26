@@ -25,6 +25,11 @@ public final class PlayerRecord {
     public long lastSeen;
     public long lastLogin;
     public int joinCount;
+    /** Recent IPs, newest first (for alt detection). */
+    public List<String> ips = new ArrayList<>();
+    /** Set while the player is jailed. */
+    public Jailing jailed;
+    public boolean frozen;
 
     public List<StaffNote> notes = new ArrayList<>();
     /** Free RP statistics editable by staff, e.g. "Reputação" -> "12". */
@@ -57,6 +62,19 @@ public final class PlayerRecord {
 
     public int ttsMode;
     public String ttsLanguage = "";
+
+    public static final class Jailing {
+        public String jail = "";
+        public String reason = "";
+        public String by = "";
+        /** 0 = until released. */
+        public long until;
+        /** Where they go when released. */
+        public Location from;
+
+        public Jailing() {
+        }
+    }
 
     public static final class StaffNote {
         public long time;

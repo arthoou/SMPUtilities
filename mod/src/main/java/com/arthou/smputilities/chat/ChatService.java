@@ -1,10 +1,12 @@
 package com.arthou.smputilities.chat;
 
+import com.arthou.smputilities.discord.DiscordBridge;
 import com.arthou.smputilities.mc.Ids;
 import com.arthou.smputilities.mc.Texts;
 import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.core.chat.MentionFinder;
 import com.arthou.smputilities.core.chat.Placeholders;
+import com.arthou.smputilities.core.chat.ChatFilter;
 import com.arthou.smputilities.core.chat.SpamGuard;
 import com.arthou.smputilities.core.chat.StyledText;
 import com.arthou.smputilities.core.config.SuConfig;
@@ -74,6 +76,14 @@ public final class ChatService {
         if (config.chat.history) {
             context.chatHistory().append(System.currentTimeMillis(), player.getUUID(), Names.realName(player), text);
         }
+        ChatFilter.Result filtered = ChatFilters.check(player, text);
+        if (filtered != null && filtered.verdict() == ChatFilter.Verdict.BLOCKED) {
+            return true;
+        }
+        boolean censored = filtered != null;
+        if (censored) {
+            text = filtered.text();
+        }
         // The garbled-chat prank: everyone sees nonsense instead of the line.
         String garbled = TrollService.garble(player, text);
         if (garbled != null) {
@@ -95,8 +105,14 @@ public final class ChatService {
         }
 
         Set<UUID> mentioned = playMentions(player, text);
+        DiscordBridge.chat(player, text);
         if (!config.chat.customFormat) {
-            return false;
+            if (!censored) {
+                return false;
+            }
+            // The game would send the line as typed; send the censored one instead.
+            broadcastLine(player, Texts.translatable("chat.type.text", player.getDisplayName(), text));
+            return true;
         }
         broadcastFormatted(player, text, mentioned);
         return true;
@@ -394,6 +410,9 @@ public final class ChatService {
                 continue;
             }
             Mc.send(recipient, showsRealNames(recipient) ? staffLine : publicLine);
+        }
+        if (!hidden && !fake) {
+            DiscordBridge.presence(player, join);
         }
     }
 

@@ -44,6 +44,15 @@ public enum Perm {
     STAFF_BLOCKLOG("smputilities.staff.blocklog", 2),
     /** Roll changes back and restore them. */
     STAFF_ROLLBACK("smputilities.staff.rollback", 3),
+    /** See accounts that share IPs, and the IPs. */
+    STAFF_ALTS("smputilities.staff.alts", 3),
+    STAFF_WHITELIST("smputilities.staff.whitelist", 3),
+    STAFF_FREEZE("smputilities.staff.freeze", 2),
+    STAFF_JAIL("smputilities.staff.jail", 2),
+    /** Server performance view and entity clean-up. */
+    STAFF_LAG("smputilities.staff.lag", 3),
+    ADMIN_MAINTENANCE("smputilities.admin.maintenance", 3),
+    MAINTENANCE_BYPASS("smputilities.maintenance.bypass", 2),
 
     ADMIN_SETTINGS("smputilities.admin.settings", 4),
     ADMIN_RELOAD("smputilities.admin.reload", 4),
@@ -55,6 +64,7 @@ public enum Perm {
     CHAT_COLOR("smputilities.chat.color", 2),
     CHAT_MSG("smputilities.chat.msg", 0),
     CHAT_HISTORY("smputilities.chat.history", 2),
+    CHAT_BYPASS_FILTER("smputilities.chat.bypass.filter", 2),
 
     NICKNAME_CHANGE("smputilities.nickname.change", 0),
     NICKNAME_COLOR("smputilities.nickname.color", 0),

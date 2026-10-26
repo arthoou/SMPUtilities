@@ -10,10 +10,13 @@ import com.arthou.smputilities.chat.ChatService;
 import com.arthou.smputilities.chat.PresenceFilter;
 import com.arthou.smputilities.core.util.SuLog;
 import com.arthou.smputilities.dimension.DimensionService;
+import com.arthou.smputilities.discord.DiscordBridge;
 import com.arthou.smputilities.inventory.TargetInventoryMenu;
 import com.arthou.smputilities.mc.Ids;
 import com.arthou.smputilities.mc.Mc;
 import com.arthou.smputilities.migrate.LegacyImport;
+import com.arthou.smputilities.moderation.AltService;
+import com.arthou.smputilities.moderation.FreezeJailService;
 import com.arthou.smputilities.moderation.PunishmentService;
 import com.arthou.smputilities.modsync.ModSyncServer;
 import com.arthou.smputilities.network.SuNetwork;
@@ -90,16 +93,19 @@ public final class CommonEvents {
         LegacyImport.run(server, context);
         ModSyncServer.onServerStart();
         SuLog.guard("anti-xray", server, AntiXray::onServerStart);
+        SuLog.guard("discord", server, value -> DiscordBridge.onServerStart());
     }
 
     /** Before the worlds are saved: pranks put back the blocks they placed. */
     public static void serverStopping(MinecraftServer server) {
         SuLog.guard("prank cleanup", server, TrollService::stop);
+        SuLog.guard("discord", server, value -> DiscordBridge.onServerStop());
     }
 
     public static void serverStopped(MinecraftServer server) {
         AntiXray.onServerStop();
         BlockLogService.onServerStop();
+        FreezeJailService.onServerStop();
         ModSyncServer.onServerStop();
         BackupService.onServerStop();
         ProfileService.onServerStop();
@@ -120,6 +126,7 @@ public final class CommonEvents {
         AntiXray.tick(server);
         BlockLogService.tick();
         BlockLogCommands.tick(server);
+        SuLog.guard("freeze and jail", server, FreezeJailService::tick);
         ticks++;
         if (ticks % 20 == 0) {
             PermCache.clear();
@@ -158,12 +165,16 @@ public final class CommonEvents {
             record.lastSeen = now;
             record.joinCount++;
         });
+        if (!AltService.onLogin(player)) {
+            return;
+        }
         PresenceFilter.install(player);
         AfkService.onLogin(player);
         SuLog.guard("punishment login check", player, PunishmentService::onLogin);
         SuLog.guard("profile check", player, ProfileService::onLogin);
         SuLog.guard("offline edit hand-over", player, TargetInventoryMenu::onTargetLogin);
         SuLog.guard("vanish", player, VanishService::onLogin);
+        SuLog.guard("freeze and jail", player, FreezeJailService::onLogin);
         Platform.get().refreshNames(player);
         SuLog.guard("join message", player, value -> ChatService.broadcastPresence(value, true, false));
         SuLog.guard("welcome", player, value -> WelcomeService.onLogin(value, firstJoin[0]));
@@ -196,6 +207,7 @@ public final class CommonEvents {
         TrollService.forget(player);
         XrayAlerts.forget(player);
         BlockLogService.forget(player);
+        FreezeJailService.onLogout(player);
         DimensionService.forget(player);
         VanishService.onLogout(player);
         ModSyncServer.onLogout(player);
@@ -225,6 +237,7 @@ public final class CommonEvents {
         }
         SuLog.guard("death backup", player, value -> BackupService.onDeath(value, cause));
         SuLog.guard("death location", player, InfoCommands::deathLocation);
+        SuLog.guard("discord death", player, DiscordBridge::death);
         if (SuServer.config().teleport.backOnDeath) {
             context.players().update(player.getUUID(), record -> record.back = Teleports.locationOf(player));
         }
@@ -270,7 +283,7 @@ public final class CommonEvents {
 
     /** Right click on a block. @return true to cancel */
     public static boolean useBlock(ServerPlayer player, ServerLevel level, BlockPos pos, ItemStack stack) {
-        if (BlockLogService.inspect(player, level, pos)) {
+        if (BlockLogService.inspect(player, level, pos) || FreezeJailService.isFrozen(player)) {
             return true;
         }
         return PortalService.onEyeUse(player, level, pos, stack);
