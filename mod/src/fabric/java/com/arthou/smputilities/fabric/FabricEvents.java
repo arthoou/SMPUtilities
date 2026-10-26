@@ -62,7 +62,7 @@ public final class FabricEvents {
         // INIT runs while the player is being placed, before the vanilla join line is broadcast.
         ServerPlayConnectionEvents.INIT.register((handler, server) -> CommonEvents.beforeJoinMessage(handler.player));
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> CommonEvents.login(handler.player));
-        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> CommonEvents.logout(handler.player));
+        // Logout: PlayerListMixin (DISCONNECT can run on the network thread).
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) ->
             CommonEvents.changedDimension(player, destination.dimension()));
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> CommonEvents.respawn(newPlayer, alive));

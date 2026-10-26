@@ -19,7 +19,9 @@ Um jar por versão do jogo e loader (`SMPutilities-<versão>-<loader>.jar`), tod
 
 Cada jar cobre a sua linha de versão (por exemplo o de 1.21.4 aceita só 1.21.4; o de 1.18.2, a 1.18.x).
 O CI compila os 35 alvos e sobe um servidor dedicado de cada um (smoke test: carrega todas as classes
-que os mixins alteram, roda comandos e desliga). No Forge 1.21.11 o teste usa um servidor Forge instalado
+que os mixins alteram, roda comandos e desliga). Nos 13 alvos Fabric um cliente vanilla de verdade
+([mineflayer](https://github.com/PrismarineJS/mineflayer), em `tools/client-smoke`) entra no servidor, lê os
+chunks recebidos e confere o anti-xray. No Forge 1.21.11 o teste usa um servidor Forge instalado
 pelo instalador oficial com o jar em `mods/`, porque o ambiente de desenvolvimento do Loom não inicia o
 jogo nessa versão. Isso não substitui testar em jogo — veja
 [Limitações conhecidas](#limitações-conhecidas).
@@ -142,7 +144,9 @@ próprio mundo e segura os pacotes na conexão. Aqui só o pacote muda: o chunk 
 criado, e os blocos são escondidos quando a thread de rede escreve o pacote. O mundo salvo nunca é alterado, e a
 ordem dos pacotes continua a mesma. Os ganchos (pacote de chunk, envio de chunks, quebra de bloco, `setBlock`)
 são os mesmos da 1.18.2 à 1.21.11, só o formato do pacote muda (a partir da 1.21.5 o tamanho do array não vai
-mais no pacote). No CI, cada versão monta pacotes de chunk do spawn, esconde os blocos e confere o resultado.
+mais no pacote). No CI, cada versão monta pacotes de chunk do spawn, esconde os blocos e confere o resultado; no
+Fabric, um cliente vanilla entra numa sala de netherrack no Nether e confere que os minérios enterrados chegam
+como netherrack e os expostos chegam como são.
 
 Os alertas de x-ray contam os veios de minérios valiosos que cada jogador acha (`xrayAlerts.thresholds`:
 diamante, detritos ancestrais e esmeralda por padrão). A staff com `smputilities.xray.alerts` é avisada a cada
@@ -343,7 +347,7 @@ DuTTS (vozes) e HiddenNames (nomes e animações das placas). Os comandos antigo
 * Sincronização de mods: um jar com o mesmo nome e preso pelo Windows é deixado em
   `config/smputilities/modsync-client/pending/` para substituir manualmente.
 * **Testado no CI, não em jogo**: os 35 jars compilam e o servidor de cada um sobe, aplica os mixins e roda
-  comandos, mas a parte visual (painel, balões, HUD) e o jogo com jogadores reais precisam de teste num
+  comandos (no Fabric, com um cliente vanilla entrando de verdade), mas a parte visual (painel, balões, HUD) e o jogo com jogadores reais precisam de teste num
   servidor de testes antes de produção.
 
 ## Multi-loader e multi-versão
@@ -413,7 +417,8 @@ standalone mods it replaces.
 One shared code base builds 35 jars: Fabric and Forge for 1.18.2, 1.19.2, 1.19.4, 1.20.1, 1.20.4, 1.20.6,
 1.21.1, 1.21.3, 1.21.4, 1.21.5, 1.21.8, 1.21.10 and 1.21.11, and NeoForge from 1.20.4. Version differences
 live in `mod/src/main/java/.../mc` and a small source preprocessor (`//#if MC>=1.21.5`); loader glue lives
-in `mod/src/<loader>`. CI compiles every target and boots a dedicated server for each (smoke test); it has
-not been played in game yet.
+in `mod/src/<loader>`. CI compiles every target and boots a dedicated server for each (smoke test); on
+the 13 Fabric targets a vanilla client (mineflayer) also joins and checks the chunks it gets, anti-xray included.
+It has not been played in game yet.
 
 All rights reserved (c) 2026 arthou; see `LICENSE` and `THIRD_PARTY_NOTICES.md`.

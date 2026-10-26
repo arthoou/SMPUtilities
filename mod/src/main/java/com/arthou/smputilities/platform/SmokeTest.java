@@ -138,10 +138,16 @@ public final class SmokeTest {
     }
 
     static void onLogout(ServerPlayer player) {
-        if (isBot(player)) {
-            SmpUtilities.LOGGER.info("SMPUTILITIES SMOKE OK (client left)");
-            Mc.server(player).halt(false);
+        if (!isBot(player)) {
+            return;
         }
+        MinecraftServer server = Mc.server(player);
+        if (!server.isSameThread()) {
+            SmpUtilities.LOGGER.error("SMPUTILITIES SMOKE FAILED: logout ran on {}, not the server thread", Thread.currentThread().getName());
+            Runtime.getRuntime().halt(1);
+        }
+        SmpUtilities.LOGGER.info("SMPUTILITIES SMOKE OK (client left)");
+        server.halt(false);
     }
 
     /** @return true for the bot's own requests, which are not chat */
