@@ -1,0 +1,26 @@
+# APIs for anti-xray, block logging, alts, maintenance, whitelist and lag tools
+net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData | .
+code:net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData | LevelChunkSection|getSerializedSize|extractChunkData|calculateChunkSize|getSections
+net.minecraft.world.level.chunk.LevelChunkSection | .
+code:net.minecraft.world.level.chunk.LevelChunkSection | writeShort|write|getSerializedSize|nonEmptyBlockCount|biomes|states
+net.minecraft.world.level.chunk.PalettedContainer | copy|write\(|getSerializedSize|maybeHas|getAll|get\(|set\(|getAndSet|count\(
+net.minecraft.world.level.chunk.PalettedContainerRO | write|getSerializedSize
+net.minecraft.world.level.chunk.LevelChunk | getSections|getSection\(|getBlockState
+net.minecraft.world.level.chunk.ChunkAccess | getSections|getSection\(|getMinSection|getMinSectionY|getSectionIndex|getMinBuildHeight|getMinY
+net.minecraft.server.level.ServerChunkCache | blockChanged|getChunkNow|getChunk\(
+net.minecraft.server.level.ServerPlayerGameMode | handleBlockBreakAction|destroyBlock|level|player
+net.minecraft.world.item.BlockItem | place\(
+net.minecraft.world.InteractionResult | consumesAction|SUCCESS
+net.minecraft.world.level.block.Block | isShapeFullBlock|BLOCK_STATE_REGISTRY
+net.minecraft.world.level.block.state.BlockBehaviour$BlockStateBase | getVisualShape|canOcclude|isAir
+net.minecraft.world.level.EmptyBlockGetter | INSTANCE
+net.minecraft.world.phys.shapes.CollisionContext | empty
+net.minecraft.core.IdMapper | getId|byId|size
+net.minecraft.nbt.NbtUtils | writeBlockState|readBlockState
+net.minecraft.nbt.TagParser | parseTag|parseCompoundFully|parseCompoundAsArgument
+net.minecraft.server.level.ServerPlayer | getIpAddress
+net.minecraft.server.players.PlayerList | canPlayerLogin|getWhiteList|getWhiteListNames|isWhiteListed|isUsingWhitelist|setUsingWhiteList|reloadWhiteList
+net.minecraft.server.MinecraftServer | setEnforceWhitelist|isEnforceWhitelist|kickUnlistedPlayers|getMotd|setMotd|getTickTime|tickTimes|getAverageTickTimeNanos
+net.minecraft.server.level.ServerLevel | getAllEntities|getEntities\(|getEntity\(|getAllEntitiesInternal
+net.minecraft.world.inventory.AbstractContainerMenu | slots|getItems|containerId
+net.minecraft.world.inventory.Slot | container|getItem|index
