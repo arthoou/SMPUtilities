@@ -76,7 +76,14 @@ jobs:
           name: SMPutilities-${{ matrix.target }}
           path: dist/*.jar
           if-no-files-found: error
-      - name: Smoke test (dedicated server)
+      - uses: actions/setup-node@v4
+        if: endsWith(matrix.target, '-fabric')
+        with:
+          node-version: 22
+      - name: Install the client smoke bot
+        if: endsWith(matrix.target, '-fabric')
+        run: npm install --no-audit --no-fund --prefix tools/client-smoke
+      - name: Smoke test (dedicated server, and a vanilla client on Fabric)
         run: tools/smoke.sh "${{ matrix.target }}"
 
   bundle:

@@ -1,0 +1,9 @@
+{
+  "name": "smputilities-client-smoke",
+  "private": true,
+  "description": "CI bot that joins the smoke test server as a vanilla client (see tools/smoke.sh)",
+  "dependencies": {
+    "mineflayer": "4.39.0",
+    "vec3": "0.1.10"
+  }
+}

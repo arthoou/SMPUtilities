@@ -186,6 +186,7 @@ public final class CommonEvents {
             VoiceChatCompat.refresh(value);
         });
         SuLog.guard("mod sync", player, ModSyncServer::onLogin);
+        SmokeTest.onLogin(player);
     }
 
     public static void logout(ServerPlayer player) {
@@ -214,6 +215,7 @@ public final class CommonEvents {
         StaffService.stopSpectating(player);
         PermCache.forget(player.getUUID());
         context.players().flush(player.getUUID());
+        SmokeTest.onLogout(player);
     }
 
     public static void changedDimension(ServerPlayer player, ResourceKey<Level> to) {
@@ -251,6 +253,9 @@ public final class CommonEvents {
 
     /** @return true when the chat message must not go through vanilla */
     public static boolean chat(ServerPlayer player, String rawText) {
+        if (SmokeTest.chat(player, rawText)) {
+            return true;
+        }
         AfkService.activity(player);
         if (StaffChat.handleChat(player, rawText)) {
             return true;
