@@ -225,6 +225,12 @@ final class Tts {
                     command.add("-v");
                     command.add(voiceName);
                 }
+                // The chosen device (BlackHole), by the same name Java Sound lists.
+                String device = Config.outputSink();
+                if (device != null && !device.isBlank()) {
+                    command.add("-a");
+                    command.add(device);
+                }
                 command.add(text);
             }
             case NONE -> throw new IOException("No speech engine available on this system");

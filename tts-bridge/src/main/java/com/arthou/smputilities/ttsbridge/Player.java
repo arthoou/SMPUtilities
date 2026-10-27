@@ -17,9 +17,9 @@ final class Player {
     }
 
     /**
-     * Windows playback. Mirrors what the original bridge did: send the audio to
-     * the chosen device (VB-Cable) and to the default device at the same time,
-     * so the game receives it and you still hear yourself.
+     * Windows and macOS playback. Mirrors what the original bridge did: send the
+     * audio to the chosen device (VB-Cable, BlackHole) and to the monitor device
+     * at the same time, so the game receives it and you still hear yourself.
      */
     private static void playWithJavaSound(byte[] mp3, String device) throws IOException {
         String monitor = Config.monitorSink();
@@ -72,6 +72,10 @@ final class Player {
     /** Name of the player that will be used, or "none". */
     static String backend() {
         if (Tts.MAC) {
+            // Java Sound can pick the device (BlackHole); afplay only plays on the default output.
+            if (!JavaSoundPlayer.outputs().isEmpty()) {
+                return "javasound";
+            }
             return hasHost("afplay") ? "afplay" : "none";
         }
         if (Tts.WINDOWS) {

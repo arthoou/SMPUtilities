@@ -236,9 +236,12 @@ O app de voz tem interface própria, em português ou inglês conforme o sistema
 voz animado, número de falas, vozes, reprodutor, checklist "Pronto para jogar" e um campo para testar a
 voz), **Microfone** (quatro passos: criar o microfone virtual, mandar a voz para ele, ouvir também,
 escolher no voice chat) e **Atividade** (registro). No Linux ele cria o cabo `SMPutilities_TTS_Cable` e o
-microfone **SMPutilities TTS Microphone** (escolha esse no voice chat); no Windows não dá para criar um
-microfone virtual sem driver, então instale o VB-Cable, escolha "CABLE Input" como saída da voz no app e
-"CABLE Output" como microfone no voice chat. Sem o app, só o TTS fica indisponível.
+microfone **SMPutilities TTS Microphone** (escolha esse no voice chat). No Windows e no macOS não dá para criar um
+microfone virtual sem driver: no Windows instale o VB-Cable, escolha "CABLE Input" como saída da voz no app e
+"CABLE Output" como microfone no voice chat; no macOS instale o BlackHole 2ch (grátis, ou `brew install blackhole-2ch`),
+escolha "BlackHole 2ch" como saída da voz no app e como microfone no voice chat, e libere o microfone para o Minecraft
+nos Ajustes do Sistema. "Ouça também" toca uma cópia nos seus fones em todos os sistemas. Sem o app, só o TTS fica
+indisponível.
 
 ### Mundo
 * `/su portal limit <nether|end|aether|id> <n|unlimited>`, `/su portal count|list|remove|clear`. Portais do

@@ -17,10 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * MP3 playback through Java Sound, used on Windows where there is no reliable
- * command line player. JLayer decodes the MP3 to PCM and the samples go to a
- * SourceDataLine opened on the mixer the user picked, which is how the audio
- * can be sent to VB-Cable and to the speakers at the same time.
+ * MP3 playback through Java Sound, used on Windows and macOS. JLayer decodes
+ * the MP3 to PCM and the samples go to a SourceDataLine opened on the mixer
+ * the user picked, which is how the audio can be sent to the cable (VB-Cable,
+ * BlackHole) and to the speakers at the same time.
  */
 final class JavaSoundPlayer {
     private JavaSoundPlayer() {

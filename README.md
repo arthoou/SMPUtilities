@@ -231,9 +231,12 @@ The voice app has its own interface, in Portuguese or English depending on the s
 voice meter, number of lines spoken, voices, player, a "Ready to play" checklist and a field to test the voice),
 **Microphone** (four steps: create the virtual microphone, send the voice to it, also listen, pick it in the voice
 chat) and **Activity** (log). On Linux it creates the `SMPutilities_TTS_Cable` cable and the **SMPutilities TTS
-Microphone** microphone (pick that one in the voice chat); on Windows a virtual microphone can't be created without
-a driver, so install VB-Cable, choose "CABLE Input" as the voice output in the app and "CABLE Output" as the
-microphone in the voice chat. Without the app, only TTS is unavailable.
+Microphone** microphone (pick that one in the voice chat). Windows and macOS can't create a virtual microphone without
+a driver: on Windows install VB-Cable, choose "CABLE Input" as the voice output in the app and "CABLE Output" as the
+microphone in the voice chat; on macOS install BlackHole 2ch (free, or `brew install blackhole-2ch`), choose
+"BlackHole 2ch" both as the voice output in the app and as the microphone in the voice chat, and allow Minecraft to use
+the microphone in System Settings. "Hear it yourself" plays a copy on your headphones on every system. Without the
+app, only TTS is unavailable.
 
 ### World
 * `/su portal limit <nether|end|aether|id> <n|unlimited>`, `/su portal count|list|remove|clear`. Nether portals are

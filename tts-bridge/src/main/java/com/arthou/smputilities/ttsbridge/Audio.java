@@ -8,11 +8,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * PulseAudio / PipeWire routing.
+ * Where the voice is played, per system.
  *
- * On Windows people use VB-Cable to feed synthesized speech into a game's
- * microphone. The Linux equivalent is a null sink: audio written to the sink
- * shows up on its ".monitor" source, which the game can pick as its mic.
+ * Linux: the app creates the cable itself with PulseAudio / PipeWire, a null
+ * sink whose ".monitor" source feeds a microphone the game can pick.
+ * Windows and macOS have no user-space virtual device, so a driver provides
+ * the cable (VB-Cable on Windows, BlackHole on macOS) and Java Sound plays
+ * the voice into it; the voice chat then picks the driver's input.
  */
 final class Audio {
     /** Sink name we create. Its monitor is what the game selects as microphone. */
@@ -65,13 +67,49 @@ final class Audio {
         return lines;
     }
 
+    /** Windows and macOS: the cable comes from a driver and the voice is played with Java Sound. */
+    static boolean usesDriverCable() {
+        return Tts.WINDOWS || Tts.MAC;
+    }
+
+    /** The driver that provides the cable on this system. */
+    static String driverName() {
+        return Tts.MAC ? "BlackHole" : "VB-Cable";
+    }
+
+    static String driverLink() {
+        return Tts.MAC ? "existential.audio/blackhole" : "vb-audio.com/Cable";
+    }
+
+    static String driverUrl() {
+        return Tts.MAC ? "https://existential.audio/blackhole/" : "https://vb-audio.com/Cable/";
+    }
+
+    /** The driver's playback device: where the voice goes. */
+    static String driverOutput() {
+        return Tts.MAC ? "BlackHole 2ch" : "CABLE Input";
+    }
+
+    /** The driver's recording device: what the voice chat picks as microphone. */
+    static String driverMicrophone() {
+        return Tts.MAC ? "BlackHole 2ch" : "CABLE Output (VB-Audio Virtual Cable)";
+    }
+
+    /** True for the device the voice should be played on: our Linux cable or the driver's input. */
+    static boolean isCable(String device) {
+        if (device == null || device.isBlank()) {
+            return false;
+        }
+        if (usesDriverCable()) {
+            return Tts.MAC ? device.contains("BlackHole") : device.contains("CABLE Input");
+        }
+        return device.equals(CABLE_SINK);
+    }
+
     /** True when the user can pick an output device on this platform. */
     static boolean available() {
-        if (Tts.WINDOWS) {
+        if (usesDriverCable()) {
             return !JavaSoundPlayer.outputs().isEmpty();
-        }
-        if (Tts.MAC) {
-            return false;
         }
         try {
             return !run(List.of("pactl", "--version")).isEmpty();
@@ -80,14 +118,14 @@ final class Audio {
         }
     }
 
-    /** Windows has no user-space virtual device: VB-Cable is a kernel driver. */
+    /** Only Linux can create the cable; Windows and macOS need the driver installed. */
     static boolean canCreateCable() {
-        return !Tts.WINDOWS && !Tts.MAC;
+        return !usesDriverCable();
     }
 
     /** Playback devices the speech can be sent to. */
     static List<Device> sinks() {
-        if (Tts.WINDOWS) {
+        if (usesDriverCable()) {
             return JavaSoundPlayer.outputs();
         }
 
@@ -106,7 +144,7 @@ final class Audio {
     }
 
     static boolean cableExists() {
-        return sinks().stream().anyMatch(d -> d.name().equals(CABLE_SINK));
+        return sinks().stream().anyMatch(d -> isCable(d.name()));
     }
 
     /**

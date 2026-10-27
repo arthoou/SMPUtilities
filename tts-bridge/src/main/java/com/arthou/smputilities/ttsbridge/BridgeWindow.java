@@ -231,14 +231,15 @@ final class BridgeWindow extends JFrame {
         if (Audio.canCreateCable()) {
             boolean mic = Audio.cableExists() && Audio.micExists();
             checkMic.set(mic, mic ? Audio.MIC_DESCRIPTION : t("Not created yet: open Microphone", "Ainda não criado: abra Microfone"));
-        } else if (Tts.WINDOWS) {
-            boolean cable = Audio.sinks().stream().anyMatch(device -> device.toString().contains("CABLE Input"));
-            checkMic.set(cable, cable ? "VB-Cable" : t("Install VB-Cable (vb-audio.com/Cable)", "Instale o VB-Cable (vb-audio.com/Cable)"));
+        } else if (Audio.usesDriverCable()) {
+            boolean cable = Audio.cableExists();
+            checkMic.set(cable, cable ? Audio.driverName()
+                : t("Install ", "Instale o ") + Audio.driverName() + " (" + Audio.driverLink() + ")");
         } else {
             checkMic.set(false, t("Not available on this system", "Não disponível neste sistema"));
         }
         String output = Config.outputSink();
-        boolean toCable = !output.isBlank() && (output.equals(Audio.CABLE_SINK) || output.contains("CABLE Input"));
+        boolean toCable = Audio.isCable(output);
         checkOutput.set(toCable, toCable ? t("Into the virtual microphone", "No microfone virtual")
             : t("Plays on your speakers: pick the cable", "Toca nos alto-falantes: escolha o cabo"));
     }
@@ -252,8 +253,9 @@ final class BridgeWindow extends JFrame {
 
         if (!Audio.available()) {
             Ui.Card card = Ui.section(t("Not available", "Não disponível"));
-            card.add(Ui.body(Tts.WINDOWS
-                ? t("Install VB-Cable, then pick \"CABLE Input\" as the voice output here.", "Instale o VB-Cable e escolha \"CABLE Input\" como saída da voz aqui.")
+            card.add(Ui.body(Audio.usesDriverCable()
+                ? t("Install " + Audio.driverName() + ", then pick \"" + Audio.driverOutput() + "\" as the voice output here.",
+                    "Instale o " + Audio.driverName() + " e escolha \"" + Audio.driverOutput() + "\" como saída da voz aqui.")
                 : t("PulseAudio / PipeWire tools were not found on this system.", "As ferramentas do PulseAudio / PipeWire não foram encontradas."),
                 Theme.TEXT, 12, Font.PLAIN));
             page.add(card);
@@ -272,10 +274,13 @@ final class BridgeWindow extends JFrame {
             first.add(Box.createVerticalStrut(10));
             first.add(Ui.row(create, remove));
         } else {
-            first.add(Ui.body(t("Windows needs a driver for a virtual microphone: install VB-Cable once.",
-                "O Windows precisa de um driver para ter um microfone virtual: instale o VB-Cable uma vez."), Theme.TEXT_DIM, 12, Font.PLAIN));
+            first.add(Ui.body(Tts.MAC
+                ? t("macOS needs a driver for a virtual microphone: install BlackHole 2ch once (free; or: brew install blackhole-2ch).",
+                    "O macOS precisa de um driver para ter um microfone virtual: instale o BlackHole 2ch uma vez (grátis; ou: brew install blackhole-2ch).")
+                : t("Windows needs a driver for a virtual microphone: install VB-Cable once.",
+                    "O Windows precisa de um driver para ter um microfone virtual: instale o VB-Cable uma vez."), Theme.TEXT_DIM, 12, Font.PLAIN));
             first.add(Box.createVerticalStrut(8));
-            first.add(Ui.link("vb-audio.com/Cable", "https://vb-audio.com/Cable/"));
+            first.add(Ui.link(Audio.driverLink(), Audio.driverUrl()));
         }
         page.add(first);
         page.add(Box.createVerticalStrut(12));
@@ -283,7 +288,7 @@ final class BridgeWindow extends JFrame {
         // 2. where the voice is played
         Ui.Card second = step(2, t("Send the voice into it", "Mande a voz para ele"));
         second.add(Ui.body(Audio.canCreateCable() ? t("Pick \"SMPutilities TTS Cable\".", "Escolha \"SMPutilities TTS Cable\".")
-            : t("Pick \"CABLE Input\".", "Escolha \"CABLE Input\"."), Theme.TEXT_DIM, 12, Font.PLAIN));
+            : t("Pick \"" + Audio.driverOutput() + "\".", "Escolha \"" + Audio.driverOutput() + "\"."), Theme.TEXT_DIM, 12, Font.PLAIN));
         second.add(Box.createVerticalStrut(8));
         JComboBox<Audio.Device> devices = combo();
         second.add(devices);
@@ -311,9 +316,15 @@ final class BridgeWindow extends JFrame {
         fourth.add(Ui.body(t("In Simple Voice Chat (or Discord), set the microphone to:", "No Simple Voice Chat (ou Discord), escolha o microfone:"),
             Theme.TEXT_DIM, 12, Font.PLAIN));
         fourth.add(Box.createVerticalStrut(6));
-        JLabel micName = Ui.body(Audio.canCreateCable() ? Audio.MIC_DESCRIPTION : "CABLE Output (VB-Audio Virtual Cable)", Theme.ACCENT, 13, Font.BOLD);
+        JLabel micName = Ui.body(Audio.canCreateCable() ? Audio.MIC_DESCRIPTION : Audio.driverMicrophone(), Theme.ACCENT, 13, Font.BOLD);
         micName.setFont(Theme.mono(Font.BOLD, 13));
         fourth.add(micName);
+        if (Tts.MAC) {
+            fourth.add(Box.createVerticalStrut(6));
+            fourth.add(Ui.body(t("macOS also asks for permission: allow Minecraft (or its launcher) in System Settings > Privacy & Security > Microphone.",
+                "O macOS também pede permissão: libere o Minecraft (ou o launcher) em Ajustes do Sistema > Privacidade e Segurança > Microfone."),
+                Theme.TEXT_DIM, 12, Font.PLAIN));
+        }
         fourth.add(Box.createVerticalStrut(10));
         Ui.PillButton copyName = new Ui.PillButton(t("Copy name", "Copiar nome"), false);
         copyName.addActionListener(e -> Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(micName.getText()), null));
@@ -362,7 +373,7 @@ final class BridgeWindow extends JFrame {
                 }
                 Audio.Device monitorMatch = null;
                 for (Audio.Device device : Audio.sinks()) {
-                    if (device.name().equals(Audio.CABLE_SINK)) {
+                    if (Audio.isCable(device.name())) {
                         continue;  // looping the cable into itself would feed back
                     }
                     monitors.addItem(device);
