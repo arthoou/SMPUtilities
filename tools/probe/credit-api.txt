@@ -1,0 +1,3 @@
+# "Made by arthou" on SMPutilities' menus (class | member regex)
+net.minecraft.client.gui.screens.inventory.AbstractContainerScreen | void render\(
+net.minecraft.network.chat.Style | withInsertion|getInsertion

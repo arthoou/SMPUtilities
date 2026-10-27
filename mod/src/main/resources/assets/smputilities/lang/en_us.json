@@ -846,7 +846,7 @@
   "setting.smputilities.inventory.maxDeathBackups": "Death backups kept",
   "setting.smputilities.inventory.periodicBackupMinutes": "Minutes between automatic backups (0 = off)",
   "setting.smputilities.jail.radius": "How far a jailed player may walk from the jail",
-  "setting.smputilities.language": "Message language: auto (each player's client), en_us or pt_br",
+  "setting.smputilities.language": "Message language: auto (each player's game language) or a code: en_us, pt_br, fr_fr, de_de, es_es, ru_ru, uk_ua, pl_pl",
   "setting.smputilities.maintenance.enabled": "Maintenance mode: only staff can join",
   "setting.smputilities.maintenance.kickOnline": "Kick online players without permission when maintenance starts",
   "setting.smputilities.maintenance.message": "Message shown to players kept out by maintenance (& colors)",

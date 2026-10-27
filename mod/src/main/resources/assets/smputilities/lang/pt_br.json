@@ -846,7 +846,7 @@
   "setting.smputilities.inventory.maxDeathBackups": "Backups de morte mantidos",
   "setting.smputilities.inventory.periodicBackupMinutes": "Minutos entre backups automáticos (0 = desligado)",
   "setting.smputilities.jail.radius": "Até onde um jogador preso pode andar a partir da prisão",
-  "setting.smputilities.language": "Idioma das mensagens: auto (o do cliente de cada jogador), en_us ou pt_br",
+  "setting.smputilities.language": "Idioma das mensagens: auto (o do jogo de cada jogador) ou um código: en_us, pt_br, fr_fr, de_de, es_es, ru_ru, uk_ua, pl_pl",
   "setting.smputilities.maintenance.enabled": "Modo manutenção: só a staff entra",
   "setting.smputilities.maintenance.kickOnline": "Expulsar jogadores sem permissão quando a manutenção começa",
   "setting.smputilities.maintenance.message": "Mensagem para quem fica de fora na manutenção (cores com &)",

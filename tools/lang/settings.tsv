@@ -1,4 +1,4 @@
-setting.smputilities.language	Message language: auto (each player's client), en_us or pt_br	Idioma das mensagens: auto (o do cliente de cada jogador), en_us ou pt_br
+setting.smputilities.language	Message language: auto (each player's game language) or a code: en_us, pt_br, fr_fr, de_de, es_es, ru_ru, uk_ua, pl_pl	Idioma das mensagens: auto (o do jogo de cada jogador) ou um código: en_us, pt_br, fr_fr, de_de, es_es, ru_ru, uk_ua, pl_pl
 setting.smputilities.features.chat	Chat system (mutes, lock, spam, format, mentions)	Sistema de chat (mutes, bloqueio, spam, formato, menções)
 setting.smputilities.features.staffPanel	Staff panel	Painel da staff
 setting.smputilities.features.vanish	Vanish	Vanish

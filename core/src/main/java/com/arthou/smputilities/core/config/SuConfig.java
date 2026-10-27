@@ -16,7 +16,7 @@ import java.util.Map;
 public final class SuConfig {
     public int configVersion = 1;
 
-    /** "auto" uses each player's client language; otherwise "en_us" or "pt_br". */
+    /** "auto" uses each player's client language; otherwise a game language code (en_us, pt_br, fr_fr, de_de, es_es, ru_ru, uk_ua, pl_pl). */
     public String language = "auto";
 
     public Features features = new Features();

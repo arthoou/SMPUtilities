@@ -59,7 +59,7 @@ public abstract class ButtonMenu extends AbstractContainerMenu {
     }
 
     public static void open(ServerPlayer player, Component title, Factory factory) {
-        player.openMenu(new SimpleMenuProvider((id, inventory, ignored) -> factory.create(id, inventory), title));
+        player.openMenu(new SimpleMenuProvider((id, inventory, ignored) -> factory.create(id, inventory), Texts.markMenu(title)));
     }
 
     protected abstract void onButton(int slot, ClickType clickType, int button);

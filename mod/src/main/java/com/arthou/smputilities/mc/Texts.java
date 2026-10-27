@@ -17,6 +17,21 @@ public final class Texts {
     private Texts() {
     }
 
+    /**
+     * Put in the style of the titles of the menus SMPutilities opens (as the
+     * shift-click insertion, which titles never use), so a client with the
+     * mod can tell them apart; vanilla clients ignore it.
+     */
+    public static final String MENU_MARK = "smputilities:menu";
+
+    public static MutableComponent markMenu(Component title) {
+        return title.copy().withStyle(style -> style.withInsertion(MENU_MARK));
+    }
+
+    public static boolean isMenuMarked(Component title) {
+        return title != null && MENU_MARK.equals(title.getStyle().getInsertion());
+    }
+
     public static MutableComponent literal(String text) {
         //#if MC>=1.19
         return Component.literal(text);

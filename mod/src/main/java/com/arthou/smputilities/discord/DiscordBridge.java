@@ -26,7 +26,7 @@ public final class DiscordBridge {
 
     /** Messages follow the server language setting ("auto" means English here). */
     public static String language() {
-        return Lang.PT.equals(SuServer.config().language) ? Lang.PT : Lang.EN;
+        return Lang.resolve(SuServer.config().language);
     }
 
     private static SuConfig.Discord config() {

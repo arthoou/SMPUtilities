@@ -1,424 +1,395 @@
 # SMPutilities
 
-Um único mod de gerenciamento para servidores SMP e de roleplay: painel da staff, chat, moderação, vanish,
-inventários (visualização, backups e perfis), nicknames de RP, TTS com balões de fala, limitador de portais,
-controle de dimensões, comandos de qualidade de vida, brincadeiras da staff e sincronização de mods.
+One management mod for SMP and roleplay servers: staff panel, chat, moderation, vanish, inventories (viewing,
+backups and profiles), RP nicknames, TTS with speech bubbles, portal limits, dimension access control,
+quality-of-life commands, staff pranks and mod sync.
 
-Made by [Arthou](https://discord.com/users/990003604725321808). Todos os direitos reservados (veja [LICENSE](LICENSE)).
+Made by [Arthou](https://discord.com/users/990003604725321808). All rights reserved (see [LICENSE](LICENSE)).
 
-*English summary at the end.*
+*Português: [README.pt-BR.md](README.pt-BR.md).*
 
-## Situação das versões
+## Supported versions
 
-Um jar por versão do jogo e loader (`SMPutilities-<versão>-<loader>.jar`), todos do mesmo código:
+One jar per game version and loader (`SMPutilities-<version>-<loader>.jar`), all from the same code:
 
 | Minecraft | Fabric | Forge | NeoForge |
 | --- | --- | --- | --- |
-| 1.18.2 · 1.19.2 · 1.19.4 · 1.20.1 | ✔ | ✔ | — (não existe; no NeoForge 1.20.1 use o jar Forge 1.20.1) |
+| 1.18.2 · 1.19.2 · 1.19.4 · 1.20.1 | ✔ | ✔ | — (does not exist; on NeoForge 1.20.1 use the Forge 1.20.1 jar) |
 | 1.20.4 · 1.20.6 · 1.21.1 · 1.21.3 · 1.21.4 · 1.21.5 · 1.21.8 · 1.21.10 · 1.21.11 | ✔ | ✔ | ✔ |
 
-Cada jar cobre a sua linha de versão (por exemplo o de 1.21.4 aceita só 1.21.4; o de 1.18.2, a 1.18.x).
-O CI compila os 35 alvos e sobe um servidor dedicado de cada um (smoke test: carrega todas as classes
-que os mixins alteram, roda comandos e desliga). Nos 13 alvos Fabric um cliente vanilla de verdade
-([mineflayer](https://github.com/PrismarineJS/mineflayer), em `tools/client-smoke`) entra no servidor, lê os
-chunks recebidos e confere o anti-xray. No Forge 1.21.11 o teste usa um servidor Forge instalado
-pelo instalador oficial com o jar em `mods/`, porque o ambiente de desenvolvimento do Loom não inicia o
-jogo nessa versão. Isso não substitui testar em jogo — veja
-[Limitações conhecidas](#limitações-conhecidas).
+Each jar covers its own version line (the 1.21.4 jar only accepts 1.21.4; the 1.18.2 jar, 1.18.x). CI
+compiles all 35 targets and boots a dedicated server for each one (smoke test: it loads every class the mixins
+change, runs commands and stops). On the 13 Fabric targets a real vanilla client
+([mineflayer](https://github.com/PrismarineJS/mineflayer), in `tools/client-smoke`) joins the server, reads the
+chunks it receives and checks the anti-xray. On Forge 1.21.11 the test uses a Forge server set up by the official
+installer with the jar in `mods/`, because Loom's development environment does not start the game on that
+version. None of this replaces testing in game — see [Known limitations](#known-limitations).
 
-## Instalação
+## Installation
 
-* **Servidor:** coloque o jar do seu loader/versão em `mods/`. No Fabric é preciso o Fabric API.
-* **Clientes:** opcional. Sem o mod no cliente, o jogador entra normalmente e recebe chat, mensagens,
-  menus de baú, vanish, nicknames no chat/TAB, sons de menção, etc. O mod no cliente é necessário para o
-  painel da staff, nicknames acima da cabeça, balões de fala, TTS e sincronização de mods. Cliente e
-  servidor precisam da mesma versão do protocolo do SMPutilities, não do mesmo loader.
-* **Integrações opcionais** (o mod funciona sem elas): Simple Voice Chat (voice mute), Curios e Cosmetic
-  Armor (inventários/backups), LuckPerms (Permission API do Forge/NeoForge; no Fabric, pelo
-  fabric-permissions-api que o LuckPerms traz), Aether (nomes de dimensão/portal).
+* **Server:** put the jar for your loader and version in `mods/`. Fabric needs Fabric API.
+* **Clients:** optional. Without the mod on the client, players join normally and get chat, messages, chest
+  menus, vanish, nicknames in chat and the tab list, mention sounds and so on. The client mod is needed for the
+  staff panel, nicknames above heads, speech bubbles, TTS and mod sync. Client and server need the same
+  SMPutilities protocol version, not the same loader.
+* **Language:** screens and messages follow each player's game language: English, Portuguese (`pt_br`;
+  `pt_pt` uses the same text), French, German, Spanish, Russian, Ukrainian and Polish (regional variants such as
+  `fr_ca`, `de_at` or `es_mx` use their language's text). Any other language, and any text a language lacks,
+  shows English. `language` in the config forces one language for server messages. The mod's screens show
+  "Made by arthou" in the bottom right corner.
+* **Optional integrations** (the mod works without them): Simple Voice Chat (voice mute), Curios and Cosmetic
+  Armor (inventories and backups), LuckPerms (the Forge/NeoForge Permission API; on Fabric through the
+  fabric-permissions-api that LuckPerms ships), Aether (dimension and portal names).
 
-## Arquivos
+## Files
 
-| Caminho | Conteúdo |
+| Path | Contents |
 | --- | --- |
-| `config/smputilities/server.json` | Toda a configuração do servidor (criada com valores padrão; `/su reload` recarrega) |
-| `config/smputilities/client.json` | Preferências do cliente (balões, TTS, sincronização de mods, credenciais privadas) |
-| `config/smputilities/modsync/` | Jars oferecidos pela sincronização de mods |
-| `<mundo>/smputilities/players/<uuid>.json` | Dados por jogador (nickname, homes, notas, configurações) |
-| `<mundo>/smputilities/backups/<uuid>.dat` | Backups de inventário |
-| `<mundo>/smputilities/profiles/<uuid>.dat` | Perfis de inventário |
-| `<mundo>/smputilities/punishments.json` | Histórico de punições |
-| `<mundo>/smputilities/reports.json` | Denúncias (`/report`) |
-| `<mundo>/smputilities/logs/audit-AAAA-MM.jsonl` | Registro administrativo (quem, o quê, em quem, quando) |
+| `config/smputilities/server.json` | The whole server configuration (created with defaults; `/su reload` reloads it) |
+| `config/smputilities/client.json` | Client preferences (bubbles, TTS, mod sync, private credentials) |
+| `config/smputilities/modsync/` | Jars offered by mod sync |
+| `<world>/smputilities/players/<uuid>.json` | Per-player data (nickname, homes, notes, settings) |
+| `<world>/smputilities/backups/<uuid>.dat` | Inventory backups |
+| `<world>/smputilities/profiles/<uuid>.dat` | Inventory profiles |
+| `<world>/smputilities/punishments.json` | Punishment history |
+| `<world>/smputilities/reports.json` | Reports (`/report`) |
+| `<world>/smputilities/logs/audit-YYYY-MM.jsonl` | Administrative log (who, what, to whom, when) |
 
-Tudo é indexado por UUID; trocar de nome ou de nickname nunca perde dados.
+Everything is keyed by UUID; changing a name or a nickname never loses data.
 
-## Sistemas
+## Systems
 
-### Painel da staff — `/su staff [jogador]`
-Interface própria (fundo escuro translúcido, barra lateral, destaque verde, animações curtas), com nove
-categorias: **Dashboard** (jogadores, TPS, MSPT, memória, uptime, bans/mutes ativos, controles rápidos do
-chat), **Players** (busca por nome real ou nickname, online e offline; info, ações, notas/estatísticas e
-histórico do jogador), **Chat**, **Inventories** (visualizar/editar, backups com restauração, perfis),
-**Punishments** (bans, mutes, denúncias, alertas de x-ray, histórico, log da staff), **World** (dimensões e
-portais), **Utilities** (brincadeiras, anúncios, warps, mod sync), **Server** (desempenho, limpeza de lag,
-manutenção e whitelist) e **Settings** (toda a config, editável ao vivo).
-As ações de um jogador ficam por categoria (Punições, Ferramentas, Inventário, Nome e chat, Brincadeiras);
-inventário, baú do End, backups e perfis abertos pelo painel voltam ao painel ao apertar Esc. Textos que não
-cabem num botão são cortados com "…" e aparecem inteiros ao passar o mouse.
-Ações críticas (banir, expulsar, restaurar, excluir) pedem confirmação. O cliente só pede; o servidor
-confere a permissão de cada pedido. Há também uma tecla configurável ("Abrir painel da staff", sem tecla
-padrão).
+### Staff panel — `/su staff [player]`
+Its own interface (translucent dark background, sidebar, green accent, short animations) with nine categories:
+**Dashboard** (players, TPS, MSPT, memory, uptime, active bans and mutes, quick chat controls), **Players**
+(search by real name or nickname, online and offline; info, actions, notes/statistics and the player's history),
+**Chat**, **Inventories** (view/edit, backups with restore, profiles), **Punishments** (bans, mutes, reports,
+x-ray alerts, history, staff log), **World** (dimensions and portals), **Utilities** (pranks, announcements,
+warps, mod sync), **Server** (performance, lag clean-up, maintenance and whitelist) and **Settings** (the whole
+config, editable live). A player's actions are grouped by category (Punishments, Tools, Inventory, Name & chat,
+Pranks); an inventory, ender chest, backups or profiles opened from the panel go back to the panel on Esc. Text
+that doesn't fit a button is cut with "…" and shown in full on hover. Critical actions (ban, kick, restore,
+delete) ask for confirmation. The client only asks; the server checks the permission of every request. There
+is also a configurable key ("Open staff panel", unbound by default).
 
 ### Chat
-O chat vanilla (`<Nome> mensagem`, assinado) é o padrão. Com `chat.customFormat` ligado vale o formato QSMP:
-`Nick » Mensagem`, `[+] Nome`, `[-] Nome`, todos configuráveis (`&`-cores e `&#RRGGBB`, marcadores
-`{name}`, `{realname}`, `{message}`, `{prefix}`). Também: menções com som enviado pelo servidor (cada
-jogador ajusta com `/su mentions on|off|sound <id>|volume <0-1>`), destaque das menções, prefixos de staff e
-admin, bloqueio do chat global (`/su chat lock|unlock`), limpar chat, cooldown, proteção contra spam
-(taxa, repetição, CAPS), mute individual, entrada/saída desativáveis globalmente ou por jogador
-(`/su silentjoin|silentquit`), `/msg` `/tell` `/w` `/reply` `/r` com MPs permitidas ou não durante o
-bloqueio, `/ignore` e social spy para a staff. Avisos como "chat bloqueado por <nick>" e bans só mostram
-quem fez para a staff; os jogadores veem a versão sem o nome.
+Vanilla chat (`<Name> message`, signed) is the default. With `chat.customFormat` on, the QSMP format applies:
+`Nick » Message`, `[+] Name`, `[-] Name`, all configurable (`&` colors and `&#RRGGBB`, placeholders `{name}`,
+`{realname}`, `{message}`, `{prefix}`). Also: mentions with a sound sent by the server (each player sets it with
+`/su mentions on|off|sound <id>|volume <0-1>`), mention highlighting, staff and admin prefixes, global chat lock
+(`/su chat lock|unlock`), clear chat, cooldown, spam protection (rate, repeats, CAPS), individual mutes, join and
+quit messages that can be turned off globally or per player (`/su silentjoin|silentquit`), `/msg` `/tell` `/w`
+`/reply` `/r` with private messages allowed or not during a lock, `/ignore` and social spy for staff. Notices
+such as "chat locked by <nick>" and bans only show who did it to staff; players see the version without the name.
 
-**Histórico do chat** (painel → Chat → Histórico, `smputilities.chat.history`): todo o chat público fica em
-`<mundo>/smputilities/chat/AAAA-MM-DD.log`, gravado por uma thread separada, sem nada guardado na RAM. No
-painel você escolhe o dia, lê do mais novo para o mais antigo carregando 100 mensagens por vez, filtra e
-clica numa mensagem para ver inteira. `chat.historyDays` (30) define quantos dias ficam guardados.
+**Chat history** (panel → Chat → History, `smputilities.chat.history`): all public chat goes to
+`<world>/smputilities/chat/YYYY-MM-DD.log`, written by a separate thread, with nothing kept in RAM. In the panel
+you pick the day, read from newest to oldest loading 100 messages at a time, filter, and click a message to see
+it in full. `chat.historyDays` (30) sets how many days are kept.
 
-### Moderação
-`/su ban|mute|voicemute <jogador> [duração] [motivo]`, `/su unban|unmute|voiceunmute`, `/su kick`,
-`/su warn`, `/su history`. Durações: `30m`, `2h`, `7d`, `1mo`, `perm`. Banimentos vão também para a ban list
-vanilla (com expiração), então o bloqueio no login é o do próprio jogo e `/pardon` continua funcionando.
-Staff não pode punir quem tem nível de OP maior.
+### Moderation
+`/su ban|mute|voicemute <player> [duration] [reason]`, `/su unban|unmute|voiceunmute`, `/su kick`,
+`/su warn`, `/su history`. Durations: `30m`, `2h`, `7d`, `1mo`, `perm`. Bans also go to the vanilla ban list
+(with expiry), so the login check is the game's own and `/pardon` keeps working. Staff can't punish someone with
+a higher OP level.
 
-* **Congelar** — `/su freeze <jogador>` (ou o botão no painel, `smputilities.staff.freeze`): o jogador não anda,
-  não quebra nem usa blocos e não se teleporta até ser descongelado. Continua congelado se sair e voltar; a staff
-  é avisada quando um jogador congelado sai.
-* **Prisão** — `/su jail set <nome>` marca uma prisão onde você está; `/su jail put <jogador> <prisão> [tempo]
-  [motivo]` prende (online ou offline), `/su jail release <jogador>` solta, `/su jail list|remove`. O preso não
-  passa de `jail.radius` blocos da prisão e não se teleporta; quando o tempo acaba ele volta para onde estava
-  (`smputilities.staff.jail`).
-* **Contas alternativas** — o mod guarda os últimos IPs de cada jogador (`alts.maxIps`). Quem entra com um IP já
-  usado por outra conta gera um aviso para a staff com `smputilities.staff.alts` (vermelho se a outra conta está
-  banida); `alts.blockBannedAlts` recusa a entrada nesse caso. `/su alts <jogador>` e a ficha do jogador no
-  painel mostram as contas.
-* **Filtro do chat** — `chat.filter.words` (separadas por vírgula; `=palavra` só pega a palavra inteira) com
-  `chat.filter.mode` `censor` (troca por `***`) ou `block` (não envia). Pega variações com números e acentos
-  (`p4l4vr4`). `chat.filter.blockAdvertising` barra IPs e convites do Discord. A staff vê o que foi pego;
-  quem tem `smputilities.chat.bypass.filter` passa direto.
+* **Freeze** — `/su freeze <player>` (or the panel button, `smputilities.staff.freeze`): the player can't move,
+  break or use blocks, or teleport until unfrozen. They stay frozen if they leave and come back; staff are told
+  when a frozen player leaves.
+* **Jail** — `/su jail set <name>` sets a jail where you stand; `/su jail put <player> <jail> [time] [reason]`
+  jails (online or offline), `/su jail release <player>` releases, `/su jail list|remove`. A jailed player can't
+  get further than `jail.radius` blocks from the jail and can't teleport; when the time is up they go back to
+  where they were (`smputilities.staff.jail`).
+* **Alt accounts** — the mod keeps each player's recent IPs (`alts.maxIps`). Joining from an IP another account
+  used warns staff with `smputilities.staff.alts` (in red when that account is banned); `alts.blockBannedAlts`
+  refuses the join in that case. `/su alts <player>` and the player page in the panel list the accounts.
+* **Chat filter** — `chat.filter.words` (comma separated; `=word` only matches the whole word) with
+  `chat.filter.mode` `censor` (replaced by `***`) or `block` (not sent). It catches variants with digits and
+  accents (`w0rd`). `chat.filter.blockAdvertising` blocks IPs and Discord invites. Staff see what was caught;
+  `smputilities.chat.bypass.filter` skips the filter.
 
-### Servidor: desempenho, manutenção e whitelist
-A aba **Server** do painel mostra TPS, MSPT e, por dimensão, chunks carregados, entidades, itens no chão, orbes
-de XP e mobs hostis, mais os 15 chunks com mais entidades (com o tipo mais comum e botão de teleporte). Há
-botões para limpar itens, orbes de XP ou mobs hostis (mobs com nome ou persistentes ficam), com
+### Server: performance, maintenance and whitelist
+The panel's **Server** tab shows TPS, MSPT and, per dimension, loaded chunks, entities, dropped items, XP orbs and
+hostile mobs, plus the 15 chunks with the most entities (with the most common kind and a teleport button). There
+are buttons to clear items, XP orbs or hostile mobs (named and persistent mobs stay), with
 `smputilities.staff.lag`.
 
-**Manutenção** — `/su maintenance on [mensagem]|off` ou o botão no painel (`smputilities.admin.maintenance`):
-só quem tem `smputilities.maintenance.bypass` (OP 2 por padrão) entra, e quem está online sem permissão é
-expulso (`maintenance.kickOnline`). Na hora do login vale o nível de OP, `permissions.grants` e o que o plugin de
-permissões disse no último login do jogador (o LuckPerms só é consultado com o jogador já dentro). A mesma aba liga e desliga a whitelist vanilla e adiciona ou tira nomes
-(`smputilities.staff.whitelist`), usando os comandos do próprio jogo.
+**Maintenance** — `/su maintenance on [message]|off` or the panel switch (`smputilities.admin.maintenance`): only
+players with `smputilities.maintenance.bypass` (OP 2 by default) can join, and online players without it are
+kicked (`maintenance.kickOnline`). At login the OP level, `permissions.grants` and what the permission plugin
+said at the player's last login count (LuckPerms is only asked once the player is in). The same tab turns the
+vanilla whitelist on and off and adds or removes names (`smputilities.staff.whitelist`), through the game's own
+commands.
 
 ### Discord
-Dois webhooks opcionais (`discord.webhookUrl` e `discord.staffWebhookUrl`; só endereços
-`https://discord.com/api/webhooks/…` são aceitos). O público recebe chat, entradas e saídas (quem está em vanish
-não aparece), mortes e início/parada do servidor; o da staff recebe ações da staff, denúncias, alertas
-suspeitos de x-ray e contas alternativas. Cada tipo liga e desliga em `discord.*`. As mensagens saem por uma
-thread separada, juntas a cada 2 segundos, respeitando o limite do Discord, e nunca marcam @everyone nem
-cargos.
+Two optional webhooks (`discord.webhookUrl` and `discord.staffWebhookUrl`; only
+`https://discord.com/api/webhooks/…` addresses are accepted). The public one gets chat, joins and quits (vanished
+players are left out), deaths and server start/stop; the staff one gets staff actions, reports, suspicious x-ray
+alerts and alt accounts. Each kind can be turned on and off under `discord.*`. Messages go out from a separate
+thread, batched every 2 seconds within Discord's limits, and never ping @everyone or roles.
 
-### Anti-xray (base: AntiXray do DrexHD) e alertas de x-ray — `/su xray`
-O anti-xray segue o motor do [AntiXray](https://github.com/DrexHD/AntiXray) (MIT), que por sua vez é o
-anti-xray do Paper. Nos chunks enviados aos jogadores, os blocos escondidos que não encostam em nada
-transparente (ar, água, vidro…) aparecem como outra coisa, então pacote de textura de x-ray e cliente hack não
-acham nada. Os modos são os do AntiXray: `1` troca os minérios escondidos por pedra, ardósia, netherrack ou
-pedra do End; `2` enche todo bloco enterrado de minérios falsos aleatórios; `3` faz o mesmo com um bloco por
-camada (padrão do Overworld). Ao quebrar ou abrir um bloco, os blocos reais em volta (`updateRadius`) são
-enviados de novo. Os padrões são os do AntiXray: Overworld no modo 3 até a altura 256 e Nether no modo 1 até a
-128, com lava escondendo. Tudo fica em `antiXray.worlds` (ids de bloco ou `#tags`; `!` na frente tira um da
-lista). Com `antiXray.usePermission`, quem tem `smputilities.antixray.bypass` vê os blocos reais.
+### Anti-xray (based on DrexHD's AntiXray) and x-ray alerts — `/su xray`
+The anti-xray follows the engine of [AntiXray](https://github.com/DrexHD/AntiXray) (MIT), which is itself Paper's
+anti-xray. In the chunks sent to players, hidden blocks that touch nothing transparent (air, water, glass…) show
+as something else, so x-ray texture packs and hacked clients find nothing. The modes are AntiXray's: `1` replaces
+hidden ores with stone, deepslate, netherrack or end stone; `2` fills every buried block with random fake ores;
+`3` does the same with one block per layer (the Overworld default). When a block is broken or opened, the real
+blocks around it (`updateRadius`) are sent again. The defaults are AntiXray's: the Overworld in mode 3 up to
+height 256 and the Nether in mode 1 up to 128, with lava hiding. Everything lives in `antiXray.worlds` (block ids
+or `#tags`; a leading `!` removes one from the list). With `antiXray.usePermission`, holders of
+`smputilities.antixray.bypass` see the real blocks.
 
-A diferença para o AntiXray está só na forma de ligar ao jogo. O AntiXray coloca os blocos falsos nas paletas do
-próprio mundo e segura os pacotes na conexão. Aqui só o pacote muda: o chunk é lembrado quando o pacote é
-criado, e os blocos são escondidos quando a thread de rede escreve o pacote. O mundo salvo nunca é alterado, e a
-ordem dos pacotes continua a mesma. Os ganchos (pacote de chunk, envio de chunks, quebra de bloco, `setBlock`)
-são os mesmos da 1.18.2 à 1.21.11, só o formato do pacote muda (a partir da 1.21.5 o tamanho do array não vai
-mais no pacote). No CI, cada versão monta pacotes de chunk do spawn, esconde os blocos e confere o resultado; no
-Fabric, um cliente vanilla entra numa sala de netherrack no Nether e confere que os minérios enterrados chegam
-como netherrack e os expostos chegam como são.
+The difference from AntiXray is only how it hooks into the game. AntiXray puts the fake blocks in the world's
+own palettes and holds packets back on the connection. Here only the packet changes: the chunk is remembered when
+the packet is created, and blocks are hidden when the network thread writes the packet. The saved world is never
+changed, and packet order stays the same. The hooks (chunk packet, chunk sending, block breaking, `setBlock`) are
+the same from 1.18.2 to 1.21.11; only the packet format changes (from 1.21.5 the array length is no longer in
+the packet). In CI every version builds chunk packets of the spawn, hides the blocks and checks the result; on
+Fabric, a vanilla client walks into a netherrack room in the Nether and checks that buried ores arrive as
+netherrack and exposed ones as themselves.
 
-Os alertas de x-ray contam os veios de minérios valiosos que cada jogador acha (`xrayAlerts.thresholds`:
-diamante, detritos ancestrais e esmeralda por padrão). A staff com `smputilities.xray.alerts` é avisada a cada
-veio e recebe um alerta vermelho, com som, quando alguém passa do limite dentro de `xrayAlerts.windowMinutes`.
-Os avisos têm botão de teleporte, e `/su xray` e a aba **X-ray** em Punições listam os últimos 50.
+X-ray alerts count the veins of valuable ores each player finds (`xrayAlerts.thresholds`: diamond, ancient debris
+and emerald by default). Staff with `smputilities.xray.alerts` are told about each vein and get a red alert, with a
+sound, when someone goes over the limit within `xrayAlerts.windowMinutes`. Alerts have a teleport button, and
+`/su xray` and the **X-ray** view under Punishments list the latest 50.
 
-### Registro de blocos e baús (estilo CoreProtect) — `/su log`
-Toda mudança de bloco feita enquanto o servidor processa uma ação de um jogador fica registrada com quem fez,
-quando e onde. Isso inclui quebrar, colocar, balde, isqueiro, enxada, pá e machado. Explosões entram como
-`#explosion`. Mudanças que não trocam o bloco (abrir porta, alavanca, plantação crescendo) ficam de fora. Baús,
-barris, fornalhas, funis, caixas de shulker etc. são comparados quando o jogador fecha o que abriu: o que entrou
-e o que saiu ficam registrados, item por item. Tudo vai para o disco, em
-`<mundo>/smputilities/blocklog/<dimensão>/<região>/<dia>.log`, numa thread separada; nada fica na memória, e os
-dias mais velhos que `blockLog.days` (30) são apagados.
+### Block and container log (CoreProtect style) — `/su log`
+Every block change made while the server handles a player's action is logged with who, when and where. That
+includes breaking, placing, buckets, flint and steel, hoes, shovels and axes. Explosions are logged as
+`#explosion`. Changes that keep the block (opening a door, a lever, crops growing) are left out. Chests, barrels,
+furnaces, hoppers, shulker boxes and so on are compared when the player closes what they opened: what went in and
+what came out is logged item by item. Everything goes to disk, in
+`<world>/smputilities/blocklog/<dimension>/<region>/<day>.log`, from a separate thread; nothing is kept in
+memory, and days older than `blockLog.days` (30) are deleted.
 
-* `/su log inspect` liga o inspetor: bater ou clicar com o direito num bloco mostra o histórico dele, sem quebrar
-  nem abrir.
-* `/su log lookup u:<jogadores> t:<tempo> r:<raio|#world> a:<break|place|explode|container>` busca mudanças (por
-  padrão num raio de 10 em volta de quem busca), 10 por página, com botão de teleporte.
-* `/su log rollback …` desfaz o que a busca achar (exige `t:`): cada bloco volta a como era antes da primeira
-  mudança, com o conteúdo de baús e placas, mas só se ninguém mexeu nele depois. Itens tirados de baús voltam e
-  itens colocados saem. É feito aos poucos (`blockLog.changesPerTick` por tick, até `blockLog.maxChanges`).
-  `/su log restore …` refaz, e `/su log undo` volta o último rollback.
-* Permissões: `smputilities.staff.blocklog` (inspecionar e buscar, OP 2) e `smputilities.staff.rollback` (OP 3).
+* `/su log inspect` turns on the inspector: hitting or right-clicking a block shows its history without breaking
+  or opening it.
+* `/su log lookup u:<players> t:<time> r:<radius|#world> a:<break|place|explode|container>` searches changes (by
+  default within 10 blocks of the searcher), 10 per page, with a teleport button.
+* `/su log rollback …` undoes what the search finds (needs `t:`): each block goes back to how it was before the
+  first change, with chest and sign contents, but only if nobody touched it since. Items taken from chests come
+  back and items put in go out. It runs in slices (`blockLog.changesPerTick` per tick, up to
+  `blockLog.maxChanges`). `/su log restore …` redoes, and `/su log undo` reverts the last rollback.
+* Permissions: `smputilities.staff.blocklog` (inspect and search, OP 2) and `smputilities.staff.rollback` (OP 3).
 
-### Vanish — `/vanish [on|off|<jogador>]`
-Feito no servidor: um mixin no rastreamento de entidades impede que o jogador invisível seja enviado a
-quem não tem `smputilities.staff.vanish.see` (sem posição, equipamento, sons ou partículas), remoção da
-TAB, entrada/saída silenciosas (a staff vê com a etiqueta `[invisível]`), mobs não miram, coleta de itens
-opcionalmente bloqueada, indicador na action bar e no HUD, persiste entre logins. Também fica de fora do
-`/list`, da contagem e da amostra na lista de servidores, das menções e sugestões de nome, do `/msg`, `/seen`
-e TPA; mensagens de morte e de conquistas dele só chegam a quem pode vê-lo, não atrasa a noite e, no Simple
-Voice Chat, só é ouvido por quem pode vê-lo.
+### Vanish — `/vanish [on|off|<player>]`
+Done on the server: a mixin in entity tracking keeps the vanished player from being sent to anyone without
+`smputilities.staff.vanish.see` (no position, equipment, sounds or particles), removal from the tab list, silent
+joins and quits (staff see them with a `[vanished]` tag), mobs don't target them, item pickup can be blocked, an
+indicator in the action bar and HUD, and it lasts across logins. They are also left out of `/list`, the player
+count and sample in the server list, mentions and name suggestions, `/msg`, `/seen` and TPA; their death and
+advancement messages only reach those who can see them, they don't hold back the night and, in Simple Voice Chat,
+only those who can see them hear them.
 
-### Inventários
-* `/su inventory <jogador>`, `/su enderchest <jogador>` (e `curios`/`cosmetic`): online é editado ao vivo;
-  offline edita só as listas de itens do arquivo do jogador (posição, dimensão e o resto ficam intactos).
-  Se o jogador entrar com a edição aberta, a cópia editada é aplicada nele e a janela fecha — sem duplicar
-  nem perder itens. Antes de gravar uma edição offline é feito um backup.
-* Backups automáticos (entrada, saída, morte, troca de dimensão, periódico) e manuais:
-  `/su inventory backup <jogador>`, `/su inventory list <jogador>`, `/su inventory backups <jogador>`
-  (navegador em GUI do Inventory Rollback Plus), `/su inventory restore <jogador> <backup> [full|inventory|ender]`.
-  Toda restauração cria antes um backup do estado atual.
-* **Perfis (Inv Profile integrado):** a Troca Rápida original (`/invprofile` ou `/su profile quick`) com o
-  mesmo comportamento, mais perfis nomeados para personagens: `/su profile [create|switch|delete|list|nick]`.
-  Guardam inventário, armaduras, Baú do Fim, XP, vida, fome, efeitos e slots de Curios/Cosmetic Armor
-  (cada parte configurável, localização opcional). A troca grava o estado de saída antes de aplicar o novo e
-  o arquivo do jogador lembra qual perfil ele carrega, então uma queda do servidor no meio da troca é
-  corrigida no próximo login. Staff: `/su profile view|switchfor`, e pelo painel.
+### Inventories
+* `/su inventory <player>`, `/su enderchest <player>` (and `curios`/`cosmetic`): online players are edited live;
+  offline editing only touches the item lists in the player's file (position, dimension and the rest stay
+  intact). If the player joins while the edit is open, the edited copy is applied to them and the window closes —
+  without duplicating or losing items. A backup is made before an offline edit is saved.
+* Automatic (join, quit, death, dimension change, periodic) and manual backups:
+  `/su inventory backup <player>`, `/su inventory list <player>`, `/su inventory backups <player>`
+  (Inventory Rollback Plus's GUI browser), `/su inventory restore <player> <backup> [full|inventory|ender]`.
+  Every restore first backs up the current state.
+* **Profiles (Inv Profile built in):** the original Quick Change (`/invprofile` or `/su profile quick`) with the
+  same behavior, plus named profiles for characters: `/su profile [create|switch|delete|list|nick]`. They store
+  inventory, armor, ender chest, XP, health, hunger, effects and Curios/Cosmetic Armor slots (each part
+  configurable, location optional). A switch saves the outgoing state before applying the new one and the player
+  file remembers which profile is loaded, so a server crash mid-switch is fixed at the next login. Staff:
+  `/su profile view|switchfor`, and through the panel.
 
-### Nicknames (base: HiddenNames) — `/hiddennames setName …` e `/su nick <nome>`
-O sistema segue o modelo do [HiddenNames](https://github.com/pitbox46/HiddenNames) (MIT): cada jogador tem
-um nome com cor e uma **animação da placa de nome** — `none`, `hidden` (placa escondida), `breathe`,
-`rainbow`, `cycle` ou `random` (as animações foram portadas do HiddenNames). Os comandos são os mesmos do
-HiddenNames, só que o nome usa `&`-cores em vez de JSON (assim quem não tem o mod continua entrando):
-* `/hiddennames setName <cor> <animação> <nome>`, `/hiddennames setName name|color|animation|reset …`,
-  e para outros `/hiddennames setName <jogadores> …` (`smputilities.nickname.others`).
-* `/hiddennames nameplateVisible <jogadores> <true|false>`, `/hiddennames defaultVisible <true|false>`
-  (placas visíveis por padrão), `/hiddennames blocksHideName <true|false>` (blocos escondem as placas).
-* `/su nick <nome>`, `/su nick clear` e `/su nick set <jogador> <nome>` continuam como atalhos.
+### Nicknames (based on HiddenNames) — `/hiddennames setName …` and `/su nick <name>`
+The system follows [HiddenNames](https://github.com/pitbox46/HiddenNames) (MIT): each player has a colored name and
+a **nameplate animation** — `none`, `hidden` (nameplate hidden), `breathe`, `rainbow`, `cycle` or `random` (the
+animations were ported from HiddenNames). The commands are HiddenNames' own, except that the name uses `&` colors
+instead of JSON (so players without the mod can still join):
+* `/hiddennames setName <color> <animation> <name>`, `/hiddennames setName name|color|animation|reset …`,
+  and for others `/hiddennames setName <players> …` (`smputilities.nickname.others`).
+* `/hiddennames nameplateVisible <players> <true|false>`, `/hiddennames defaultVisible <true|false>`
+  (nameplates visible by default), `/hiddennames blocksHideName <true|false>` (blocks hide nameplates).
+* `/su nick <name>`, `/su nick clear` and `/su nick set <player> <name>` remain as shortcuts.
 
-Como no HiddenNames, a cor do time substitui a do nick (`nicknames.teamColorOverride`), e cada cliente pode
-mostrar a própria placa em terceira pessoa e desligar as animações (`nametags.showOwn`, `nametags.animations`
-no `client.json`). O nome aparece no chat, mensagens de morte, TAB (com prefixo/sufixo do time), `/msg`
-(configurável) e acima da cabeça; animações, placas escondidas e placas escondidas atrás de blocos são
-desenhadas pelo cliente, então valem para quem tem o mod. Unicidade opcional, nome real oculto para quem não
-é staff, `/su realnames` mostra os nomes reais só para você; `/su whois`. Comandos aceitam nome real,
-nickname ou UUID, e guardam sempre o UUID. Não use o HiddenNames junto: o SMPutilities o substitui (e
-importa o `hiddennames/data.json`).
+As in HiddenNames, the team color replaces the nickname's (`nicknames.teamColorOverride`), and each client can show
+its own nameplate in third person and turn the animations off (`nametags.showOwn`, `nametags.animations` in
+`client.json`). The name shows in chat, death messages, the tab list (with the team prefix/suffix), `/msg`
+(configurable) and above the head; animations, hidden nameplates and nameplates hidden behind blocks are drawn by
+the client, so they apply to players with the mod. Optional uniqueness, real name hidden from non-staff,
+`/su realnames` shows real names only to you; `/su whois`. Commands accept the real name, the nickname or the UUID,
+and always store the UUID. Don't use HiddenNames alongside: SMPutilities replaces it (and imports
+`hiddennames/data.json`).
 
-### TTS e balões de fala — `/su tts`
-O menu do DuTTS (gênero, variação, idioma). Com uma voz ativa, o que o jogador digita vira fala: o servidor
-envia o texto ao cliente dele, cujo app de voz (*SMPutilities Voice*, um jar à parte, embutido no mod e
-iniciado só quando necessário) fala num microfone virtual que o voice chat/Discord usa. Como no DuTTS, a
-mensagem não aparece no chat; `tts.showInChat` (desligado por padrão) faz ela aparecer também. Todos por
-perto com o mod veem o balão de fala do NEXEL/LeafTalk (mesmas texturas e geometria, um balão por mensagem
-empilhado acima da cabeça, quase transparente agachado) e, enquanto ele digita, o balão animado "...".
+### TTS and speech bubbles — `/su tts`
+DuTTS's menu (gender, variant, language). With a voice active, what the player types becomes speech: the server
+sends the text to their client, whose voice app (*SMPutilities Voice*, a separate jar embedded in the mod and
+started only when needed) speaks into a virtual microphone used by the voice chat or Discord. As in DuTTS, the
+message doesn't show in chat; `tts.showInChat` (off by default) shows it as well. Everyone nearby with the mod sees
+NEXEL/LeafTalk's speech bubble (same textures and geometry, one bubble per message stacked above the head, nearly
+transparent while sneaking) and, while the player types, the animated "..." bubble.
 
-O app de voz tem interface própria, em português ou inglês conforme o sistema: **Visão geral** (medidor de
-voz animado, número de falas, vozes, reprodutor, checklist "Pronto para jogar" e um campo para testar a
-voz), **Microfone** (quatro passos: criar o microfone virtual, mandar a voz para ele, ouvir também,
-escolher no voice chat) e **Atividade** (registro). No Linux ele cria o cabo `SMPutilities_TTS_Cable` e o
-microfone **SMPutilities TTS Microphone** (escolha esse no voice chat); no Windows não dá para criar um
-microfone virtual sem driver, então instale o VB-Cable, escolha "CABLE Input" como saída da voz no app e
-"CABLE Output" como microfone no voice chat. Sem o app, só o TTS fica indisponível.
+The voice app has its own interface, in Portuguese or English depending on the system: **Overview** (animated
+voice meter, number of lines spoken, voices, player, a "Ready to play" checklist and a field to test the voice),
+**Microphone** (four steps: create the virtual microphone, send the voice to it, also listen, pick it in the voice
+chat) and **Activity** (log). On Linux it creates the `SMPutilities_TTS_Cable` cable and the **SMPutilities TTS
+Microphone** microphone (pick that one in the voice chat); on Windows a virtual microphone can't be created without
+a driver, so install VB-Cable, choose "CABLE Input" as the voice output in the app and "CABLE Output" as the
+microphone in the voice chat. Without the app, only TTS is unavailable.
 
-### Mundo
-* `/su portal limit <nether|end|aether|id> <n|unlimited>`, `/su portal count|list|remove|clear`. Portais do
-  Nether são contados ao acender; do End quando o último olho completaria a moldura. Portais destruídos são
-  detectados (quebra de bloco e verificação periódica) e liberam a vaga. Permissão para ignorar o limite.
-* `/su dimension <dimensão> on|off`, `/su dimension list`: bloqueia novas viagens (portais, `/tp`, entidades
-  opcionalmente) sem descarregar nada nem tocar em dados/construções. Exceção para quem tem permissão.
+### World
+* `/su portal limit <nether|end|aether|id> <n|unlimited>`, `/su portal count|list|remove|clear`. Nether portals are
+  counted when lit; End portals when the last eye would complete the frame. Destroyed portals are detected (block
+  breaking and a periodic check) and free their slot. A permission skips the limit.
+* `/su dimension <dimension> on|off`, `/su dimension list`: blocks new travel (portals, `/tp`, optionally
+  entities) without unloading anything or touching data or builds. Exception for holders of the permission.
 
-### Qualidade de vida (do TPA)
-`/tpa`, `/tpahere`, `/tpaccept`, `/tpdeny` (com botões clicáveis), `/tpacancel` (desfaz os pedidos que você
-mandou), `/tpatoggle` (recusa pedidos de todos; a staff ainda pode), `/home`, `/sethome`, `/delhome`, `/homes`,
-`/setdefaulthome`, `/spawn`, `/setspawn`, `/back`, `/warp`, `/warps`, `/setwarp`, `/delwarp`, `/rtp`,
-`/tpall`, `/tplogout`, `/hat`, `/sit`. Aquecimento com cancelamento ao mover/levar dano, cooldowns por
-comando, limite de homes (config ou permissão numérica `smputilities.teleport.home.limit`), comandos
-bloqueáveis por dimensão.
+### Quality of life (from TPA)
+`/tpa`, `/tpahere`, `/tpaccept`, `/tpdeny` (with clickable buttons), `/tpacancel` (withdraws the requests you
+sent), `/tpatoggle` (refuses everyone's requests; staff still can), `/home`, `/sethome`, `/delhome`, `/homes`,
+`/setdefaulthome`, `/spawn`, `/setspawn`, `/back`, `/warp`, `/warps`, `/setwarp`, `/delwarp`, `/rtp`, `/tpall`,
+`/tplogout`, `/hat`, `/sit`. Warmup cancelled by moving or taking damage, per-command cooldowns, home limit
+(config or the numeric permission `smputilities.teleport.home.limit`), commands that can be blocked per dimension.
 
-### SMP: AFK, denúncias, chat da staff, anúncios e reinícios
-Tudo funciona com clientes sem o mod e cada parte pode ser desligada em `features`.
-* **AFK — `/afk [motivo]`:** também automático depois de `afk.autoMinutes` (5) sem olhar em volta, andar ou
-  falar (ser levado por água ou carrinho não conta). Mostra `[AFK]` na TAB, avisa todos (exceto para quem
-  está em vanish), avisa quem manda `/msg` para alguém AFK e, com `afk.ignoreForSleep`, quem está AFK fora
-  da cama não impede de pular a noite (a porcentagem de jogadores dormindo ignora essas pessoas). Kick
-  opcional após `afk.kickMinutes` (desligado por padrão; `smputilities.afk.bypass.kick` fica de fora).
-* **Denúncias — `/report <jogador> <motivo>`:** a staff online recebe o aviso com botões para teleportar até
-  onde a denúncia foi feita e para fechar; quem entra depois vê quantas estão abertas. `/su reports`,
-  `/su reports close <id>`, `/su reports tp <id>`, ou no painel (Punições → Denúncias, com os mesmos
-  botões; a ficha de cada jogador mostra quantas denúncias abertas ele tem e se está AFK). Guardadas em
-  `<mundo>/smputilities/reports.json`, com intervalo mínimo entre denúncias e registro na auditoria; quem
-  denunciou é avisado quando a staff fecha.
-* **Chat da staff — `/sc <mensagem>`** (ou `/staffchat`); `/sc` sozinho liga/desliga o modo em que as
-  mensagens normais vão só para a staff.
-* **Anúncios automáticos:** `announcements.messages` (lista com `&`-cores e `{online}`) a cada
-  `announcements.intervalMinutes`, em ordem ou aleatórios; links `https://` viram clicáveis.
-* **Reinício agendado — `/su restart <tempo> [motivo]`**, `/su restart cancel`, `/su restart` (status), e
-  horários diários em `restart.dailyTimes` (ex.: `["06:00"]`). Avisa no chat e com som nos tempos de
-  `restart.warningSeconds` (15 min, 10, 5, 2, 1 min, 30 s, 10…1 s, também na action bar), depois desconecta
-  todos com a mensagem e desliga o servidor salvando o mundo. Quem liga de volta é a hospedagem ou o script
-  de inicialização, como no `/stop`.
-* **Boas-vindas:** anúncio da primeira entrada de cada jogador ("jogador nº N"), MOTD por jogador ao entrar
-  (`welcome.motd`, com `{name}`, `{online}`, `{max}`) e `/rules` (`welcome.rules`). Links ficam clicáveis.
-* **Informações:** `/playtime [jogador]`, `/seen <jogador>` (respeita o vanish) e, ao morrer, só o jogador
-  vê as coordenadas e a dimensão, com um atalho `[/back]`.
+### SMP: AFK, reports, staff chat, announcements and restarts
+Everything works with clients without the mod and each part can be turned off under `features`.
+* **AFK — `/afk [reason]`:** also automatic after `afk.autoMinutes` (5) without looking around, walking or talking
+  (being carried by water or a minecart doesn't count). Shows `[AFK]` in the tab list, tells everyone (except for
+  vanished players), tells whoever `/msg`s an AFK player and, with `afk.ignoreForSleep`, AFK players out of bed
+  don't stop the night from being skipped (the sleeping percentage ignores them). Optional kick after
+  `afk.kickMinutes` (off by default; `smputilities.afk.bypass.kick` is exempt).
+* **Reports — `/report <player> <reason>`:** online staff get the notice with buttons to teleport to where the
+  report was made and to close it; staff who join later see how many are open. `/su reports`,
+  `/su reports close <id>`, `/su reports tp <id>`, or in the panel (Punishments → Reports, with the same buttons;
+  each player's page shows how many open reports they have and whether they are AFK). Stored in
+  `<world>/smputilities/reports.json`, with a minimum interval between reports and an audit entry; the reporter is
+  told when staff close it.
+* **Staff chat — `/sc <message>`** (or `/staffchat`); `/sc` alone toggles the mode where normal messages go to
+  staff only.
+* **Automatic announcements:** `announcements.messages` (a list with `&` colors and `{online}`) every
+  `announcements.intervalMinutes`, in order or random; `https://` links become clickable.
+* **Scheduled restart — `/su restart <time> [reason]`**, `/su restart cancel`, `/su restart` (status), and daily
+  times in `restart.dailyTimes` (e.g. `["06:00"]`). Warns in chat and with a sound at the `restart.warningSeconds`
+  times (15 min, 10, 5, 2, 1 min, 30 s, 10…1 s, also in the action bar), then disconnects everyone with the
+  message and stops the server, saving the world. Starting it again is up to the host or the start script, as with
+  `/stop`.
+* **Welcome:** announcement of each player's first join ("player no. N"), a per-player MOTD on join
+  (`welcome.motd`, with `{name}`, `{online}`, `{max}`) and `/rules` (`welcome.rules`). Links are clickable.
+* **Info:** `/playtime [player]`, `/seen <player>` (respects vanish) and, on death, only the player sees the
+  coordinates and dimension, with a `[/back]` shortcut.
 
-### Brincadeiras da staff — `/su troll <ação> <jogador> [valor]`
-Seguem a lista do [TrollBoss](https://github.com/minesuchtiiii/troll-boss) (só como referência: ele é GPL-3.0,
-então nenhum código dele foi copiado). No painel ficam em cinco grupos (ações do jogador → Brincadeiras, e a
-aba Utilidades):
-* **Visual:** explosão e raio falsos, creeper inofensivo (explode sem dano), som, susto, abdução alienígena,
-  estouro de vacas, chuva de lulas (mobs invulneráveis, somem sozinhos), cabeça de abóbora (o capacete volta
-  para o inventário), brilho e os títulos do DUSMP.
-* **Efeitos:** náusea, escuridão, tontura, infecção, congelar (preso no lugar), sem minerar, lentidão,
-  flutuar, super pulo.
-* **Movimento:** lançar, empurrar, girar, virar de costas, teleportes aleatórios, borda do mundo, trocar de
-  lugar com outro jogador, céu, enterrar (com Resistência, sem sufocar), gaiola de vidro e teia.
-* **Chat e kicks:** mensagens/entradas/saídas falsas, op/deop falsos, spam, chat embaralhado (liga/desliga),
-  kick troll, crash falso e reinício falso.
-* **Dano:** queimar, raio de verdade, explosão (sem quebrar blocos), machucar (até meio coração), fome,
-  palmada, queda livre, bigorna e contagem fatal.
+### Staff pranks — `/su troll <action> <player> [value]`
+They follow [TrollBoss](https://github.com/minesuchtiiii/troll-boss)'s list (as a reference only: it is GPL-3.0,
+so none of its code was copied). In the panel they come in five groups (player actions → Pranks, and the Utilities
+tab):
+* **Visual:** fake explosion and lightning, harmless creeper (explodes without damage), sound, jumpscare, alien
+  abduction, cow stampede, squid rain (invulnerable mobs that vanish on their own), pumpkin head (the helmet goes
+  back to the inventory), glow and DUSMP's titles.
+* **Effects:** nausea, darkness, dizziness, infection, freeze (stuck in place), no mining, slowness, float, super
+  jump.
+* **Movement:** launch, push, spin, turn around, random teleports, world border, swap places with another player,
+  sky, bury (with Resistance, no suffocation), glass cage and web trap.
+* **Chat and kicks:** fake messages/joins/quits, fake op/deop, spam, garbled chat (toggle), troll kick, fake crash
+  and fake restart.
+* **Damage:** burn, real lightning, explosion (without breaking blocks), hurt (down to half a heart), starve,
+  spank, free fall, anvil and doom countdown.
 
-O que coloca blocos só ocupa ar e é desfeito ao terminar, quando o jogador sai e quando o servidor desliga.
-As de dano e kicks pedem confirmação no painel. Cada grupo pode ser desligado na config (`troll.harmful`,
-`troll.kicks`, `troll.worldChanges`…), e quem tem `smputilities.troll.bypass` só pode ser alvo de si mesmo.
-Ficaram de fora as do TrollBoss que apagam ou trocam o inventário (potato troll, drop inventory), as que
-dependem de itens especiais (bad apple, arcos, AK-47) e as de mau gosto.
+Pranks that place blocks only take air and are undone when they end, when the player leaves and when the server
+stops. Damage and kick pranks ask for confirmation in the panel. Each group can be turned off in the config
+(`troll.harmful`, `troll.kicks`, `troll.worldChanges`…), and players with `smputilities.troll.bypass` can only be
+targeted by themselves. Left out are TrollBoss's pranks that delete or swap the inventory (potato troll, drop
+inventory), those that depend on special items (bad apple, bows, AK-47) and the tasteless ones.
 
-### Sincronização de mods (opcional, desligada por padrão)
-Coloque jars em `config/smputilities/modsync/` e/ou liste downloads externos em `modSync.external`. Clientes
-com o mod comparam (SHA-512) e veem uma tela com o que falta, de onde vem e o tamanho; só baixam se o
-jogador aceitar. Downloads só por HTTPS de hosts permitidos ou pelo host embutido do servidor (que serve
-apenas esses arquivos, só a jogadores conectados, com token), verificados antes de entrar em `mods/`,
-nunca executados; remoções vão para uma pasta de backup. Credenciais de repositórios privados ficam só no
-`client.json` do jogador. Avisa quando é preciso reiniciar e permite cancelar.
+### Mod sync (optional, off by default)
+Put jars in `config/smputilities/modsync/` and/or list external downloads in `modSync.external`. Clients with the
+mod compare them (SHA-512) and see a screen with what is missing, where it comes from and its size; they only
+download if the player accepts. Downloads only over HTTPS from allowed hosts or from the server's built-in host
+(which serves only those files, only to connected players, with a token), checked before going into `mods/`, never
+run; removals go to a backup folder. Private repository credentials stay only in the player's `client.json`. It
+says when a restart is needed and can be cancelled.
 
-### Permissões e registros
-Todos os nós (`smputilities.staff.panel`, `smputilities.staff.ban`, `smputilities.staff.inventory.edit`,
+### Permissions and logs
+All nodes (`smputilities.staff.panel`, `smputilities.staff.ban`, `smputilities.staff.inventory.edit`,
 `smputilities.staff.vanish`, `smputilities.staff.voice.mute`, `smputilities.staff.realnames`,
 `smputilities.chat.manage`, `smputilities.nickname.change`, `smputilities.portal.manage`,
-`smputilities.dimension.manage`, … — lista completa em
-[`Perm.java`](core/src/main/java/com/arthou/smputilities/core/perm/Perm.java)) são registrados na Permission
-API do Forge/NeoForge; no Fabric são consultados pelo fabric-permissions-api (que o LuckPerms instala).
-Com um plugin de permissões, ele decide; sem ele valem os níveis de OP padrão, ajustáveis em
-`permissions.levelOverrides`, mais concessões por jogador em `permissions.grants`. Toda ação
-administrativa vai para o log de auditoria (também visível no painel).
+`smputilities.dimension.manage`, … — full list in
+[`Perm.java`](core/src/main/java/com/arthou/smputilities/core/perm/Perm.java)) are registered with the Forge/NeoForge
+Permission API; on Fabric they are checked through fabric-permissions-api (which LuckPerms installs). With a
+permission plugin, it decides; without one the default OP levels apply, adjustable in
+`permissions.levelOverrides`, plus per-player grants in `permissions.grants`. Every administrative action goes to
+the audit log (also visible in the panel).
 
-### Dados dos mods antigos
-Na primeira inicialização o SMPutilities importa (só lê, nunca altera) os dados de Inv Profile (vira a
-Troca Rápida), Inventory Rollback Plus (backups), TPA (homes, warps, spawn), DUSMP (silent join/quit, voz),
-DuTTS (vozes) e HiddenNames (nomes e animações das placas). Os comandos antigos `/invprofile`, `/view`,
-`/inventoryrollback`, `/dutts` e `/hiddennames` continuam funcionando.
+### Data from the old mods
+On first start SMPutilities imports (read only, never changed) the data of Inv Profile (becomes Quick Change),
+Inventory Rollback Plus (backups), TPA (homes, warps, spawn), DUSMP (silent join/quit, voice), DuTTS (voices) and
+HiddenNames (names and nameplate animations). The old commands `/invprofile`, `/view`, `/inventoryrollback`,
+`/dutts` and `/hiddennames` keep working.
 
-## O que ficou de fora de propósito
+## Deliberately left out
 
-* A compatibilidade com o DuCurrency (custo de teleporte) do TPA, que depende de um mod externo que não
-  está no repositório de bases.
+* TPA's DuCurrency compatibility (teleport cost), which depends on an external mod that is not in the base
+  repository.
 
-## Limitações conhecidas
+## Known limitations
 
-* Nickname, animação e placa escondida acima da cabeça só para clientes com o mod (a placa é desenhada pelo
-  cliente; o HiddenNames tem a mesma limitação).
-  Sugestões de comandos e a tela de "interações sociais" do jogo ainda mostram nomes de conta.
-* Balões de fala: o Forge não tem evento de renderização do mundo a partir da 1.21.3, então no Forge
-  1.21.3–1.21.8 eles são desenhados por um mixin e no Forge 1.21.9+ por uma etapa própria do frame graph
-  (`AddFramePassEvent`); nos outros loaders/versões, pelo evento do loader. Esses dois caminhos do Forge
-  ainda não foram vistos em jogo.
-* Limite de portais: portais de destino gerados automaticamente pelo jogo não são contados; portais de
-  outros mods só são limitados se o mod disparar o `PortalSpawnEvent` do Forge/NeoForge (no Fabric, só
-  portais do Nether). O bloqueio de dimensão funciona para qualquer dimensão.
-* Antes da 1.19.4 não existem Text Displays: o `/sit` usa uma nuvem de efeito invisível. Efeitos que não
-  existem na versão (escuridão antes da 1.19) são simplesmente pulados nas brincadeiras.
-* Backups e perfis guardam o formato da versão em que foram feitos e são atualizados pelos *data fixers*
-  do jogo ao subir de versão; voltar para uma versão mais antiga não converte itens.
-* Curios/Cosmetic Armor: edição apenas com o jogador online.
-* Sincronização de mods: um jar com o mesmo nome e preso pelo Windows é deixado em
-  `config/smputilities/modsync-client/pending/` para substituir manualmente.
-* **Testado no CI, não em jogo**: os 35 jars compilam e o servidor de cada um sobe, aplica os mixins e roda
-  comandos (no Fabric, com um cliente vanilla entrando de verdade), mas a parte visual (painel, balões, HUD) e o jogo com jogadores reais precisam de teste num
-  servidor de testes antes de produção.
+* Nickname, animation and hidden nameplate above the head only for clients with the mod (the nameplate is drawn by
+  the client; HiddenNames has the same limitation). Command suggestions and the game's "social interactions"
+  screen still show account names.
+* Speech bubbles: Forge has no world render event from 1.21.3, so on Forge 1.21.3–1.21.8 they are drawn by a mixin
+  and on Forge 1.21.9+ by a frame graph pass of their own (`AddFramePassEvent`); on the other loaders and
+  versions, by the loader's event. Those two Forge paths have not been seen in game yet.
+* Portal limits: destination portals generated by the game are not counted; other mods' portals are only limited
+  if the mod fires Forge/NeoForge's `PortalSpawnEvent` (on Fabric, Nether portals only). Dimension blocking works
+  for any dimension.
+* Before 1.19.4 there are no Text Displays: `/sit` uses an invisible area effect cloud. Effects that don't exist in
+  the version (darkness before 1.19) are simply skipped by the pranks.
+* Backups and profiles keep the format of the version they were made in and are updated by the game's *data
+  fixers* when moving up a version; going back to an older version doesn't convert items.
+* Curios/Cosmetic Armor: editing only with the player online.
+* Mod sync: a jar with the same name that Windows keeps locked is left in
+  `config/smputilities/modsync-client/pending/` to be replaced by hand.
+* **Tested in CI, not in game**: the 35 jars compile and each server starts, applies the mixins and runs commands
+  (on Fabric, with a real vanilla client joining), but the visual part (panel, bubbles, HUD) and play with real
+  players need testing on a test server before production.
 
-## Multi-loader e multi-versão
+## Multi-loader and multi-version
 
 ```
-core/                         lógica pura em Java 17 (config, permissões, chat, punições, auditoria,
-                              portais, dimensões, teleporte, mod sync), com testes
-mod/src/main/java             todo o código do jogo, compartilhado por todos os alvos
-  mc/                         as chamadas que mudam entre versões (NBT, itens, textos, ids, efeitos,
-                              teleporte, permissões de OP, bans, tab list...) ficam só aqui
-  platform/                   Platform (o que cada loader fornece) e CommonEvents (todos os eventos)
-  client/gui/                 Gfx e widgets próprios: o painel desenha igual de 1.18 (PoseStack) a
-                              1.21.11 (GuiGraphics novo, eventos de input novos)
-mod/src/{fabric,forge,neoforge}/   só a ligação com cada loader (eventos, rede, permissões, mixins)
-mod/swaps.txt                 renomeações da Mojang aplicadas por versão (ResourceLocation→Identifier...)
-buildSrc/                     pré-processador: //#if MC>=1.21.5 && FABRIC ... //#else ... //#endif
-gradle/target.gradle          o build de um alvo (Architectury Loom, mapeamentos da Mojang)
-versions/<versão>-<loader>/   versões exatas de Minecraft/loader/Fabric API (tools/gen_targets.py)
-tts-bridge/                   aplicativo auxiliar de TTS (jar embutido)
-tools/                        traduções (tools/lang → genlang.py), CI (erros, smoke test), sondas de API
+core/                         plain Java 17 logic (config, permissions, chat, punishments, audit,
+                              portals, dimensions, teleport, mod sync), with tests
+mod/src/main/java             all the game code, shared by every target
+  mc/                         the calls that change between versions (NBT, items, text, ids, effects,
+                              teleport, OP permissions, bans, tab list...) live only here
+  platform/                   Platform (what each loader provides) and CommonEvents (all events)
+  client/gui/                 Gfx and our own widgets: the panel draws the same from 1.18 (PoseStack) to
+                              1.21.11 (new GuiGraphics, new input events)
+mod/src/{fabric,forge,neoforge}/   only the glue with each loader (events, network, permissions, mixins)
+mod/swaps.txt                 Mojang renames applied per version (ResourceLocation→Identifier...)
+buildSrc/                     preprocessor: //#if MC>=1.21.5 && FABRIC ... //#else ... //#endif
+gradle/target.gradle          the build of one target (Architectury Loom, Mojang mappings)
+versions/<version>-<loader>/  exact Minecraft/loader/Fabric API versions (tools/gen_targets.py)
+tts-bridge/                   TTS helper app (embedded jar)
+tools/                        translations (tools/lang → genlang.py), CI (errors, smoke test), API probes
 ```
 
-As diferenças entre versões foram levantadas comparando as assinaturas reais das classes do jogo em
-cada versão (`tools/probe`, workflow `probe`), não de memória.
+The differences between versions were found by comparing the real signatures of the game's classes in each
+version (`tools/probe`, the `probe` workflow), not from memory.
 
-## Compilar
+## Building
 
 ```sh
-./gradlew -Psu.targets=1.21.1-fabric build             # um alvo; jar em dist/
+./gradlew -Psu.targets=1.21.1-fabric build             # one target; jar in dist/
 ./gradlew -Psu.targets=1.20.1-forge,1.21.11-neoforge build
-./gradlew -Psu.targets=all build                       # os 35 (cada um baixa o seu Minecraft)
-./gradlew -Psu.coreOnly=true :core:test                # só a lógica pura, sem baixar o Minecraft
-tools/smoke.sh 1.21.1-fabric                           # depois do build: sobe o servidor do alvo (smoke test)
+./gradlew -Psu.targets=all build                       # all 35 (each downloads its own Minecraft)
+./gradlew -Psu.coreOnly=true :core:test                # only the plain logic, without downloading Minecraft
+tools/smoke.sh 1.21.1-fabric                           # after the build: starts the target's server (smoke test)
 ```
 
-Requer JDK 21 (e JDK 17 para rodar servidores de 1.18.2 a 1.20.4). Traduções: edite `tools/lang/*.tsv`
-e rode `python3 tools/genlang.py tools/lang mod/src/main/resources/assets/smputilities/lang`.
+Needs JDK 21 (and JDK 17 to run the 1.18.2 to 1.20.4 servers). Translations: English and Portuguese are in
+`tools/lang/*.tsv`, the other languages in `tools/lang/locales/<code>.lang`; then run
+`python3 tools/genlang.py tools/lang mod/src/main/resources/assets/smputilities/lang`.
 
-## Licença
+## License
 
-SMPutilities é software proprietário: Copyright (c) 2026 arthou, todos os direitos reservados ([LICENSE](LICENSE)).
-Nenhuma permissão é concedida para usar, copiar, modificar, redistribuir ou criar trabalhos derivados sem
-autorização prévia e por escrito. Componentes de terceiros mantêm as suas licenças, listadas em
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) (HiddenNames e AntiXray, MIT; JLayer, LGPL). O TrollBoss (GPL-3.0) serviu só
-de referência de comportamento: nenhum código dele foi copiado, para não obrigar o mod a ser GPL. Os dois arquivos
-vão dentro de cada jar.
-
----
-
-### English summary
-
-SMPutilities is one mod for SMP/roleplay servers: staff panel GUI with nine categories, vanilla-by-default
-chat with an optional QSMP format, mentions, mutes, spam protection, bans synced with the vanilla ban list,
-server-side vanish, an anti-xray after DrexHD's AntiXray (MIT; only outgoing chunk packets change, never the world)
-with x-ray alerts for staff, a CoreProtect-style block and container log with inspect, lookup, rollback, restore and
-undo, freeze and jails, alt detection by IP, a chat word and advertising filter, Discord webhooks, maintenance mode,
-a server tab with lag numbers, entity hotspots, clean-ups and the whitelist, live and offline inventory editing, automatic and manual backups with safe restore,
-Inv Profile's Quick Change plus crash-safe named profiles, RP nicknames built on HiddenNames (same /hiddennames commands, nameplate
-animations, hidden nameplates, blocks hiding nameplates, team color override, data import), TTS with speech bubbles, portal
-limits, dimension access control, TPA-style QoL commands (with /tpacancel and /tpatoggle), AFK detection
-(tab tag, AFK players ignored by the sleep percentage, optional kick), /report with staff alerts, staff chat,
-automatic announcements, scheduled restarts with countdown, first-join welcome, MOTD and /rules,
-/playtime, /seen, death coordinates, staff pranks after TrollBoss (no code copied; block changes are undone), opt-in mod sync with
-SHA-512 verification, permission nodes for LuckPerms and an audit log. It imports data from the
-standalone mods it replaces.
-
-One shared code base builds 35 jars: Fabric and Forge for 1.18.2, 1.19.2, 1.19.4, 1.20.1, 1.20.4, 1.20.6,
-1.21.1, 1.21.3, 1.21.4, 1.21.5, 1.21.8, 1.21.10 and 1.21.11, and NeoForge from 1.20.4. Version differences
-live in `mod/src/main/java/.../mc` and a small source preprocessor (`//#if MC>=1.21.5`); loader glue lives
-in `mod/src/<loader>`. CI compiles every target and boots a dedicated server for each (smoke test); on
-the 13 Fabric targets a vanilla client (mineflayer) also joins and checks the chunks it gets, anti-xray included.
-It has not been played in game yet.
-
-All rights reserved (c) 2026 arthou; see `LICENSE` and `THIRD_PARTY_NOTICES.md`.
+SMPutilities is proprietary software: Copyright (c) 2026 arthou, all rights reserved ([LICENSE](LICENSE)). No
+permission is granted to use, copy, modify, redistribute or create derivative works without prior written
+authorization. Third-party components keep their own licenses, listed in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) (HiddenNames and AntiXray, MIT; JLayer, LGPL). TrollBoss (GPL-3.0)
+was only used as a behavior reference: none of its code was copied, so the mod doesn't have to be GPL. Both files
+ship inside every jar.

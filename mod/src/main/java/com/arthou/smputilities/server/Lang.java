@@ -18,12 +18,16 @@ import java.util.Map;
 
 /**
  * Server-side translation. Messages are translated before they are sent, so
- * players without the client mod still read English or Portuguese instead of
- * raw translation keys. The same files feed the client GUI.
+ * players without the client mod still read their own language instead of
+ * raw translation keys. The same files feed the client GUI. Languages
+ * without their own text, and keys a language lacks, read English.
  */
 public final class Lang {
     public static final String EN = "en_us";
     public static final String PT = "pt_br";
+    /** Language prefix → the file with its text; regional variants (fr_ca, es_mx...) share it. */
+    private static final Map<String, String> LANGUAGES = Map.of(
+        "en", EN, "pt", PT, "fr", "fr_fr", "de", "de_de", "es", "es_es", "ru", "ru_ru", "uk", "uk_ua", "pl", "pl_pl");
 
     private static final Map<String, Map<String, String>> TABLES = new HashMap<>();
 
@@ -51,17 +55,23 @@ public final class Lang {
         return map;
     }
 
+    /** The language file for a game language code ("fr_ca" → "fr_fr"); English for the others. */
+    public static String resolve(String code) {
+        if (code == null) {
+            return EN;
+        }
+        String lower = code.toLowerCase(Locale.ROOT);
+        int cut = lower.indexOf('_');
+        return LANGUAGES.getOrDefault(cut < 0 ? lower : lower.substring(0, cut), EN);
+    }
+
     /** Language for a player: the configured one, or the client's own when "auto". */
     public static String languageOf(ServerPlayer player) {
         String configured = SuServer.config().language;
         if (configured != null && !configured.equalsIgnoreCase("auto")) {
-            return configured.toLowerCase(Locale.ROOT).startsWith("pt") ? PT : EN;
+            return resolve(configured);
         }
-        if (player == null) {
-            return EN;
-        }
-        String client = Mc.language(player);
-        return client != null && client.toLowerCase(Locale.ROOT).startsWith("pt") ? PT : EN;
+        return player == null ? EN : resolve(Mc.language(player));
     }
 
     public static String tr(ServerPlayer player, String key, Object... args) {

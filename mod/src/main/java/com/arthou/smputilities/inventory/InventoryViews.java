@@ -42,7 +42,7 @@ public final class InventoryViews {
         boolean edit = editable(viewer, target, online != null, false);
         Component title = Texts.literal(Lang.tr(viewer, edit ? "inventory.title_edit" : "inventory.title", display(viewer, target)));
         if (online != null) {
-            viewer.openMenu(new SimpleMenuProvider((id, inventory, player) -> TargetInventoryMenu.live(id, inventory, online, edit), title));
+            viewer.openMenu(new SimpleMenuProvider((id, inventory, player) -> TargetInventoryMenu.live(id, inventory, online, edit), Texts.markMenu(title)));
         } else {
             Optional<CompoundTag> data = OfflinePlayerAccess.load(server, target.id());
             if (data.isEmpty()) {
@@ -51,7 +51,7 @@ public final class InventoryViews {
             }
             PlayerNbt.Contents contents = PlayerNbt.readInventory(data.get(), server.registryAccess());
             viewer.openMenu(new SimpleMenuProvider((id, inventory, player) ->
-                TargetInventoryMenu.offline(id, inventory, server, target.id(), target.name(), contents, edit), title));
+                TargetInventoryMenu.offline(id, inventory, server, target.id(), target.name(), contents, edit), Texts.markMenu(title)));
         }
         SuServer.get().log(viewer, "inventory.view", target.id(), target.name(), online == null ? "offline" : "online");
         return true;
@@ -63,7 +63,7 @@ public final class InventoryViews {
         boolean edit = editable(viewer, target, online != null, true);
         Component title = Texts.literal(Lang.tr(viewer, edit ? "inventory.ender_title_edit" : "inventory.ender_title", display(viewer, target)));
         if (online != null) {
-            viewer.openMenu(new SimpleMenuProvider((id, inventory, player) -> TargetInventoryMenu.liveEnderChest(id, inventory, online, edit), title));
+            viewer.openMenu(new SimpleMenuProvider((id, inventory, player) -> TargetInventoryMenu.liveEnderChest(id, inventory, online, edit), Texts.markMenu(title)));
         } else {
             Optional<CompoundTag> data = OfflinePlayerAccess.load(server, target.id());
             if (data.isEmpty()) {
@@ -72,7 +72,7 @@ public final class InventoryViews {
             }
             ItemStack[] ender = PlayerNbt.readEnder(data.get(), server.registryAccess());
             viewer.openMenu(new SimpleMenuProvider((id, inventory, player) ->
-                TargetInventoryMenu.offlineEnderChest(id, inventory, server, target.id(), target.name(), ender, edit), title));
+                TargetInventoryMenu.offlineEnderChest(id, inventory, server, target.id(), target.name(), ender, edit), Texts.markMenu(title)));
         }
         SuServer.get().log(viewer, "inventory.view_ender", target.id(), target.name(), online == null ? "offline" : "online");
         return true;
@@ -87,7 +87,7 @@ public final class InventoryViews {
         boolean edit = canEdit(viewer, true);
         viewer.openMenu(new SimpleMenuProvider((id, inventory, player) ->
             new TargetExtraInventoryMenu(id, inventory, compat.rightSlots(), compat.saveHook(), edit),
-            Texts.literal(Lang.tr(viewer, "inventory.curios_title", Names.realName(target)))));
+            Texts.markMenu(Texts.literal(Lang.tr(viewer, "inventory.curios_title", Names.realName(target))))));
         return true;
     }
 
@@ -100,7 +100,7 @@ public final class InventoryViews {
         boolean edit = canEdit(viewer, true);
         viewer.openMenu(new SimpleMenuProvider((id, inventory, player) ->
             new TargetExtraInventoryMenu(id, inventory, compat.leftSlots(), compat.saveHook(), edit),
-            Texts.literal(Lang.tr(viewer, "inventory.cosmetic_title", Names.realName(target)))));
+            Texts.markMenu(Texts.literal(Lang.tr(viewer, "inventory.cosmetic_title", Names.realName(target))))));
         return true;
     }
 

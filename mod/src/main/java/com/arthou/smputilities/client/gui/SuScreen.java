@@ -121,6 +121,7 @@ public abstract class SuScreen extends Screen {
             }
         }
         renderFront(graphics, mx, my, partialTick);
+        Credit.draw(graphics, font, width, height);
         renderToasts(graphics);
         if (modal) {
             dialog.render(graphics, mouseX, mouseY, partialTick);
