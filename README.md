@@ -238,6 +238,16 @@ microphone in the voice chat; on macOS install VB-Cable (the default) or BlackHo
 app and as the microphone in the voice chat, and allow Minecraft to use the microphone in System Settings. "Hear it yourself" plays a copy on your headphones on every system. Without the
 app, only TTS is unavailable.
 
+Closing the game, or the app (Stop, the window's close button, Stop in the tray), leaves the sound system as it was:
+what is playing stops and, on Linux, the cable, the microphone and the "Hear it yourself" copy are removed and the
+desktop's default output and input are the ones it had before (after a crash, on the next start). If a voice chat is
+still using the TTS microphone, the app asks first, since that app would switch to your real microphone. The app stays
+open until the game closes, also between servers, and on Linux, once set up, it starts with the game (in the
+background) so the microphone exists before the voice chat opens it; `tts.autoStartBridge: false` in
+`config/smputilities/client.json` turns automatic starts off. On Windows and macOS the app never changes the system's
+devices and VB-Cable / BlackHole stay installed; if installing VB-Cable made it your default speakers, pick your
+speakers again in the system's sound settings.
+
 ### World
 * `/su portal limit <nether|end|aether|id> <n|unlimited>`, `/su portal count|list|remove|clear`. Nether portals are
   counted when lit; End portals when the last eye would complete the frame. Destroyed portals are detected (block

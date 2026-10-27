@@ -43,6 +43,9 @@ public final class SuClient {
                 ClientCompat.sendCommand("su staff");
             }
         }
+        if (ticks == 0) {
+            BridgeLauncher.startWithGame();
+        }
         BubbleManager.tick();
         TypingWatcher.tick(minecraft);
         PanelReturn.tick(minecraft);
@@ -138,6 +141,7 @@ public final class SuClient {
         TypingWatcher.reset();
         PanelReturn.reset();
         ClientModSync.reset();
-        BridgeLauncher.requestShutdownAsync();
+        // The voice app stays until the game closes (or its Stop): on Linux, closing
+        // it removes the virtual microphone the voice chat of the next server opens.
     }
 }

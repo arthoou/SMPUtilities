@@ -243,6 +243,16 @@ microfone virtual sem driver: no Windows instale o VB-Cable, escolha "CABLE Inpu
 como microfone no voice chat, e libere o microfone para o Minecraft nos Ajustes do Sistema. "Ouça também" toca uma cópia nos seus fones em todos os sistemas. Sem o app, só o TTS fica
 indisponível.
 
+Fechar o jogo, ou o app (Parar, o botão de fechar da janela, Parar na bandeja), deixa o som do sistema como estava: o
+que está tocando para e, no Linux, o cabo, o microfone e a cópia do "Ouça também" são removidos e a saída e a entrada
+padrão do sistema voltam a ser as de antes (depois de um travamento, na próxima abertura). Se um voice chat ainda estiver
+usando o microfone do TTS, o app pergunta antes, porque esse app passaria a usar o seu microfone de verdade. O app fica
+aberto até o jogo fechar, também entre servidores, e no Linux, depois de configurado, ele abre junto com o jogo (em
+segundo plano) para o microfone já existir quando o voice chat for abri-lo; `tts.autoStartBridge: false` em
+`config/smputilities/client.json` desliga as aberturas automáticas. No Windows e no macOS o app nunca muda os
+dispositivos do sistema, e o VB-Cable / BlackHole continuam instalados; se instalar o VB-Cable deixou ele como seus
+alto-falantes padrão, escolha seus alto-falantes de novo nas configurações de som do sistema.
+
 ### Mundo
 * `/su portal limit <nether|end|aether|id> <n|unlimited>`, `/su portal count|list|remove|clear`. Portais do
   Nether são contados ao acender; do End quando o último olho completaria a moldura. Portais destruídos são

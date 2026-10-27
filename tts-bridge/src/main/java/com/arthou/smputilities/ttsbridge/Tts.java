@@ -244,7 +244,7 @@ final class Tts {
         if (!FLATPAK && sink != null && !sink.isBlank()) {
             builder.environment().put("PULSE_SINK", sink);
         }
-        builder.start();
+        Playback.track(builder.start());
     }
 
     private static String xmlEscape(String raw) {

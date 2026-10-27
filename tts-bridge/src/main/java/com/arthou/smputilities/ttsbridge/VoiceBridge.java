@@ -33,6 +33,7 @@ public final class VoiceBridge {
     public static final int PORT = 43125;
 
     private static final AtomicInteger SERVED = new AtomicInteger();
+    private static boolean restored;
     private static volatile BridgeWindow window;
     private static volatile HttpServer server;
 
@@ -74,6 +75,8 @@ public final class VoiceBridge {
         server.createContext("/shutdown", VoiceBridge::handleShutdown);
         server.setExecutor(Executors.newFixedThreadPool(4));
         server.start();
+        // Every way out (Stop, the window, the game closing, Ctrl+C, logging out) restores the sound system.
+        Runtime.getRuntime().addShutdownHook(new Thread(VoiceBridge::restoreSystemAudio, "smputilities-voice-bridge-restore"));
 
         restoreAudioRouting();
 
@@ -98,6 +101,9 @@ public final class VoiceBridge {
         if (!Audio.available()) {
             return;
         }
+        if (Audio.canCreateCable()) {
+            Audio.rememberSystemDefaults();
+        }
 
         // First run on Linux: the whole point is to speak through the microphone,
         // so start on the cable instead of the speakers, and keep a copy on the
@@ -114,6 +120,10 @@ public final class VoiceBridge {
         if (Audio.CABLE_SINK.equals(Config.outputSink()) && (!Audio.cableExists() || !Audio.micExists())) {
             String error = Audio.createCable();
             log(error == null ? "Virtual microphone ready: " + Audio.MIC_DESCRIPTION : "Could not create the virtual microphone: " + error);
+        }
+        if (Audio.canCreateCable()) {
+            // Also after a crash that left the cable as the desktop's default.
+            Audio.keepSystemDefaults();
         }
 
         String monitor = Config.monitorSink();
@@ -209,7 +219,7 @@ public final class VoiceBridge {
     // ------------------------------------------------------------- lifecycle
 
     static void shutdown() {
-        new Thread(() -> {
+        Thread stopper = new Thread(() -> {
             try {
                 Thread.sleep(250L);
             } catch (InterruptedException ignored) {
@@ -218,8 +228,31 @@ public final class VoiceBridge {
             if (server != null) {
                 server.stop(0);
             }
+            restoreSystemAudio();
             System.exit(0);
-        }, "smputilities-voice-bridge-shutdown").start();
+        }, "smputilities-voice-bridge-shutdown");
+        // Started from the watchdog, it would be a daemon too, and the JVM could end in the middle of the restore.
+        stopper.setDaemon(false);
+        stopper.start();
+    }
+
+    /**
+     * Leaves the sound system as it was: what is playing stops, and on Linux the
+     * cable, the virtual microphone and the monitor copy are removed and the
+     * desktop's default output and input come back. Windows and macOS keep their
+     * driver (VB-Cable, BlackHole) and their defaults, which the app never changes.
+     */
+    private static synchronized void restoreSystemAudio() {
+        // Synchronized: the shutdown hook waits for a restore that is already running.
+        if (restored) {
+            return;
+        }
+        restored = true;
+        Playback.stopAll();
+        if (Audio.canCreateCable() && Audio.available()) {
+            Audio.restoreSystem();
+            System.out.println("[smputilities-voice-bridge] Virtual microphone removed, sound devices restored");
+        }
     }
 
     /** Exits when Minecraft goes away, so no stray process is left behind. */
@@ -297,7 +330,7 @@ public final class VoiceBridge {
                 frame.toFront();
             });
             MenuItem quit = new MenuItem(I18n.t("Stop", "Parar"));
-            quit.addActionListener(e -> shutdown());
+            quit.addActionListener(e -> frame.requestStop());
             menu.add(open);
             menu.addSeparator();
             menu.add(quit);

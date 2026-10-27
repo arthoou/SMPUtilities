@@ -3,6 +3,8 @@ package com.arthou.smputilities.ttsbridge;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -42,7 +44,14 @@ final class BridgeWindow extends JFrame {
         super("SMPutilities Voice");
         this.port = port;
         this.onStop = onStop;
-        setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+        // Closing the window closes the app, which gives the sound devices back; "Hide" keeps it running.
+        setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent event) {
+                requestStop();
+            }
+        });
         setSize(800, 560);
         setMinimumSize(new Dimension(700, 500));
         setLocationRelativeTo(null);
@@ -114,9 +123,32 @@ final class BridgeWindow extends JFrame {
         Ui.PillButton hide = new Ui.PillButton(t("Hide", "Ocultar"), Ui.PillButton.Kind.GHOST);
         hide.addActionListener(e -> setVisible(false));
         Ui.PillButton stop = new Ui.PillButton(t("Stop", "Parar"), Ui.PillButton.Kind.DANGER);
-        stop.addActionListener(e -> onStop.run());
+        stop.addActionListener(e -> requestStop());
         bar.add(Ui.row(hide, stop));
         return bar;
+    }
+
+    /** Stop, the tray's Stop and closing the window: the app closes and gives the sound devices back. */
+    void requestStop() {
+        if (confirmMicRemoval()) {
+            onStop.run();
+        }
+    }
+
+    /**
+     * Linux: a voice chat still recording the virtual microphone would be moved
+     * to the real one when it goes away, so that needs a yes first.
+     */
+    private boolean confirmMicRemoval() {
+        if (!Audio.canCreateCable() || !Audio.micInUse()) {
+            return true;
+        }
+        setVisible(true);
+        toFront();
+        return JOptionPane.showConfirmDialog(this,
+            t("A voice chat is still using the " + Audio.MIC_DESCRIPTION + ".\nRemoving it switches that app to your real microphone. Continue?",
+                "Um voice chat ainda está usando o " + Audio.MIC_DESCRIPTION + ".\nRemover esse microfone faz esse app usar o seu microfone de verdade. Continuar?"),
+            "SMPutilities Voice", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.OK_OPTION;
     }
 
     private void show(int index) {
@@ -447,8 +479,10 @@ final class BridgeWindow extends JFrame {
             reload.run();
         });
         remove.addActionListener(e -> {
-            Audio.removeLoopback();
-            Audio.removeCable();
+            if (!confirmMicRemoval()) {
+                return;
+            }
+            Audio.restoreSystem();
             append(t("Virtual microphone removed", "Microfone virtual removido"));
             reload.run();
         });

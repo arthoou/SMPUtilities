@@ -199,6 +199,7 @@ final class Audio {
                     "pactl", "load-module", "module-null-sink",
                     "sink_name=" + CABLE_SINK,
                     "sink_properties=device.description=SMPutilities_TTS_Cable"));
+                keepSystemDefaults();
                 if (!cableExists()) {
                     return String.join(" ", out);
                 }
@@ -233,9 +234,11 @@ final class Audio {
                 "pactl", "load-module", "module-remap-source",
                 "master=" + CABLE_MONITOR,
                 "source_name=" + MIC_SOURCE,
-                // This exact quoting is the only form both PulseAudio and
-                // pipewire-pulse read as a description containing a space.
-                "source_properties=\"device.description=\\\"" + MIC_DESCRIPTION + "\\\"\""));
+                // Single quotes around the list, double quotes around the value:
+                // PulseAudio rejects escaped quotes ("Invalid properties"), and
+                // pipewire-pulse reads this form too.
+                "source_properties='device.description=\"" + MIC_DESCRIPTION + "\"'"));
+            keepSystemDefaults();
             return micExists() ? null : String.join(" ", out);
         } catch (IOException exception) {
             return exception.getMessage();
@@ -266,19 +269,132 @@ final class Audio {
         }
     }
 
-    /** The sink the desktop currently plays on, or null when it cannot be read. */
+    // ------------------------------------------------ the desktop's own devices
+
+    /** The sink the desktop currently plays on (never the cable), or null when it cannot be read. */
     static String defaultSink() {
+        String sink = defaultDevice("sink");
+        return isOurs(sink) ? null : sink;
+    }
+
+    /** The default "sink" or "source", or null when it cannot be read. */
+    private static String defaultDevice(String kind) {
         try {
-            for (String line : run(List.of("pactl", "get-default-sink"))) {
+            // pactl 15+ and pipewire-pulse; older pactl only has "info", in English with LC_ALL=C.
+            for (String line : run(List.of("pactl", "get-default-" + kind))) {
                 String name = line.trim();
-                if (!name.isEmpty() && !name.equals(CABLE_SINK) && !name.contains(" ")) {
+                if (!name.isEmpty() && !name.contains(" ")) {
                     return name;
+                }
+            }
+            String label = "Default " + Character.toUpperCase(kind.charAt(0)) + kind.substring(1) + ":";
+            for (String line : run(List.of("env", "LC_ALL=C", "pactl", "info"))) {
+                if (line.startsWith(label)) {
+                    String name = line.substring(label.length()).trim();
+                    return name.isEmpty() ? null : name;
                 }
             }
         } catch (IOException ignored) {
             // treated as unknown
         }
         return null;
+    }
+
+    /** The cable, its monitor and the microphone, under their current and old names. */
+    private static boolean isOurs(String device) {
+        return device != null && (device.equals(CABLE_SINK) || device.equals(CABLE_MONITOR) || device.equals(MIC_SOURCE)
+            || device.equals(LEGACY_CABLE_SINK) || device.equals(LEGACY_CABLE_SINK + ".monitor") || device.equals(LEGACY_MIC_SOURCE));
+    }
+
+    private static boolean deviceExists(String kind, String name) {
+        try {
+            for (String line : run(List.of("pactl", "list", "short", kind + "s"))) {
+                String[] parts = line.split("\t");
+                if (parts.length >= 2 && parts[1].equals(name)) {
+                    return true;
+                }
+            }
+        } catch (IOException ignored) {
+            // treated as missing
+        }
+        return false;
+    }
+
+    /**
+     * Saves the desktop's default output and input before the app adds anything,
+     * so closing it can put them back. A default that is already ours was left by
+     * a crash: the one saved last time stays.
+     */
+    static void rememberSystemDefaults() {
+        String sink = defaultDevice("sink");
+        if (sink != null && !isOurs(sink)) {
+            Config.setSystemSink(sink);
+        }
+        String source = defaultDevice("source");
+        if (source != null && !isOurs(source)) {
+            Config.setSystemSource(source);
+        }
+    }
+
+    /**
+     * The cable and the microphone are only for the game: if the sound server
+     * made one of them the desktop's default (PipeWire can, for a new device),
+     * the saved default goes back.
+     */
+    static void keepSystemDefaults() {
+        putBackDefault("sink", Config.systemSink(), false);
+        putBackDefault("source", Config.systemSource(), false);
+    }
+
+    private static void putBackDefault(String kind, String saved, boolean wasOurs) {
+        if (saved.isBlank() || !(wasOurs || isOurs(defaultDevice(kind))) || !deviceExists(kind, saved)) {
+            return;
+        }
+        try {
+            run(List.of("pactl", "set-default-" + kind, saved));
+        } catch (IOException ignored) {
+            // the sound server keeps the default it picked
+        }
+    }
+
+    /**
+     * Closing the app: everything it added to the sound system goes away (the
+     * monitor copy, the microphone and the cable) and the desktop's default
+     * output and input are the ones it had before.
+     */
+    static void restoreSystem() {
+        boolean sinkWasOurs = isOurs(defaultDevice("sink"));
+        boolean sourceWasOurs = isOurs(defaultDevice("source"));
+        removeLoopback();
+        removeCable();
+        putBackDefault("sink", Config.systemSink(), sinkWasOurs);
+        putBackDefault("source", Config.systemSource(), sourceWasOurs);
+    }
+
+    /**
+     * True while something records the virtual microphone (a voice chat,
+     * Discord). Removing it moves that recording to the default microphone:
+     * the real one.
+     */
+    static boolean micInUse() {
+        try {
+            List<String> ours = new ArrayList<>();
+            for (String line : run(List.of("pactl", "list", "short", "sources"))) {
+                String[] parts = line.split("\t");
+                if (parts.length >= 2 && (parts[1].equals(MIC_SOURCE) || parts[1].equals(LEGACY_MIC_SOURCE))) {
+                    ours.add(parts[0]);
+                }
+            }
+            for (String line : run(List.of("pactl", "list", "short", "source-outputs"))) {
+                String[] parts = line.split("\t");
+                if (parts.length >= 2 && ours.contains(parts[1])) {
+                    return true;
+                }
+            }
+        } catch (IOException ignored) {
+            // treated as unused
+        }
+        return false;
     }
 
     // ---------------------------------------------------------- monitoring

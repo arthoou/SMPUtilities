@@ -144,7 +144,7 @@ final class Player {
             builder.environment().put("PULSE_SINK", sink);
         }
 
-        Process process = builder.start();
+        Process process = Playback.track(builder.start());
         try (OutputStream stdin = process.getOutputStream()) {
             stdin.write(mp3);
             stdin.flush();

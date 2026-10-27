@@ -73,7 +73,7 @@ final class JavaSoundPlayer {
                         samples.getChannelCount(),
                         true,
                         false);
-                    line = openLine(format, deviceName);
+                    line = Playback.track(openLine(format, deviceName));
                     line.start();
                 }
 
@@ -94,6 +94,7 @@ final class JavaSoundPlayer {
             throw new IOException("MP3 playback failed: " + exception.getMessage(), exception);
         } finally {
             if (line != null) {
+                Playback.untrack(line);
                 line.drain();
                 line.close();
             }

@@ -10,6 +10,8 @@ final class Config {
     private static final Path FILE = Path.of("smputilities-voice-bridge.properties");
     private static final String KEY_SINK = "output.sink";
     private static final String KEY_MONITOR = "monitor.sink";
+    private static final String KEY_SYSTEM_SINK = "system.sink";
+    private static final String KEY_SYSTEM_SOURCE = "system.source";
     private static final Properties PROPS = new Properties();
 
     static {
@@ -52,6 +54,26 @@ final class Config {
 
     static boolean hasMonitorSink() {
         return PROPS.containsKey(KEY_MONITOR);
+    }
+
+    /** Linux: the desktop's default output before the app added its cable; put back on close. */
+    static String systemSink() {
+        return PROPS.getProperty(KEY_SYSTEM_SINK, "");
+    }
+
+    static void setSystemSink(String sink) {
+        PROPS.setProperty(KEY_SYSTEM_SINK, sink.trim());
+        save();
+    }
+
+    /** Linux: the desktop's default microphone before the app added its own. */
+    static String systemSource() {
+        return PROPS.getProperty(KEY_SYSTEM_SOURCE, "");
+    }
+
+    static void setSystemSource(String source) {
+        PROPS.setProperty(KEY_SYSTEM_SOURCE, source.trim());
+        save();
     }
 
     private static void save() {

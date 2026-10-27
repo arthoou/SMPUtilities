@@ -12,11 +12,13 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -28,13 +30,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public final class BridgeLauncher {
     private static final URI HEALTH_URI = URI.create("http://127.0.0.1:43125/health");
-    private static final URI SHUTDOWN_URI = URI.create("http://127.0.0.1:43125/shutdown");
     private static final Duration HEALTH_TIMEOUT = Duration.ofMillis(800L);
     private static final HttpClient HTTP = HttpClient.newBuilder()
         .connectTimeout(HEALTH_TIMEOUT)
         .build();
     private static final String RESOURCE_ROOT = "/smputilities/voice-bridge/";
     private static final String BRIDGE_JAR = "smputilities-voice-bridge.jar";
+    /** Written by the voice app once it has run: its chosen output and microphone. */
+    private static final String BRIDGE_SETTINGS = "smputilities-voice-bridge.properties";
+    private static final boolean LINUX = System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("linux");
     private static final AtomicBoolean launchErrorShown = new AtomicBoolean();
     private static volatile long lastLaunchAttemptMillis;
 
@@ -42,6 +46,28 @@ public final class BridgeLauncher {
     }
 
     public static boolean ensureRunning(boolean showError) {
+        return ensureRunning(showError, false);
+    }
+
+    /**
+     * Linux: the virtual microphone exists only while the voice app runs (it is
+     * removed when the app closes), and a voice chat opens its microphone as soon
+     * as you join a server. So once the app has been set up, it starts with the
+     * game, in the background, and the microphone is there first. On Windows and
+     * macOS the driver's device is always there, so the app waits for the first
+     * TTS line as before.
+     */
+    public static void startWithGame() {
+        if (!LINUX || !com.arthou.smputilities.client.ClientConfig.get().tts.autoStartBridge
+            || !Files.exists(bridgeDirectory().resolve(BRIDGE_SETTINGS))) {
+            return;
+        }
+        Thread thread = new Thread(() -> ensureRunning(false, true), "smputilities-voice-start");
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private static boolean ensureRunning(boolean showError, boolean background) {
         if (isHealthy()) {
             launchErrorShown.set(false);
             return true;
@@ -59,7 +85,7 @@ public final class BridgeLauncher {
         lastLaunchAttemptMillis = now;
         try {
             Path bridgeDirectory = extractBridgeBundle();
-            startBridgeProcess(bridgeDirectory);
+            startBridgeProcess(bridgeDirectory, background);
         } catch (Exception exception) {
             if (showError && launchErrorShown.compareAndSet(false, true)) {
                 showClientMessage(Texts.translatable("tts.helper_missing")
@@ -74,32 +100,6 @@ public final class BridgeLauncher {
             launchErrorShown.set(false);
         }
         return healthy;
-    }
-
-    /** Stops the bridge without blocking the render thread (on disconnect). */
-    public static void requestShutdownAsync() {
-        Thread thread = new Thread(BridgeLauncher::requestShutdown, "smputilities-voice-shutdown");
-        thread.setDaemon(true);
-        thread.start();
-    }
-
-    public static void requestShutdown() {
-        if (!isHealthy()) {
-            return;
-        }
-
-        try {
-            HttpRequest request = HttpRequest.newBuilder(SHUTDOWN_URI)
-                .timeout(Duration.ofSeconds(2L))
-                .header("Content-Type", "application/json; charset=utf-8")
-                .POST(HttpRequest.BodyPublishers.ofString("{}", StandardCharsets.UTF_8))
-                .build();
-            HTTP.send(request, HttpResponse.BodyHandlers.discarding());
-        } catch (IOException | InterruptedException ignored) {
-            if (ignored instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
-        }
     }
 
     private static boolean waitForHealth(Duration duration, boolean showError) {
@@ -143,12 +143,15 @@ public final class BridgeLauncher {
         }
     }
 
-    private static Path extractBridgeBundle() throws IOException {
-        Minecraft minecraft = Minecraft.getInstance();
-        Path targetDirectory = minecraft.gameDirectory.toPath()
+    private static Path bridgeDirectory() {
+        return Minecraft.getInstance().gameDirectory.toPath()
             .resolve("config")
             .resolve("smputilities")
             .resolve("voice-bridge");
+    }
+
+    private static Path extractBridgeBundle() throws IOException {
+        Path targetDirectory = bridgeDirectory();
         Files.createDirectories(targetDirectory);
 
         try (InputStream stream = BridgeLauncher.class.getResourceAsStream(RESOURCE_ROOT + BRIDGE_JAR)) {
@@ -162,13 +165,17 @@ public final class BridgeLauncher {
         return targetDirectory;
     }
 
-    private static void startBridgeProcess(Path bridgeDirectory) throws IOException {
+    private static void startBridgeProcess(Path bridgeDirectory, boolean background) throws IOException {
         Path jar = bridgeDirectory.resolve(BRIDGE_JAR);
         String currentPid = Long.toString(ProcessHandle.current().pid());
-        // No --background: with a tray available (GNOME + AppIndicator) the bridge
-        // would start hidden in the tray, and the window is where the output and
-        // microphone are chosen.
-        new ProcessBuilder(javaExecutable(), "-jar", jar.toString(), "--parent-pid", currentPid)
+        List<String> command = new ArrayList<>(List.of(javaExecutable(), "-jar", jar.toString(), "--parent-pid", currentPid));
+        // Only when it starts with the game: on demand the window shows, since it
+        // is where the output and microphone are chosen. In the background it goes
+        // to the tray, or still shows when there is no tray.
+        if (background) {
+            command.add("--background");
+        }
+        new ProcessBuilder(command)
             .directory(bridgeDirectory.toFile())
             // Nobody reads the pipes; once they fill up the bridge blocks on its next log line.
             .redirectErrorStream(true)
