@@ -96,8 +96,10 @@ public final class ForgeEvents {
                 CommonEvents.damaged(player, event.getAmount());
             }
         });
-        //#if MC>=1.19
+        //#if MC>=1.20.2
         ForgeBus.cancelIf(ServerChatEvent.class, event -> CommonEvents.chat(event.getPlayer(), event.getRawText()));
+        //#elif MC>=1.19
+        //$$ // 1.19 to 1.20.1 fire ServerChatEvent on a worker thread: ChatBroadcastMixin handles chat on the server thread.
         //#else
         //$$ ForgeBus.cancelIf(ServerChatEvent.class, event -> CommonEvents.chat(event.getPlayer(), event.getMessage()));
         //#endif

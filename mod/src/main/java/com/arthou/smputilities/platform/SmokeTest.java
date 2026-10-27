@@ -154,6 +154,10 @@ public final class SmokeTest {
 
     /** @return true for the bot's own requests, which are not chat */
     static boolean chat(ServerPlayer player, String text) {
+        if (isBot(player) && !Mc.server(player).isSameThread()) {
+            SmpUtilities.LOGGER.error("SMPUTILITIES SMOKE FAILED: chat ran on {}, not the server thread", Thread.currentThread().getName());
+            Runtime.getRuntime().halt(1);
+        }
         if (isBot(player) && text.equals("smoke:custom")) {
             SuServer.configManager().edit(config -> config.chat.customFormat = true);
             SmpUtilities.LOGGER.info("SMPUTILITIES SMOKE custom chat format on");
