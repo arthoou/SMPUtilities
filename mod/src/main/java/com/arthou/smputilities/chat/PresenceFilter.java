@@ -20,10 +20,12 @@ import net.minecraft.network.protocol.game.ClientboundDisguisedChatPacket;
 //#endif
 
 /**
- * Drops the vanilla join/leave lines on their way to each client, so
- * SMPutilities can send its own (custom format, disabled, or hidden while
- * vanished). Our replacements wrap the vanilla translation in an empty
- * component, which is how this filter tells them apart.
+ * Drops the vanilla join/leave lines, so SMPutilities can send its own
+ * (custom format, disabled, or hidden while vanished). They are stopped where
+ * the game broadcasts them (VanishBroadcastMixin, {@link #dropAtSource}),
+ * whichever loader event comes first; this filter on each connection also
+ * catches copies sent another way. Our replacements wrap the vanilla
+ * translation in an empty component, which is how both tell them apart.
  */
 public final class PresenceFilter extends ChannelOutboundHandlerAdapter {
     private static final String NAME = "smputilities_presence_filter";
@@ -33,6 +35,11 @@ public final class PresenceFilter extends ChannelOutboundHandlerAdapter {
         if (channel != null && channel.pipeline().get(NAME) == null && channel.pipeline().get("packet_handler") != null) {
             channel.pipeline().addBefore("packet_handler", NAME, new PresenceFilter());
         }
+    }
+
+    /** For the game's broadcast of a join/leave line: true when SMPutilities sends its own instead. */
+    public static boolean dropAtSource(Component message) {
+        return managed() && isVanillaPresence(message);
     }
 
     /** True while SMPutilities replaces vanilla presence messages. */

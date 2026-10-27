@@ -8,9 +8,10 @@
 # any mod loads; that target installs a real Forge server and runs the built
 # jar from mods/ instead.
 #
-# Fabric targets also run tools/client-smoke/bot.js (needs node and an
-# `npm install` there): a vanilla client joins and checks the chunks it gets,
-# including what the anti-xray hides (SMPUTILITIES_SMOKE=client).
+# Dev-server targets also run tools/client-smoke/bot.js (needs node and an
+# `npm install` there): a vanilla client joins and checks the join line and
+# the chunks it gets, including what the anti-xray hides
+# (SMPUTILITIES_SMOKE=client).
 set -uo pipefail
 target="$1"
 case "$target" in
@@ -19,9 +20,9 @@ case "$target" in
 esac
 mc=$(sed -n 's/^minecraft_version=//p' "versions/$target/gradle.properties")
 smoke=1
-case "$target" in
-    *-fabric) [ -d tools/client-smoke/node_modules ] && node tools/client-smoke/bot.js --check "$mc" && smoke=client ;;
-esac
+if [ "$mode" = dev ] && [ -d tools/client-smoke/node_modules ] && node tools/client-smoke/bot.js --check "$mc"; then
+    smoke=client
+fi
 if [ "$mode" = dev ]; then
     run="versions/$target/run"
 else

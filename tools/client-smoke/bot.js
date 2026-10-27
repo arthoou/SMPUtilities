@@ -1,5 +1,6 @@
 // Joins the smoke test server as a vanilla client and checks what it is sent:
-// the overworld spawn reads as the flat world it is, and in the Nether box
+// one join line only (SMPutilities' own, not also the vanilla one), the
+// overworld spawn reads as the flat world it is, and in the Nether box
 // SmokeTest builds (chat "smoke:nether"), buried ores read as netherrack while
 // ores open to the air read as themselves.
 // Usage: node bot.js <minecraft version> [port]   exit code 0 = passed, 1 = failed
@@ -19,6 +20,11 @@ if (check || !known) {
 const failures = []
 let finished = false
 const bot = mineflayer.createBot({ host: '127.0.0.1', port, username: 'SmokeBot', version, auth: 'offline' })
+const joinLines = []
+bot.on('message', (message) => {
+  const text = message.toString()
+  if (text.includes('SmokeBot') && text.includes('joined the game')) joinLines.push(text)
+})
 
 function finish () {
   if (finished) return
@@ -67,6 +73,12 @@ bot.once('spawn', async () => {
     console.log(`spawned in ${bot.game.dimension} at ${feet} (protocol ${bot.protocolVersion})`)
     expect(await blockAt(feet.offset(0, -1, 0), 'ground'), ['grass_block'], 'flat world surface')
     expect(await blockAt(new Vec3(feet.x, bot.game.minY, feet.z), 'bottom'), ['bedrock'], 'flat world bottom')
+
+    // The join lines arrive around the spawn; give a late one time to show up.
+    await sleep(2000)
+    const joins = joinLines.length
+    console.log(`${joins === 1 ? 'ok  ' : 'FAIL'} join lines: ${joins} ${JSON.stringify(joinLines)}`)
+    if (joins !== 1) failures.push(`expected one join line, got ${joins}: ${JSON.stringify(joinLines)}`)
 
     const changed = new Promise(resolve => bot.once('respawn', resolve))
     bot.chat('smoke:nether')
