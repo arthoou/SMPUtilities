@@ -4,6 +4,7 @@ import com.arthou.smputilities.SmpUtilities;
 import com.arthou.smputilities.antixray.XraySelfTest;
 import com.arthou.smputilities.core.teleport.Location;
 import com.arthou.smputilities.mc.Mc;
+import com.arthou.smputilities.server.SuServer;
 import com.arthou.smputilities.teleport.Teleports;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
@@ -26,7 +27,8 @@ import java.util.List;
  * the outcome and stops the server. Never active otherwise.
  *
  * <p>With SMPUTILITIES_SMOKE=client it then waits for tools/client-smoke's
- * bot (a vanilla client, "SmokeBot"): on its "smoke:nether" chat line it
+ * bot (a vanilla client, "SmokeBot"): "smoke:custom" turns on the custom
+ * chat format; on its "smoke:nether" chat line it
  * builds a netherrack box in the Nether with ores buried inside and on the
  * surface and sends the bot there, so the bot can check what the anti-xray
  * sent; the server stops when the bot leaves.
@@ -152,6 +154,11 @@ public final class SmokeTest {
 
     /** @return true for the bot's own requests, which are not chat */
     static boolean chat(ServerPlayer player, String text) {
+        if (isBot(player) && text.equals("smoke:custom")) {
+            SuServer.configManager().edit(config -> config.chat.customFormat = true);
+            SmpUtilities.LOGGER.info("SMPUTILITIES SMOKE custom chat format on");
+            return true;
+        }
         if (!isBot(player) || !text.equals("smoke:nether")) {
             return false;
         }

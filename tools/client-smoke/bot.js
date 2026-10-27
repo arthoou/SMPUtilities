@@ -1,6 +1,8 @@
 // Joins the smoke test server as a vanilla client and checks what it is sent:
-// one join line only (SMPutilities' own, not also the vanilla one), the
-// overworld spawn reads as the flat world it is, and in the Nether box
+// one join line only (SMPutilities' own, not also the vanilla one); chat and
+// another player's join and quit lines, once each, in the vanilla format and
+// then in the custom one (chat "smoke:custom"); the overworld spawn reads as
+// the flat world it is; and in the Nether box
 // SmokeTest builds (chat "smoke:nether"), buried ores read as netherrack while
 // ores open to the air read as themselves.
 // Usage: node bot.js <minecraft version> [port]   exit code 0 = passed, 1 = failed
@@ -20,10 +22,9 @@ if (check || !known) {
 const failures = []
 let finished = false
 const bot = mineflayer.createBot({ host: '127.0.0.1', port, username: 'SmokeBot', version, auth: 'offline' })
-const joinLines = []
+const lines = []
 bot.on('message', (message) => {
-  const text = message.toString()
-  if (text.includes('SmokeBot') && text.includes('joined the game')) joinLines.push(text)
+  lines.push(message.toString().trim())
 })
 
 function finish () {
@@ -62,6 +63,32 @@ function expect (block, names, what) {
   if (!ok) failures.push(`${what}: got ${name}, expected ${names.join(' or ')}`)
 }
 
+/** The lines matching select must be exactly the expected ones, in order. */
+function expectLines (select, expected, what) {
+  const got = lines.filter(select)
+  const ok = JSON.stringify(got) === JSON.stringify(expected)
+  console.log(`${ok ? 'ok  ' : 'FAIL'} ${what}: ${JSON.stringify(got)}`)
+  if (!ok) failures.push(`${what}: got ${JSON.stringify(got)}, expected ${JSON.stringify(expected)}`)
+}
+
+async function say (text) {
+  bot.chat(text)
+  await sleep(2000)
+}
+
+/** Another vanilla client joins, stays a moment and leaves. */
+async function visitor (name) {
+  const other = mineflayer.createBot({ host: '127.0.0.1', port, username: name, version, auth: 'offline' })
+  other.on('error', (error) => fail(`${name}: ${error && error.message}`))
+  other.on('kicked', (reason) => fail(`${name} kicked: ${JSON.stringify(reason)}`))
+  await Promise.race([new Promise(resolve => other.once('spawn', resolve)), sleep(60000)])
+  await sleep(1500)
+  const ended = new Promise(resolve => other.once('end', resolve))
+  other.quit()
+  await Promise.race([ended, sleep(10000)])
+  await sleep(2000)
+}
+
 bot.on('kicked', (reason) => fail('kicked: ' + JSON.stringify(reason)))
 bot.on('error', (error) => fail('error: ' + (error && error.stack || error)))
 bot.on('end', (reason) => { if (!finished) fail('disconnected: ' + reason) })
@@ -76,9 +103,23 @@ bot.once('spawn', async () => {
 
     // The join lines arrive around the spawn; give a late one time to show up.
     await sleep(2000)
-    const joins = joinLines.length
-    console.log(`${joins === 1 ? 'ok  ' : 'FAIL'} join lines: ${joins} ${JSON.stringify(joinLines)}`)
-    if (joins !== 1) failures.push(`expected one join line, got ${joins}: ${JSON.stringify(joinLines)}`)
+    expectLines(text => text.includes('SmokeBot joined the game'), ['SmokeBot joined the game'], 'own join line')
+
+    // Vanilla format (the default): chat, and another player's join and quit lines.
+    await say('smoke vanilla chat')
+    expectLines(text => text.includes('smoke vanilla chat'), ['<SmokeBot> smoke vanilla chat'], 'vanilla chat line')
+    await visitor('SmokeBot2')
+    expectLines(text => text.includes('SmokeBot2 joined'), ['SmokeBot2 joined the game'], 'vanilla join line of another player')
+    expectLines(text => text.includes('SmokeBot2 left'), ['SmokeBot2 left the game'], 'vanilla quit line of another player')
+
+    // Custom (QSMP) format, as set by chat.customFormat.
+    bot.chat('smoke:custom')
+    await sleep(1000)
+    await say('smoke custom chat')
+    expectLines(text => text.includes('smoke custom chat'), ['SmokeBot » smoke custom chat'], 'custom chat line')
+    await visitor('SmokeBot3')
+    expectLines(text => text.includes('SmokeBot3') && /\[[+-]\]|joined the game|left the game/.test(text),
+      ['[+] SmokeBot3', '[-] SmokeBot3'], 'custom join and quit lines (and no vanilla ones)')
 
     const changed = new Promise(resolve => bot.once('respawn', resolve))
     bot.chat('smoke:nether')
