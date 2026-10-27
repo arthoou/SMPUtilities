@@ -1,3 +1,5 @@
+<p align="center"><img src="mod/src/main/resources/smputilities_logo.png" alt="SMPutilities" width="256"></p>
+
 # SMPutilities
 
 One management mod for SMP and roleplay servers: staff panel, chat, moderation, vanish, inventories (viewing,

@@ -1,3 +1,5 @@
+<p align="center"><img src="mod/src/main/resources/smputilities_logo.png" alt="SMPutilities" width="256"></p>
+
 # SMPutilities
 
 Um único mod de gerenciamento para servidores SMP e de roleplay: painel da staff, chat, moderação, vanish,
