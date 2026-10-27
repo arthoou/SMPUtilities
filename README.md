@@ -233,9 +233,9 @@ voice meter, number of lines spoken, voices, player, a "Ready to play" checklist
 chat) and **Activity** (log). On Linux it creates the `SMPutilities_TTS_Cable` cable and the **SMPutilities TTS
 Microphone** microphone (pick that one in the voice chat). Windows and macOS can't create a virtual microphone without
 a driver: on Windows install VB-Cable, choose "CABLE Input" as the voice output in the app and "CABLE Output" as the
-microphone in the voice chat; on macOS install BlackHole 2ch (free, or `brew install blackhole-2ch`), choose
-"BlackHole 2ch" both as the voice output in the app and as the microphone in the voice chat, and allow Minecraft to use
-the microphone in System Settings. "Hear it yourself" plays a copy on your headphones on every system. Without the
+microphone in the voice chat; on macOS install VB-Cable (the default) or BlackHole 2ch (free, or
+`brew install blackhole-2ch`), choose the same device ("VB-Cable" or "BlackHole 2ch") both as the voice output in the
+app and as the microphone in the voice chat, and allow Minecraft to use the microphone in System Settings. "Hear it yourself" plays a copy on your headphones on every system. Without the
 app, only TTS is unavailable.
 
 ### World

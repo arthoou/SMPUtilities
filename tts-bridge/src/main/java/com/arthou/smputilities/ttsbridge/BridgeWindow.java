@@ -275,12 +275,16 @@ final class BridgeWindow extends JFrame {
             first.add(Ui.row(create, remove));
         } else {
             first.add(Ui.body(Tts.MAC
-                ? t("macOS needs a driver for a virtual microphone: install BlackHole 2ch once (free; or: brew install blackhole-2ch).",
-                    "O macOS precisa de um driver para ter um microfone virtual: instale o BlackHole 2ch uma vez (grátis; ou: brew install blackhole-2ch).")
+                ? t("macOS needs a driver for a virtual microphone: install VB-Cable once (the default), or BlackHole 2ch if you prefer it.",
+                    "O macOS precisa de um driver para ter um microfone virtual: instale o VB-Cable uma vez (o padrão), ou o BlackHole 2ch se preferir.")
                 : t("Windows needs a driver for a virtual microphone: install VB-Cable once.",
                     "O Windows precisa de um driver para ter um microfone virtual: instale o VB-Cable uma vez."), Theme.TEXT_DIM, 12, Font.PLAIN));
             first.add(Box.createVerticalStrut(8));
-            first.add(Ui.link(Audio.driverLink(), Audio.driverUrl()));
+            first.add(Ui.link(Audio.VB_CABLE_LINK, Audio.VB_CABLE_URL));
+            if (Tts.MAC) {
+                first.add(Box.createVerticalStrut(4));
+                first.add(Ui.link(Audio.BLACKHOLE_LINK + "  (brew install blackhole-2ch)", Audio.BLACKHOLE_URL));
+            }
         }
         page.add(first);
         page.add(Box.createVerticalStrut(12));
@@ -288,6 +292,7 @@ final class BridgeWindow extends JFrame {
         // 2. where the voice is played
         Ui.Card second = step(2, t("Send the voice into it", "Mande a voz para ele"));
         second.add(Ui.body(Audio.canCreateCable() ? t("Pick \"SMPutilities TTS Cable\".", "Escolha \"SMPutilities TTS Cable\".")
+            : Tts.MAC ? t("Pick \"VB-Cable\" (or \"BlackHole 2ch\").", "Escolha \"VB-Cable\" (ou \"BlackHole 2ch\").")
             : t("Pick \"" + Audio.driverOutput() + "\".", "Escolha \"" + Audio.driverOutput() + "\"."), Theme.TEXT_DIM, 12, Font.PLAIN));
         second.add(Box.createVerticalStrut(8));
         JComboBox<Audio.Device> devices = combo();
@@ -403,6 +408,9 @@ final class BridgeWindow extends JFrame {
             Config.setOutputSink(selected.name());
             saved.setText(t("Saved: ", "Salvo: ") + selected);
             append(t("Voice output set to ", "Saída da voz: ") + selected);
+            if (!Audio.canCreateCable()) {
+                micName.setText(Audio.driverMicrophone());
+            }
             refreshChecks();
         });
 

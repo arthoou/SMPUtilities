@@ -238,9 +238,9 @@ voz), **Microfone** (quatro passos: criar o microfone virtual, mandar a voz para
 escolher no voice chat) e **Atividade** (registro). No Linux ele cria o cabo `SMPutilities_TTS_Cable` e o
 microfone **SMPutilities TTS Microphone** (escolha esse no voice chat). No Windows e no macOS não dá para criar um
 microfone virtual sem driver: no Windows instale o VB-Cable, escolha "CABLE Input" como saída da voz no app e
-"CABLE Output" como microfone no voice chat; no macOS instale o BlackHole 2ch (grátis, ou `brew install blackhole-2ch`),
-escolha "BlackHole 2ch" como saída da voz no app e como microfone no voice chat, e libere o microfone para o Minecraft
-nos Ajustes do Sistema. "Ouça também" toca uma cópia nos seus fones em todos os sistemas. Sem o app, só o TTS fica
+"CABLE Output" como microfone no voice chat; no macOS instale o VB-Cable (o padrão) ou o BlackHole 2ch (grátis, ou
+`brew install blackhole-2ch`), escolha o mesmo dispositivo ("VB-Cable" ou "BlackHole 2ch") como saída da voz no app e
+como microfone no voice chat, e libere o microfone para o Minecraft nos Ajustes do Sistema. "Ouça também" toca uma cópia nos seus fones em todos os sistemas. Sem o app, só o TTS fica
 indisponível.
 
 ### Mundo

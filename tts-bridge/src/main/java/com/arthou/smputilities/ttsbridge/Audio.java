@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Where the voice is played, per system.
@@ -13,8 +14,9 @@ import java.util.List;
  * Linux: the app creates the cable itself with PulseAudio / PipeWire, a null
  * sink whose ".monitor" source feeds a microphone the game can pick.
  * Windows and macOS have no user-space virtual device, so a driver provides
- * the cable (VB-Cable on Windows, BlackHole on macOS) and Java Sound plays
- * the voice into it; the voice chat then picks the driver's input.
+ * the cable and Java Sound plays the voice into it; the voice chat then picks
+ * the driver's input. Windows uses VB-Cable; macOS takes VB-Cable (the
+ * default) or BlackHole, whichever is installed or chosen.
  */
 final class Audio {
     /** Sink name we create. Its monitor is what the game selects as microphone. */
@@ -72,27 +74,63 @@ final class Audio {
         return Tts.WINDOWS || Tts.MAC;
     }
 
+    static final String BLACKHOLE_LINK = "existential.audio/blackhole";
+    static final String BLACKHOLE_URL = "https://existential.audio/blackhole/";
+    static final String VB_CABLE_LINK = "vb-audio.com/Cable";
+    static final String VB_CABLE_URL = "https://vb-audio.com/Cable/";
+
+    private static boolean isVbCable(String device) {
+        String name = device == null ? "" : device.toLowerCase(Locale.ROOT);
+        return name.contains("vb-cable") || name.contains("vb-audio");
+    }
+
+    private static boolean isBlackHole(String device) {
+        return device != null && device.toLowerCase(Locale.ROOT).contains("blackhole");
+    }
+
+    /**
+     * macOS takes either driver: the one the voice is set to, else VB-Cable when
+     * it is installed (the default), else BlackHole when only that one is.
+     */
+    private static boolean macUsesBlackHole() {
+        if (!Tts.MAC) {
+            return false;
+        }
+        String chosen = Config.outputSink();
+        if (isBlackHole(chosen) || isVbCable(chosen)) {
+            return isBlackHole(chosen);
+        }
+        List<Device> outputs = sinks();
+        return outputs.stream().noneMatch(d -> isVbCable(d.name())) && outputs.stream().anyMatch(d -> isBlackHole(d.name()));
+    }
+
     /** The driver that provides the cable on this system. */
     static String driverName() {
-        return Tts.MAC ? "BlackHole" : "VB-Cable";
+        return macUsesBlackHole() ? "BlackHole" : "VB-Cable";
     }
 
     static String driverLink() {
-        return Tts.MAC ? "existential.audio/blackhole" : "vb-audio.com/Cable";
+        return macUsesBlackHole() ? BLACKHOLE_LINK : VB_CABLE_LINK;
     }
 
     static String driverUrl() {
-        return Tts.MAC ? "https://existential.audio/blackhole/" : "https://vb-audio.com/Cable/";
+        return macUsesBlackHole() ? BLACKHOLE_URL : VB_CABLE_URL;
     }
 
     /** The driver's playback device: where the voice goes. */
     static String driverOutput() {
-        return Tts.MAC ? "BlackHole 2ch" : "CABLE Input";
+        if (Tts.MAC) {
+            return macUsesBlackHole() ? "BlackHole 2ch" : "VB-Cable";
+        }
+        return "CABLE Input";
     }
 
     /** The driver's recording device: what the voice chat picks as microphone. */
     static String driverMicrophone() {
-        return Tts.MAC ? "BlackHole 2ch" : "CABLE Output (VB-Audio Virtual Cable)";
+        if (Tts.MAC) {
+            return macUsesBlackHole() ? "BlackHole 2ch" : "VB-Cable";
+        }
+        return "CABLE Output (VB-Audio Virtual Cable)";
     }
 
     /** True for the device the voice should be played on: our Linux cable or the driver's input. */
@@ -100,8 +138,11 @@ final class Audio {
         if (device == null || device.isBlank()) {
             return false;
         }
-        if (usesDriverCable()) {
-            return Tts.MAC ? device.contains("BlackHole") : device.contains("CABLE Input");
+        if (Tts.MAC) {
+            return isVbCable(device) || isBlackHole(device);
+        }
+        if (Tts.WINDOWS) {
+            return device.contains("CABLE Input");
         }
         return device.equals(CABLE_SINK);
     }
