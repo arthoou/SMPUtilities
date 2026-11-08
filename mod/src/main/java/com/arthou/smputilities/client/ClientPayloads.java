@@ -97,11 +97,15 @@ public final class ClientPayloads {
     }
 
     public static void ttsSpeak(Payloads.TtsSpeak payload) {
+        if (ClientSmoke.spoke(payload.text())) {
+            return;
+        }
         VoiceClient.speak(payload.text(), payload.voice(), payload.pitch());
     }
 
     public static void ttsMenu(Payloads.TtsMenu payload) {
         TtsMenuScreen.open(payload.mode(), payload.language());
+        ClientSmoke.menuOpened();
     }
 
     public static void bubble(Payloads.Bubble payload) {

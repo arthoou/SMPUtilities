@@ -100,6 +100,12 @@ sourceSets {
 
 loom {
     silentMojangMappingsLicense()
+    // The client end-to-end test runs a client next to the dev server: separate folders.
+    runs {
+        client {
+            runDir 'run-client'
+        }
+    }
     if (isForge) {
         forge {
             mixinConfig 'smputilities.mixins.json', 'smputilities.forge.mixins.json'

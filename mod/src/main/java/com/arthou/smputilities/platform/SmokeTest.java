@@ -4,8 +4,11 @@ import com.arthou.smputilities.SmpUtilities;
 import com.arthou.smputilities.antixray.XraySelfTest;
 import com.arthou.smputilities.core.teleport.Location;
 import com.arthou.smputilities.mc.Mc;
+import com.arthou.smputilities.network.SuNetwork;
 import com.arthou.smputilities.server.SuServer;
 import com.arthou.smputilities.teleport.Teleports;
+import com.arthou.smputilities.tts.TtsPresets;
+import com.arthou.smputilities.tts.TtsService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -32,12 +35,19 @@ import java.util.List;
  * builds a netherrack box in the Nether with ores buried inside and on the
  * surface and sends the bot there, so the bot can check what the anti-xray
  * sent; the server stops when the bot leaves.
+ *
+ * <p>With SMPUTILITIES_SMOKE=modclient it waits for a client running the mod
+ * ("SmokeClient", tools/client-e2e.sh) and, once it joined, runs /tts as that
+ * player and voices a TTS line for it; the client checks the menu opened and
+ * the line arrived (see ClientSmoke), then leaves.
  */
 public final class SmokeTest {
     private static final String MODE = System.getenv("SMPUTILITIES_SMOKE");
-    private static final boolean ENABLED = "1".equals(MODE) || "client".equals(MODE);
-    private static final boolean CLIENT = "client".equals(MODE);
-    private static final String BOT = "SmokeBot";
+    private static final boolean MOD_CLIENT = "modclient".equals(MODE);
+    private static final boolean ENABLED = "1".equals(MODE) || "client".equals(MODE) || MOD_CLIENT;
+    /** Whether a client joins after the server's own checks. */
+    private static final boolean CLIENT = "client".equals(MODE) || MOD_CLIENT;
+    private static final String BOT = MOD_CLIENT ? "SmokeClient" : "SmokeBot";
     /** Ticks to wait for the bot before giving up. */
     private static final int BOT_TIMEOUT = 20 * 240;
     /** Classes changed by mixins on some loader and version (missing ones are skipped). */
@@ -68,6 +78,9 @@ public final class SmokeTest {
     /** Run as the console; command errors are logged by the game, which the CI step looks for. */
     private static final List<String> COMMANDS = List.of("su", "su reload", "help", "su reports", "su restart", "su xray", "su log lookup t:1h r:#world", "su maintenance", "su jail list", "rules", "list");
     private static int ticks;
+    /** The modded client and the tick its checks run at. */
+    private static ServerPlayer modClient;
+    private static int modClientChecksAt;
 
     private SmokeTest() {
     }
@@ -77,6 +90,9 @@ public final class SmokeTest {
             return;
         }
         ticks++;
+        if (modClient != null && ticks == modClientChecksAt) {
+            modClientChecks(server, modClient);
+        }
         if (CLIENT && ticks == 40 + BOT_TIMEOUT) {
             SmpUtilities.LOGGER.error("SMPUTILITIES SMOKE FAILED: the client bot did not finish in time");
             Runtime.getRuntime().halt(1);
@@ -136,7 +152,23 @@ public final class SmokeTest {
         if (isBot(player)) {
             player.setGameMode(GameType.CREATIVE);
             SmpUtilities.LOGGER.info("SMPUTILITIES SMOKE client joined");
+            if (MOD_CLIENT) {
+                modClient = player;
+                modClientChecksAt = ticks + 60;
+            }
         }
+    }
+
+    /** What a player does on a server: /tts, then a TTS line once a voice is chosen. */
+    private static void modClientChecks(MinecraftServer server, ServerPlayer player) {
+        SmpUtilities.LOGGER.info("SMPUTILITIES SMOKE modded client announced the channel: {}", SuNetwork.hasMod(player));
+        //#if MC>=1.19
+        server.getCommands().performPrefixedCommand(player.createCommandSourceStack(), "tts");
+        //#else
+        //$$ server.getCommands().performCommand(player.createCommandSourceStack(), "tts");
+        //#endif
+        TtsService.select(player, TtsPresets.MODE_MASCULINE_2, 0);
+        SmpUtilities.LOGGER.info("SMPUTILITIES SMOKE TTS line sent: {}", TtsService.speak(player, "smoke tts line"));
     }
 
     static void onLogout(ServerPlayer player) {

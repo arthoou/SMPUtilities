@@ -43,9 +43,10 @@ public final class SuClient {
                 ClientCompat.sendCommand("su staff");
             }
         }
-        if (ticks == 0) {
+        if (ticks == 0 && !ClientSmoke.ON) {
             BridgeLauncher.startWithGame();
         }
+        ClientSmoke.tick(minecraft);
         BubbleManager.tick();
         TypingWatcher.tick(minecraft);
         PanelReturn.tick(minecraft);

@@ -25,6 +25,7 @@ public final class ClientNetwork {
                 return;
             }
             if (message != null) {
+                ClientSmoke.received(message);
                 ClientPayloads.handle(message);
             }
         });
