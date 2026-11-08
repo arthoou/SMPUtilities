@@ -59,7 +59,11 @@ if [ "$mode" = installed ]; then
             installer=$(curl -fsSL https://meta.fabricmc.net/v2/versions/installer | python3 -c 'import json,sys; print(json.load(sys.stdin)[0]["version"])')
             fetch "$server_dir/server.jar" "https://meta.fabricmc.net/v2/versions/loader/$mc/$(prop fabric_loader_version)/$installer/server/jar"
             api=$(prop fabric_api_version)
-            fetch "$server_dir/mods/fabric-api.jar" "https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/$api/fabric-api-$api.jar"
+            # From Modrinth, where players get it.
+            api_url=$(curl -fsSL "https://api.modrinth.com/v2/project/fabric-api/version?game_versions=%5B%22$mc%22%5D&loaders=%5B%22fabric%22%5D" \
+                | python3 -c 'import json,sys; v=[x for x in json.load(sys.stdin) if x["version_number"]==sys.argv[1]]; print(v[0]["files"][0]["url"] if v else "")' "$api")
+            [ -n "$api_url" ] || { echo "== Fabric API $api not found on Modrinth"; exit 1; }
+            fetch "$server_dir/mods/fabric-api.jar" "$api_url"
             start=("$java" -Xmx2G -jar server.jar nogui)
             ;;
         forge)
