@@ -5,12 +5,13 @@ on:
   workflow_dispatch:
 jobs:
   e2e:
-    name: ${{ matrix.target }}
+    name: ${{ matrix.target }} (${{ matrix.server }} server)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         target: [1.18.2-fabric, 1.20.1-forge, 1.20.1-fabric, 1.21.1-fabric, 1.21.1-neoforge, 1.21.11-fabric]
+        server: [dev, installed]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -23,12 +24,13 @@ jobs:
       - name: Virtual display
         run: sudo apt-get update -qq && sudo apt-get install -y -qq xvfb libgl1-mesa-dri > /dev/null
       - name: Server and modded client
-        run: tools/client-e2e.sh "${{ matrix.target }}"
+        run: tools/client-e2e.sh "${{ matrix.target }}" "${{ matrix.server }}"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: e2e-logs-${{ matrix.target }}
+          name: e2e-logs-${{ matrix.target }}-${{ matrix.server }}
           path: |
             e2e-*.log
+            build/e2e-server/*/logs/
             versions/${{ matrix.target }}/run-client/logs/
             versions/${{ matrix.target }}/run-client/screenshots/
